@@ -39,7 +39,7 @@ ADJANGO_EXCEPTION_REPORT_EMAIL = ('ivanhvalevskey@gmail.com',)
 ADJANGO_EXCEPTION_REPORT_TEMPLATE = 'logui/error_report.html'
 
 # adjango использует send_emails для отправки писем синхронно.
-ADJANGO_USE_CELERY_MAIL_REPORT = True  # Использовать ли celery для отправки писем
+ADJANGO_USE_CELERY_MAIL_REPORT = False  # Использовать ли celery для отправки писем
 ADJANGO_CELERY_SEND_MAIL_TASK = send_mail_task_function  # callable task
 ADJANGO_LOGGER_NAME = 'global'
 ADJANGO_EMAIL_LOGGER_NAME = 'email'
