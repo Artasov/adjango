@@ -135,12 +135,14 @@ class Command(BaseCommand):
                     file_path = os.path.join(sub_root, file)
                     self.collect_file_contents(file_path, result, base_dir)
 
-    def collect_file_contents(self, file_path, result, base_dir):
+    @staticmethod
+    def collect_file_contents(file_path, result, base_dir):
         relative_path = os.path.relpath(file_path, base_dir)
         result.append(f'\n# {relative_path}\n')
         with open(file_path, 'r', encoding='utf-8') as f:
             result.append(f.read())
 
-    def get_all_apps(self):
+    @staticmethod
+    def get_all_apps():
         apps_path = os.path.join(settings.ADJANGO_BACKENDS_APPS)
         return [name for name in os.listdir(apps_path) if os.path.isdir(os.path.join(apps_path, name))]

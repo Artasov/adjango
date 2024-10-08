@@ -150,12 +150,16 @@ def acontroller(name=None, logger=settings.ADJANGO_LOGGER_NAME, log_name=True, l
                     return await fn(request, *args, **kwargs)
                 except Exception as e:
                     log.critical(f"ERROR in {fn_name}: {traceback_str(e)}", exc_info=True)
-                    send_emails(
-                        subject='SERVER ERROR',
-                        emails=settings.ADJANGO_EXCEPTION_REPORT_EMAILS,
-                        template=settings.ADJANGO_EXCEPTION_REPORT_TEMPLATE,
-                        context={'traceback': traceback_str(e), }
-                    )
+                    email_context = {
+                        'subject': 'SERVER ERROR',
+                        'emails': settings.ADJANGO_EXCEPTION_REPORT_EMAILS,
+                        'template': settings.ADJANGO_EXCEPTION_REPORT_TEMPLATE,
+                        'context': {'traceback': traceback_str(e), }
+                    }
+                    if settings.ADJANGO_USE_CELERY_MAIL_REPORT:
+                        settings.ADJANGO_CELERY_SEND_MAIL_TASK.delay(**email_context)
+                    else:
+                        send_emails(**email_context)
                     raise e
 
         return inner
@@ -187,12 +191,16 @@ def controller(name=None, logger=settings.ADJANGO_LOGGER_NAME, log_name=True, lo
                         return fn(request, *args, **kwargs)
                 except Exception as e:
                     log.critical(f"ERROR in {fn_name}: {traceback_str(e)}", exc_info=True)
-                    send_emails(
-                        subject='SERVER ERROR',
-                        emails=settings.ADJANGO_EXCEPTION_REPORT_EMAILS,
-                        template=settings.ADJANGO_EXCEPTION_REPORT_TEMPLATE,
-                        context={'traceback': traceback_str(e), }
-                    )
+                    email_context = {
+                        'subject': 'SERVER ERROR',
+                        'emails': settings.ADJANGO_EXCEPTION_REPORT_EMAILS,
+                        'template': settings.ADJANGO_EXCEPTION_REPORT_TEMPLATE,
+                        'context': {'traceback': traceback_str(e), }
+                    }
+                    if settings.ADJANGO_USE_CELERY_MAIL_REPORT:
+                        settings.ADJANGO_CELERY_SEND_MAIL_TASK.delay(**email_context)
+                    else:
+                        send_emails(**email_context)
                     raise e
 
         return inner
