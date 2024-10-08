@@ -12,7 +12,7 @@ from django.db.models import QuerySet, Model, Manager
 from django.db.transaction import Atomic
 from django.shortcuts import resolve_url, redirect
 
-from adjango.utils import download_file_to_temp
+from adjango.utils.base import download_file_to_temp
 
 
 class AsyncAtomicContextManager(Atomic):
