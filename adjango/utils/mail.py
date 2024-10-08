@@ -5,8 +5,6 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
-log = logging.getLogger(settings.ADJANGO_EMAIL_LOGGER_NAME)
-
 
 def send_emails(subject: str, emails: tuple, template: str, context=None):
     """
@@ -17,6 +15,7 @@ def send_emails(subject: str, emails: tuple, template: str, context=None):
     @param template: Путь к шаблону письма.
     @param context: Контекст для рендеринга шаблона.
     """
+    log = logging.getLogger(settings.ADJANGO_EMAIL_LOGGER_NAME)
     if send_mail(
             subject=subject, message=str(json.dumps(context)),
             from_email=settings.EMAIL_HOST_USER,
