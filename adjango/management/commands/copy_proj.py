@@ -89,7 +89,7 @@ class Command(BaseCommand):
                 if not os.path.exists(app_path):
                     self.stdout.write(self.style.ERROR(f"App {app} does not exist in backend. Skipping."))
                     continue
-                for root, dirs, files in os.walk(app_path):
+                for root, dirs, files in os.walk(str(app_path)):
                     for name in target_names:
                         if name in dirs:
                             dir_path = os.path.join(root, name)
@@ -104,7 +104,7 @@ class Command(BaseCommand):
                 if not os.path.exists(app_path):
                     self.stdout.write(self.style.ERROR(f"App {app} does not exist in frontend. Skipping."))
                     continue
-                for root, dirs, files in os.walk(app_path):
+                for root, dirs, files in os.walk(str(app_path)):
                     for name in target_names:
                         if name in dirs:
                             dir_path = os.path.join(root, name)
@@ -144,4 +144,4 @@ class Command(BaseCommand):
     @staticmethod
     def get_all_apps():
         apps_path = os.path.join(settings.ADJANGO_BACKENDS_APPS)
-        return [name for name in os.listdir(apps_path) if os.path.isdir(os.path.join(apps_path, name))]
+        return [name for name in os.listdir(str(apps_path)) if os.path.isdir(os.path.join(str(apps_path), name))]

@@ -16,7 +16,7 @@ class Command(BaseCommand):
         for app in settings.INSTALLED_APPS:
             # Проверяем, что приложение начинается с нужного префикса (если указан)
             if apps_prepath is None or app.startswith(apps_prepath):
-                app_path = os.path.join(base_dir, app.replace('.', '/'))
+                app_path = str(os.path.join(base_dir, app.replace('.', '/')))
                 migrations_path = os.path.join(app_path, 'migrations')
                 if os.path.exists(migrations_path):
                     # Удаляем все файлы миграций, кроме __init__.py

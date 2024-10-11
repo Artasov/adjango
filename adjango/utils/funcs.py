@@ -7,9 +7,10 @@ from urllib.parse import urlparse
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.core.files import ContentFile
+from django.contrib.auth.views import redirect_to_login
+from django.core.files.base import ContentFile
 from django.db.models import QuerySet, Model, Manager
-from django.shortcuts import resolve_url, redirect
+from django.shortcuts import resolve_url
 
 from adjango.utils.base import download_file_to_temp
 
@@ -57,7 +58,7 @@ async def arelated(model_object: Model, related_field_name: str) -> object | Non
 
     @usage: result = await arelated(my_model_instance, "related_field_name")
     """
-    return await sync_to_async(getattr)(model_object, related_field_name, None)
+    return await sync_to_async(getattr)(model_object, related_field_name)
 
 
 async def aadd(queryset: Manager, data: Any, *args: Any, **kwargs: Any) -> None:
@@ -86,7 +87,7 @@ async def aall(objects: Manager) -> list:
 
     @usage: result = await aall(MyModel.objects)
     """
-    return await sync_to_async(list)(objects.all())
+    return await sync_to_async(lambda: list(objects.all()))()
 
 
 async def afilter(queryset: QuerySet, *args: Any, **kwargs: Any) -> list:
@@ -101,35 +102,34 @@ async def afilter(queryset: QuerySet, *args: Any, **kwargs: Any) -> list:
 
     @usage: result = await afilter(MyModel.objects, field=value)
     """
-    return await sync_to_async(list)(queryset.filter(*args, **kwargs))
+    return await sync_to_async(lambda: list(queryset.filter(*args, **kwargs)))()
 
 
-def auser_passes_test(test_func: Any, login_url: str = None, redirect_field_name: str = REDIRECT_FIELD_NAME):
+def auser_passes_test(
+        test_func: Any,
+        login_url: str = None,
+        redirect_field_name: str = REDIRECT_FIELD_NAME,
+):
     """
-    Декоратор для представлений, который проверяет, соответствует ли пользователь переданному тесту,
-    перенаправляя на страницу входа при необходимости.
-
-    @param test_func: Функция теста, которая принимает объект пользователя и возвращает True, если тест пройден.
-    @param login_url: URL страницы входа, на которую будет произведено перенаправление при провале теста.
-                      Если не указано, будет использован LOGIN_URL из настроек Django.
-    @param redirect_field_name: Имя поля, используемого для передачи URL перенаправления после успешного входа.
-
-    @return: Декоратор для представления.
+    Asynchronous decorator for views that checks if the user passes the test,
+    redirecting to the login page if necessary.
     """
-    if not login_url: login_url = settings.LOGIN_URL
+    if not login_url:
+        login_url = settings.LOGIN_URL
 
     def decorator(view_func):
         @wraps(view_func)
         async def _wrapped_view(request, *args, **kwargs):
-            if await test_func(request.user): return await view_func(request, *args, **kwargs)
+            if await test_func(request.user):
+                return await view_func(request, *args, **kwargs)
             path = request.build_absolute_uri()
             resolved_login_url = resolve_url(login_url)
             login_scheme, login_netloc = urlparse(resolved_login_url)[:2]
             current_scheme, current_netloc = urlparse(path)[:2]
-            if ((not login_scheme or login_scheme == current_scheme) and
-                    (not login_netloc or login_netloc == current_netloc)):
-                path = request.get_full_path()
-            return redirect(login_url)
+            if (not login_scheme or login_scheme == current_scheme) and (
+                    not login_netloc or login_netloc == current_netloc
+            ): path = request.get_full_path()
+            return redirect_to_login(path, resolved_login_url, redirect_field_name)
 
         return _wrapped_view
 

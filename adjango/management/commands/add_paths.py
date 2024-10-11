@@ -73,22 +73,21 @@ class Command(BaseCommand):
         for app_path in app_paths:
             current_app = os.path.basename(app_path)
             self.stdout.write(f"Processing app '{current_app}'...")
-            for root, dirs, files in os.walk(app_path):
+            for root, dirs, files in os.walk(str(app_path)):
                 # Exclude specified directories
                 dirs[:] = [d for d in dirs if d not in exclude_names]
                 for file_name in files:
                     if file_name.endswith(file_extensions) and file_name not in exclude_names:
                         file_path = os.path.join(root, file_name)
                         relative_path = os.path.relpath(file_path, apps_dir)
-                        self.check_and_fix_file(file_path, relative_path, file_extensions)
+                        self.check_and_fix_file(file_path, relative_path)
 
-    def check_and_fix_file(self, file_path, relative_path, file_extensions):
+    def check_and_fix_file(self, file_path, relative_path, ):
         """
         Checks and updates the file by adding or correcting the file path comment at the top.
 
         @param file_path: Full path to the file.
-        @param relative_path: Relative path of the file from the apps directory.
-        @param file_extensions: List of valid file extensions to determine comment type.
+        @param relative_path: Relative path of the file from the app's directory.
         """
         with open(file_path, 'r', encoding='utf-8') as f:
             lines = f.readlines()
@@ -96,10 +95,10 @@ class Command(BaseCommand):
         # Determine comment style based on file extension
         if file_path.endswith('.py'):
             expected_comment = f'# {relative_path.replace(os.sep, "/")}\n'
-            comment_prefix = '#'
+            # comment_prefix = '#'
         else:
             expected_comment = f'// {relative_path.replace(os.sep, "/")}\n'
-            comment_prefix = '//'
+            # comment_prefix = '//'
 
         if lines:
             first_line = lines[0].strip()

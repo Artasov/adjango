@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
@@ -16,8 +17,8 @@ class Command(BaseCommand):
     def add_arguments(self, parser) -> None:
         parser.add_argument('directory', type=str, help='Directory from which data files will be loaded')
 
-    def handle(self, *args: tuple, **options: dict) -> None:
-        directory: str = options['directory']
+    def handle(self, *args: tuple, **options: Any) -> None:
+        directory = options['directory']
         if not os.path.exists(directory):
             self.stdout.write(self.style.ERROR(f'Directory {directory} does not exist'))
             return

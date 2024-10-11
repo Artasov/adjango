@@ -156,11 +156,11 @@ def aallowed_only(allowed_methods: list[str]) -> Callable[[Callable[..., Any]], 
 def alogin_required(
         function: Callable[..., Any] | None = None,
         redirect_field_name: str = REDIRECT_FIELD_NAME,
-        login_url: str | None = None
+        login_url: str | None = None,
 ) -> Callable[..., Any]:
     """
-    Decorator for views that checks that the user is logged in, redirecting
-    to the log-in page if necessary.
+    Asynchronous decorator for views that checks if the user is authenticated,
+    redirecting to the login page if necessary.
     """
     actual_decorator = auser_passes_test(
         sync_to_async(lambda u: u.is_authenticated),
