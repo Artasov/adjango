@@ -7,8 +7,11 @@ from urllib.parse import urlparse
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.core.files import ContentFile
 from django.db.models import QuerySet, Model, Manager
 from django.shortcuts import resolve_url, redirect
+
+from adjango.utils.base import download_file_to_temp
 
 
 async def aget(
@@ -131,3 +134,19 @@ def auser_passes_test(test_func: Any, login_url: str = None, redirect_field_name
         return _wrapped_view
 
     return decorator
+
+
+async def set_image_by_url(model_obj: Model, field_name: str, image_url: str) -> None:
+    """
+    Загружает изображение с заданного URL и устанавливает его в указанное поле модели без
+    предварительного сохранения файла на диск.
+
+    @param model_obj: Экземпляр модели, в который нужно установить изображение.
+    @param field_name: Название поля, в которое нужно сохранить изображение.
+    @param image_url: URL изображения, которое нужно загрузить.
+    @return: None
+    """
+    image_file: ContentFile = await download_file_to_temp(image_url)
+    # Используем setattr, чтобы установить файл в поле модели
+    await sync_to_async(getattr(model_obj, field_name).save)(image_file.name, image_file)
+    await model_obj.asave()
