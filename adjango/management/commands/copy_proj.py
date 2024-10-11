@@ -1,4 +1,3 @@
-# core/management/commands/copy_proj.py
 import os
 
 import pyperclip

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 
@@ -6,7 +8,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
 
-def send_emails(subject: str, emails: tuple, template: str, context=None):
+def send_emails(subject: str, emails: tuple[str, ...] | list[str, ...], template: str, context=None):
     """
     Отправляет email с использованием указанного шаблона.
 
@@ -22,8 +24,6 @@ def send_emails(subject: str, emails: tuple, template: str, context=None):
             recipient_list=list(emails),
             html_message=render_to_string(template, context=context if context is not None else {})
     ):
-        log.info(f'Successfully sent template={template} emails {", ".join(emails)}')
+        log.info(f'Successfully sent {template=} {emails=}')
     else:
-        log.critical(
-            f'Failed to send template={template} emails {", ".join(emails)} context={str(json.dumps(context))}'
-        )
+        log.critical(f'Failed to send {template=} {emails=} {context=}')

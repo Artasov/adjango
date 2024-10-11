@@ -1,6 +1,9 @@
 from os.path import join
 from pathlib import Path
 
+from adjango.decorators import _handling_function
+from adjango.tasks import send_emails_task
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-@!c2^-9o^q#&te$c(u(k$l$cm^17p6p9e7cp1v8hnkdzg)a4^w'
 DEBUG = True
@@ -13,35 +16,36 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_celery_beat',
     'adjango',
     'app'
 ]
 
-
-# @shared_task
-def send_mail_task_function(
-        # subject='SERVER ERROR',
-        # emails=settings.ADJANGO_EXCEPTION_REPORT_EMAILS,
-        # template=settings.ADJANGO_EXCEPTION_REPORT_TEMPLATE,
-        # context={'traceback': traceback_str(e), }
-): pass
-
+# Celery
+REDIS_BROKER_URL = 'redis://localhost:6379/0'
+timezone = 'Europe/Moscow'
+broker_url = REDIS_BROKER_URL
+CELERY_BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 86400 * 30}
+result_backend = REDIS_BROKER_URL
+accept_content = ['application/json']
+task_serializer = 'json'
+result_serializer = 'json'
+task_default_queue = 'default'
+broker_connection_retry_on_startup = True
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+CELERY_TASK_ALWAYS_EAGER = False
+CELERY_TASK_EAGER_PROPAGATES = True
 
 # adjango settings
+
 LOGIN_URL = '/login/'
 ADJANGO_BACKENDS_APPS = BASE_DIR / 'apps'
 ADJANGO_FRONTEND_APPS = BASE_DIR.parent / 'frontend' / 'src' / 'apps'
 ADJANGO_APPS_PREPATH = 'apps.'  # if apps in BASE_DIR/apps/app1,app2...
 # ADJANGO_APPS_PREPATH = None # if in BASE_DIR/app1,app2...
-ADJANGO_EXCEPTION_REPORT_EMAIL = ('ivanhvalevskey@gmail.com',)
-# Template for sending a email report on an uncaught error.
-# Вы можете его переопределить он принимает лишь context={'traceback': 'str'}
-ADJANGO_EXCEPTION_REPORT_TEMPLATE = 'logui/error_report.html'
-
-# adjango использует send_emails для отправки писем синхронно.
-ADJANGO_USE_CELERY_MAIL_REPORT = False  # Использовать ли celery для отправки писем
-ADJANGO_CELERY_SEND_MAIL_TASK = send_mail_task_function  # callable task
-ADJANGO_LOGGER_NAME = 'global'
+ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION = _handling_function
+ADJANGO_CONTROLLERS_LOGGER_NAME = 'global'
+ADJANGO_CONTROLLERS_LOGGING = True
 ADJANGO_EMAIL_LOGGER_NAME = 'email'
 
 MIDDLEWARE = [

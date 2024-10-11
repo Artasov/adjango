@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="adjango",
-    version="0.0.4",
+    version="0.0.6",
     author="xlartas",
     author_email="ivanhvalevskey@gmail.com",
     description="A library with many features for interacting with Django",
@@ -18,6 +18,7 @@ setuptools.setup(
         "Django>=4.0,<5.3",
         "pyperclip>=1.8.0",
         "aiohttp>=3.8.0",
+        "celery>=5.0.0",
     ],
     classifiers=[
         "Framework :: Django",
