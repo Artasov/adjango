@@ -7,7 +7,6 @@ from urllib.parse import urlparse
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.contrib.auth.views import redirect_to_login
 from django.core.files.base import ContentFile
 from django.db.models import QuerySet, Model, Manager
 from django.shortcuts import resolve_url
@@ -129,6 +128,7 @@ def auser_passes_test(
             if (not login_scheme or login_scheme == current_scheme) and (
                     not login_netloc or login_netloc == current_netloc
             ): path = request.get_full_path()
+            from django.contrib.auth.views import redirect_to_login
             return redirect_to_login(path, resolved_login_url, redirect_field_name)
 
         return _wrapped_view
