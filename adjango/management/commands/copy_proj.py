@@ -85,7 +85,7 @@ class Command(BaseCommand):
 
         if include_backend:
             for app in apps_to_include:
-                app_path = os.path.join(settings.ADJANGO_APPS_PATH, app)
+                app_path = os.path.join(settings.ADJANGO_APPS_PREPATH, app)
                 if not os.path.exists(app_path):
                     self.stdout.write(self.style.ERROR(f"App {app} does not exist in backend. Skipping."))
                     continue
