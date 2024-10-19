@@ -17,7 +17,7 @@ from adjango.utils.common import traceback_str
 
 def task(logger: str = None):
     """
-    Декоратор для задач Celery, который логирует начало и конец выполнения задачи.
+    Декоратор для задач Celery, который логирует начало и конец выполнения задачи и её ошибки.
 
     @param logger: Имя логгера для логирования. Если не передано, логирование не будет выполнено.
     """
@@ -29,7 +29,12 @@ def task(logger: str = None):
             if logger:
                 log = logging.getLogger(logger)
                 log.info(f"Start executing task: {func.__name__}\n{args}\n{kwargs}")
-            result = func(*args, **kwargs)
+            try:
+                result = func(*args, **kwargs)
+            except Exception as e:
+                log.critical(f'Error executing task: {func.__name__}')
+                log.critical(traceback_str(e))
+                raise e
             if log: log.info(f"End executing task: {func.__name__}\n{args}\n{kwargs}")
             return result
 

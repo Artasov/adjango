@@ -20,7 +20,7 @@ async def aget(
         *args: Any,
         **kwargs: Any,
 
-) -> Model | None:
+) -> Any:
     """
     Асинхронно получает единственный объект из заданного QuerySet,
     соответствующий переданным параметрам.
@@ -46,7 +46,7 @@ async def aget(
     return None
 
 
-async def arelated(model_object: Model, related_field_name: str) -> object | None:
+async def arelated(model_object: Model, related_field_name: str) -> Any:
     """
     Асинхронно получает связанный объект из модели по указанному имени связанного поля.
 
@@ -57,7 +57,7 @@ async def arelated(model_object: Model, related_field_name: str) -> object | Non
 
     @usage: result = await arelated(my_model_instance, "related_field_name")
     """
-    return await sync_to_async(getattr)(model_object, related_field_name)
+    return await sync_to_async(getattr)(model_object, related_field_name, None)
 
 
 async def aadd(queryset: Manager, data: Any, *args: Any, **kwargs: Any) -> None:
