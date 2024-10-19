@@ -158,3 +158,5 @@ db_fixtures
 .env*
 /logs/
 /media/
+build
+build/
