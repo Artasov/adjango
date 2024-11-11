@@ -2,10 +2,9 @@
 
 > Sometimes I use this in different projects, so I decided to put it on pypi
 
-`ADjango` — это удобная библиотека для упрощения работы с Django, которая предлагает различные полезные менеджеры, сервисы, декораторы, утилиты для асинхронного программирования, планировщик задач для Celery, работу с транзакциями и многое другое.
-
-- [Installation](#installation-)
-- [Settings](#settings-)
+`ADjango` is a convenient library for simplifying work with Django, which offers various useful managers, services, decorators, utilities for asynchronous programming, a task scheduler for Celery, working with transactions and much more.
+- [Installation](#installation-%EF%B8%8F)
+- [Settings](#settings-%EF%B8%8F)
 - [Overview](#overview)
   - [Manager & Services](#manager--services-%EF%B8%8F)
   - [Utils](#utils-)
@@ -29,7 +28,7 @@ pip install adjango
 * ### In `settings.py` set the params
     ```python
     # settings.py
-    # Ни один из параметров не является обязательным.  
+    # None of the parameters are required.  
   
     # For usage @a/controller decorators
     LOGIN_URL = '/login/' 
@@ -55,48 +54,50 @@ pip install adjango
 Most functions, if available in asynchronous form, are also available in synchronous form.
 
 ### Manager & Services 🛎️
-Простой пример и сразу все понятно...
+A simple example and everything is immediately clear...
 ```python
 from adjango.fields import AManyToManyField
 from adjango.managers.base import AManager
 from adjango.services.base import ABaseService
-from adjango.managers.polymorphic import APolymorphicManager
-
+from adjango.models import AModel
+from adjango.polymorphic_models import APolymorphicModel
 
 class User(AbstractUser, ABaseService):
     objects = AManager()
+# Its equal with...
+class User(AbstractUser, AModel): pass
+    
 
-class Product(Model, ABaseService):
-    objects = AManager()
-    # objects = APolymorphicManager() # ya u can
+class Product(APolymorphicModel):
+    # APolymorphicManager() of course here already exists
     name = CharField(max_length=100)
 
-class Order(Model, ABaseService):
-    objects = AManager()
+class Order(AModel):
     user = ForeignKey(User, CASCADE)
     products = AManyToManyField(Product)
 
-# Теперь возможно следующее...
+    
+# The following is now possible...
 products = await Product.objects.aall()
 products = await Product.objects.afilter(name='name')
-# Возвращает объект либо None если не найдено
+# Returns an object or None if not found
 order = await Order.objects.agetorn(id=69) # aget or none
 if not order: raise
 
-# Устанавливаем продукты в заказ
+# We install products in the order
 await order.products.aset(products)
-# Или queryset сразу...
+# Or queryset right away...
 await order.products.aset(
   Product.objects.filter(name='name') 
 )
 await order.products.aadd(products[0])
 
-# Получаем снова заказ без связанных объектов
+# We get the order again without associated objects
 order: Order = await Order.objects.aget(id=69)
-# Асинхронно получаем связанные объекты.
-order.user = await order.arelated('user')
+# Retrieve related objects asynchronously.
+order.user = await order.related('user')
 products = await order.products.aall()
-# thk u
+#thk u
 ```
 ### Utils 🔧
   `aall`, `afilter`,  `arelated`, и так далее доступны как отдельные функции
@@ -106,51 +107,51 @@ products = await order.products.aall()
 ### Decorators 🎀
 * `aforce_data`
 
-    Декоратор `aforce_data` объединяет данные из `GET`, `POST` и `JSON` тела 
-    запроса в `request.data`. Это упрощает доступ ко всем данным запроса в одном месте.
+    The `aforce_data` decorator combines data from the `GET`, `POST` and `JSON` body 
+    request in `request.data`. This makes it easy to access all request data in one place.
 
-* `aatomic`
+* `atomic`
 
-    Асинхронный декоратор, который оборачивает 
-    функцию в транзакционный контекст. Если происходит исключение, все изменения откатываются.
+    An asynchronous decorator that wraps 
+    function into a transactional context. If an exception occurs, all changes are rolled back.
 
-* `acontroller / controller`
+* `acontroller/controller`
 
-    Асинхронный декоратор, который оборачивает 
-    функцию в транзакционный контекст. Если происходит исключение, все изменения откатываются.
+    An asynchronous decorator that wraps 
+    function into a transactional context. If an exception occurs, all changes are rolled back.
     ```python
     from adjango.adecorators import acontroller
 
-    @acontroller(name='MyView', logger='custom_logger', log_name=True, log_time=True)
+    @acontroller(name='My View', logger='custom_logger', log_name=True, log_time=True)
     async def my_view(request):
         pass
   
-    @acontroller('OneMoreView')
+    @acontroller('One More View')
     async def my_view_one_more(request):
         pass
     ```
-    * Эти декораторы автоматически отлавливают не отловленные исключения и логирует если логгер настроен 
+    * These decorators automatically catch uncaught exceptions and log if the logger is configured 
     `ADJANGO_CONTROLLERS_LOGGER_NAME` `ADJANGO_CONTROLLERS_LOGGING`. 
-    * Так же можно реализовать интерфейс:
+    * You can also implement the interface:
         ```python
         class IHandlerControllerException(ABC):
             @staticmethod
             @abstractmethod
             def handle(fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args, **kwargs) -> None:
                 """
-                Пример функции обработки исключений.
+                An example of an exception handling function.
         
-                @param fn_name: Имя функции, в которой произошло исключение.
-                @param request: Объект запроса (WSGIRequest или ASGIRequest).
-                @param e: Исключение, которое нужно обработать.
-                @param args: Позиционные аргументы, переданные в функцию.
-                @param kwargs: Именованные аргументы, переданные в функцию.
+                @param fn_name: The name of the function where the exception occurred.
+                @param request: The request object (WSGIRequest or ASGIRequest).
+                @param e: The exception to be handled.
+                @param args: Positional arguments passed to the function.
+                @param kwargs: Named arguments passed to the function.
         
                 @return: None
                 """
                 pass
         ```
-        и испрользовать `handle` для получении неотловленного исключения:
+        and use `handle` to get an uncaught exception:
         ```python
         # settings.py
         from adjango.handlers import HCE # use my example if u need
@@ -161,7 +162,7 @@ products = await order.products.aall()
 
 * `AsyncAtomicContextManager`🧘
 
-    Асинхронный контекст-менеджер для работы с транзакциями, который обеспечивает атомарность операций.
+    An asynchronous context manager for working with transactions, which ensures the atomicity of operations.
     ```python
     from adjango.utils.base import AsyncAtomicContextManager
     
@@ -172,7 +173,7 @@ products = await order.products.aall()
 
 * `Tasker`📋
 
-    Класс Tasker предоставляет методы для планирования задач в `Celery` и `Celery Beat`.
+    The Tasker class provides methods for scheduling tasks in `Celery` and `Celery Beat`.
     ```python
     from adjango.utils.tasks import Tasker
     
@@ -180,27 +181,27 @@ products = await order.products.aall()
         task=my_celery_task,
         param1='value1',
         param2='value2',
-        countdown=60  # Задача выполнится через 60 секунд
+        countdown=60 # The task will be completed in 60 seconds
     )
     ```
     ```python
     from adjango.utils.tasks import Tasker
     from datetime import datetime
     
-    # Одноразовая задача через Celery Beat
+    # One-time task via Celery Beat
     Tasker.beat(
         task=my_celery_task,
         name='one_time_task',
-        schedule_time=datetime(2024, 10, 10, 14, 30),  # Запуск задачи 10 октября 2024 года в 14:30
+        schedule_time=datetime(2024, 10, 10, 14, 30), # Start the task on October 10, 2024 at 14:30
         param1='value1',
         param2='value2'
     )
     
-    # Периодическая задача через Celery Beat (каждый час)
+    # Periodic task via Celery Beat (every hour)
     Tasker.beat(
         task=my_celery_task,
         name='hourly_task',
-        interval=3600,  # Задача выполняется каждый час
+        interval=3600, # The task runs every hour
         param1='value1',
         param2='value2'
     )
@@ -208,7 +209,7 @@ products = await order.products.aall()
 
 * `send_emails`
 
-    Позволяет отправлять письма с использованием шаблонов и рендеринга контекста.
+    Allows you to send emails using templates and context rendering.
     ```python
     from adjango.utils.mail import send_emails
     
@@ -236,9 +237,6 @@ products = await order.products.aall()
         emails=('user@example.com',),
         template='emails/hello.html',
         context={'message': 'Welcome to our service!'},
-        countdown=60  # Задача выполнится через 5 секунд
+        countdown=60 # The task will be completed in 5 seconds
     )
     ```
-
-
-

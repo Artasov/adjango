@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="adjango",
-    version="0.1.4",
+    version="0.1.6",
     author="xlartas",
     author_email="ivanhvalevskey@gmail.com",
     description="A library with many features for interacting with Django",
@@ -22,7 +22,12 @@ setuptools.setup(
     ],
     classifiers=[
         "Framework :: Django",
-        "Framework :: Django :: 4.0",
+        "Framework :: Django :: 4",
+        "Framework :: Django :: 4.1",
+        "Framework :: Django :: 4.2",
+        "Framework :: Django :: 5",
+        "Framework :: Django :: 5.1",
+        "Framework :: Django :: 5.2",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
@@ -34,7 +39,7 @@ setuptools.setup(
         "Topic :: Software Development :: Libraries :: Application Frameworks",
     ],
     python_requires='>=3.8',
-    keywords='adjango django utils funcs features async',
+    keywords='adjango django utils funcs features async managers services',
     project_urls={
         'Source': 'https://github.com/Artasov/adjango',
         'Tracker': 'https://github.com/Artasov/adjango/issues',
