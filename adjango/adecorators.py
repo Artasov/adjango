@@ -13,10 +13,10 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.handlers.asgi import ASGIRequest
 from django.http import HttpResponseNotAllowed, HttpResponse, QueryDict, RawPostDataException
 
+from adjango.conf import ADJANGO_CONTROLLERS_LOGGER_NAME, ADJANGO_CONTROLLERS_LOGGING
 from adjango.utils.base import AsyncAtomicContextManager
 from adjango.utils.common import traceback_str
 from adjango.utils.funcs import auser_passes_test
-from adjango.utils.mail import send_emails
 
 
 def aforce_data(fn: Callable[..., Any]) -> Callable[..., Any]:
@@ -89,10 +89,10 @@ def acontroller(
     def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(fn)
         async def inner(request: ASGIRequest, *args: Any, **kwargs: Any) -> Any:
-            log = logging.getLogger(logger or settings.ADJANGO_CONTROLLERS_LOGGER_NAME)
+            log = logging.getLogger(logger or ADJANGO_CONTROLLERS_LOGGER_NAME)
             fn_name = name or fn.__name__
             start_time = None
-            if log_name or (log_name is None and settings.ADJANGO_CONTROLLERS_LOGGING):
+            if log_name or (log_name is None and ADJANGO_CONTROLLERS_LOGGING):
                 log.info(f'ACtrl: {request.method} | {fn_name}')
 
             if log_time: start_time = time()
@@ -107,16 +107,7 @@ def acontroller(
                     return await fn(request, *args, **kwargs)
                 except Exception as e:
                     log.critical(f"ERROR in {fn_name}: {traceback_str(e)}", exc_info=True)
-                    email_context = {
-                        'subject': 'SERVER ERROR',
-                        'emails': settings.ADJANGO_EXCEPTION_REPORT_EMAILS,
-                        'template': settings.ADJANGO_EXCEPTION_REPORT_TEMPLATE,
-                        'context': {'traceback': traceback_str(e), }
-                    }
-                    if settings.ADJANGO_USE_CELERY_MAIL_REPORT:
-                        settings.ADJANGO_CELERY_SEND_MAIL_TASK.delay(**email_context)
-                    else:
-                        send_emails(**email_context)
+
                     raise e
 
         return inner

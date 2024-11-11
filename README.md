@@ -20,30 +20,38 @@ pip install adjango
     ```
 * ### In `settings.py` set the params
     ```python
-    # adjango
-    from adjango.decorators import _handling_function
-    
-    LOGIN_URL = '/login/'
-    ADJANGO_BACKENDS_APPS = BASE_DIR / 'apps'
-    ADJANGO_FRONTEND_APPS = BASE_DIR.parent / 'frontend' / 'src' / 'apps'
+    # settings.py
+  
+    # * required, but only for usage @a/controller decorators
+    LOGIN_URL = '/login/' 
+  
+    # optional
+    ADJANGO_BACKENDS_APPS = BASE_DIR / 'apps' # for management commands
+    ADJANGO_FRONTEND_APPS = BASE_DIR.parent / 'frontend' / 'src' / 'apps' # for management commands
     ADJANGO_APPS_PREPATH = 'apps.'  # if apps in BASE_DIR/apps/app1,app2...
-    # ADJANGO_APPS_PREPATH = None # if in BASE_DIR/app1,app2...
-    # Override _handling_function so that unhandled exceptions are handled as you wish
-    ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION = _handling_function
-    ADJANGO_CONTROLLERS_LOGGER_NAME = 'global'
-    ADJANGO_CONTROLLERS_LOGGING = True
-    ADJANGO_EMAIL_LOGGER_NAME = 'email'
+    ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION = ... # Read about @acontroller, @controller
+    ADJANGO_CONTROLLERS_LOGGER_NAME = 'global' # only for usage @a/controller decorators
+    ADJANGO_CONTROLLERS_LOGGING = True # only for usage @a/controller decorators
+    ADJANGO_EMAIL_LOGGER_NAME = 'email' # for send_emails_task logging
     ```
     ```python
     MIDDLEWARE = [
         ...
-        # add request.ip in views
+        # add request.ip in views if u need
         'adjango.middleware.IPAddressMiddleware',  
         ...
     ]
     ```
 ## Overview
 Most functions, if available in asynchronous form, are also available in synchronous form.
+
+### Managers
+
+### Services
+
+### Utils
+
+### Decorators
 * `aforce_data`
 
     Декоратор `aforce_data` объединяет данные из `GET`, `POST` и `JSON` тела 
@@ -54,7 +62,7 @@ Most functions, if available in asynchronous form, are also available in synchro
     Асинхронный декоратор, который оборачивает 
     функцию в транзакционный контекст. Если происходит исключение, все изменения откатываются.
 
-* `aatomic`
+* `acontroller / controller`
 
     Асинхронный декоратор, который оборачивает 
     функцию в транзакционный контекст. Если происходит исключение, все изменения откатываются.
@@ -69,6 +77,36 @@ Most functions, if available in asynchronous form, are also available in synchro
     async def my_view_one_more(request):
         pass
     ```
+    * Эти декораторы автоматически отлавливают не отловленные исключения и логирует если логгер настроен 
+    `ADJANGO_CONTROLLERS_LOGGER_NAME` `ADJANGO_CONTROLLERS_LOGGING`. 
+    * Так же можно реализовать интерфейс:
+        ```python
+        class IHandlerControllerException(ABC):
+            @staticmethod
+            @abstractmethod
+            def handle(fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args, **kwargs) -> None:
+                """
+                Пример функции обработки исключений.
+        
+                @param fn_name: Имя функции, в которой произошло исключение.
+                @param request: Объект запроса (WSGIRequest или ASGIRequest).
+                @param e: Исключение, которое нужно обработать.
+                @param args: Позиционные аргументы, переданные в функцию.
+                @param kwargs: Именованные аргументы, переданные в функцию.
+        
+                @return: None
+                """
+                pass
+        ```
+        и испрользовать `handle` для получении неотловленного исключения:
+        ```python
+        # settings.py
+        from adjango.handlers import HCE # use my example if u need
+        ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION = HCE.handle
+        ```
+    
+
+
 * `AsyncAtomicContextManager`
 
     Асинхронный контекст-менеджер для работы с транзакциями, который обеспечивает атомарность операций.

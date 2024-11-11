@@ -11,7 +11,6 @@ class Crontab:
         """
         Генерация crontab выражений для различных интервалов времени
         """
-
         if seconds:
             return crontab(second=f'*/{seconds}')
         if minutes:

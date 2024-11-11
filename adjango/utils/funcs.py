@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.core.exceptions import SynchronousOnlyOperation
 from django.core.files.base import ContentFile
 from django.db.models import QuerySet, Model, Manager
 from django.shortcuts import resolve_url
@@ -14,7 +15,7 @@ from django.shortcuts import resolve_url
 from adjango.utils.base import download_file_to_temp
 
 
-async def aget(
+async def agetorn(
         queryset: QuerySet,
         exception: Type[Exception] | None = None,
         *args: Any,
@@ -46,18 +47,33 @@ async def aget(
     return None
 
 
-async def arelated(model_object: Model, related_field_name: str) -> Any:
+async def arelated(obj: Model, field: str) -> Any:
     """
     Асинхронно получает связанный объект из модели по указанному имени связанного поля.
 
-    @param model_object: Экземпляр модели, у которого нужно получить связанный объект.
-    @param related_field_name: Название связанного поля, из которого нужно получить объект.
+    @param obj: Экземпляр модели, у которого нужно получить связанный объект.
+    @param field: Название связанного поля, из которого нужно получить объект.
 
     @return: Связанный объект или None, если поле не существует.
 
     @usage: result = await arelated(my_model_instance, "related_field_name")
     """
-    return await sync_to_async(getattr)(model_object, related_field_name, None)
+    try:
+        if getattr(obj, field) is None:
+            raise Exception(f"Field '{field}' does not exist for object '{obj.__class__.__name__}'")
+    except SynchronousOnlyOperation:
+        return await sync_to_async(getattr)(obj, field, None)
+
+
+async def aset(related_manager, data, *args, **kwargs) -> None:
+    """
+    Установить связанные объекты для поля ManyToMany асинхронно.
+
+    Аргументы:
+        related_manager: Менеджер связанных объектов (например, order.products)
+        data: Список или queryset объектов для установки
+    """
+    await sync_to_async(related_manager.set)(data, *args, **kwargs)
 
 
 async def aadd(queryset: Manager, data: Any, *args: Any, **kwargs: Any) -> None:

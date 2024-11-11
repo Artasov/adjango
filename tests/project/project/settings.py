@@ -1,3 +1,4 @@
+# project/settings.py
 from __future__ import annotations
 
 from os.path import join
@@ -7,6 +8,7 @@ from typing import Any
 from django.core.handlers.asgi import ASGIRequest
 from django.core.handlers.wsgi import WSGIRequest
 
+from adjango.handlers import HCE
 from adjango.tasks import send_emails_task
 from adjango.utils.common import traceback_str
 
@@ -18,6 +20,7 @@ ALLOWED_HOSTS = []
 AUTH_USER_MODEL = 'app.User'
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -28,44 +31,6 @@ INSTALLED_APPS = [
     'adjango',
     'app'
 ]
-
-
-def handling_function(fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args: Any,
-                      **kwargs: Any) -> None:
-    """
-    Пример функции обработки исключений.
-
-    @param fn_name: Имя функции, в которой произошло исключение.
-    @param request: Объект запроса (WSGIRequest или ASGIRequest).
-    @param e: Исключение, которое нужно обработать.
-    @param args: Позиционные аргументы, переданные в функцию.
-    @param kwargs: Именованные аргументы, переданные в функцию.
-
-    @return: None
-
-    @usage:
-        _handling_function(fn_name, request, e)
-    """
-    import logging
-    log = logging.getLogger('global')
-    error_text = (f'ERROR in {fn_name}:\n'
-                  f'{traceback_str(e)}\n'
-                  f'{request.POST=}\n'
-                  f'{request.GET=}\n'
-                  f'{request.FILES=}\n'
-                  f'{request.COOKIES=}\n'
-                  f'{request.user=}\n'
-                  f'{args=}\n'
-                  f'{kwargs=}')
-    log.error(error_text)
-    if not DEBUG:
-        send_emails_task.delay(
-            subject='SERVER ERROR',
-            emails=('admin@example.com', 'admin2@example.com',),
-            template='admin/exception_report.html',
-            context={'error': error_text}
-        )
-
 
 # Celery
 REDIS_BROKER_URL = 'redis://localhost:6379/0'
@@ -84,14 +49,7 @@ CELERY_TASK_EAGER_PROPAGATES = True
 
 # adjango settings
 LOGIN_URL = '/login/'
-ADJANGO_BACKENDS_APPS = BASE_DIR / 'apps'
-ADJANGO_FRONTEND_APPS = BASE_DIR.parent / 'frontend' / 'src' / 'apps'
-ADJANGO_APPS_PREPATH = 'apps.'  # if apps in BASE_DIR/apps/app1,app2...
-# ADJANGO_APPS_PREPATH = None # if in BASE_DIR/app1,app2...
-ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION = handling_function
-ADJANGO_CONTROLLERS_LOGGER_NAME = 'global'
-ADJANGO_CONTROLLERS_LOGGING = True
-ADJANGO_EMAIL_LOGGER_NAME = 'email'
+ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION = HCE.handle
 
 MIDDLEWARE = [
     'adjango.middleware.IPAddressMiddleware',  # add request.ip in views
@@ -122,8 +80,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'project.wsgi.application'
-
+WSGI_APPLICATION = None
+ASGI_APPLICATION = 'project.asgi.application'
 DATABASES = {'default': {
     'ENGINE': 'django.db.backends.sqlite3',
     'NAME': BASE_DIR / 'db.sqlite3',

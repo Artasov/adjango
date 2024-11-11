@@ -1,3 +1,4 @@
+# app/tasks.py
 from celery import shared_task
 
 from adjango.decorators import task

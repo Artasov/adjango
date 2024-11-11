@@ -4,12 +4,14 @@ import os
 from django.conf import settings
 from django.core.management import BaseCommand
 
+from adjango.conf import ADJANGO_APPS_PREPATH
+
 
 class Command(BaseCommand):
     help = 'Удаляет все миграции во всех приложениях кроме __init__.py'
 
     def handle(self, *args, **kwargs):
-        apps_prepath = settings.ADJANGO_APPS_PREPATH  # префикс приложений (если используется)
+        apps_prepath = ADJANGO_APPS_PREPATH  # префикс приложений (если используется)
         base_dir = settings.BASE_DIR  # базовая директория проекта
 
         # Проходим по всем приложениям, указанным в INSTALLED_APPS

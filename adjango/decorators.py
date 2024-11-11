@@ -12,6 +12,8 @@ from django.db import transaction
 from django.http import HttpResponseNotAllowed, HttpResponse, QueryDict, RawPostDataException
 from django.shortcuts import redirect
 
+from adjango.conf import ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION, ADJANGO_CONTROLLERS_LOGGING, \
+    ADJANGO_CONTROLLERS_LOGGER_NAME
 from adjango.utils.common import traceback_str
 
 
@@ -127,10 +129,10 @@ def controller(
     def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(fn)
         def inner(request: WSGIRequest, *args: Any, **kwargs: Any) -> Any:
-            log = logging.getLogger(logger or settings.ADJANGO_CONTROLLERS_LOGGER_NAME)
+            log = logging.getLogger(logger or ADJANGO_CONTROLLERS_LOGGER_NAME)
             fn_name = name or fn.__name__
             start_time = None
-            if log_name or (log_name is None and settings.ADJANGO_CONTROLLERS_LOGGING):
+            if log_name or (log_name is None and ADJANGO_CONTROLLERS_LOGGING):
                 log.info(f'Ctrl: {request.method} | {fn_name}')
             if log_time: start_time = time()
             if auth_required and not request.user.is_authenticated: return redirect(not_auth_redirect)
@@ -148,7 +150,7 @@ def controller(
                 except Exception as e:
                     log.critical(f"ERROR in {fn_name}: {traceback_str(e)}", exc_info=True)
                     if hasattr(settings, 'ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION'):
-                        handling_function = settings.ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION
+                        handling_function = ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION
                         if callable(handling_function): handling_function(fn_name, request, e, *args, **kwargs)
                     raise e
 

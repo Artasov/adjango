@@ -4,6 +4,8 @@ import pyperclip
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
+from adjango.conf import ADJANGO_APPS_PREPATH, ADJANGO_FRONTEND_APPS, ADJANGO_BACKENDS_APPS
+
 TARGET_ALL = [
     'controllers',
     'serializers',
@@ -85,7 +87,7 @@ class Command(BaseCommand):
 
         if include_backend:
             for app in apps_to_include:
-                app_path = os.path.join(settings.ADJANGO_APPS_PREPATH, app)
+                app_path = os.path.join(ADJANGO_APPS_PREPATH, app)
                 if not os.path.exists(app_path):
                     self.stdout.write(self.style.ERROR(f"App {app} does not exist in backend. Skipping."))
                     continue
@@ -100,7 +102,7 @@ class Command(BaseCommand):
 
         if include_frontend:
             for app in apps_to_include:
-                app_path = os.path.join(settings.ADJANGO_FRONTEND_DIR, app)
+                app_path = os.path.join(ADJANGO_FRONTEND_APPS, app)
                 if not os.path.exists(app_path):
                     self.stdout.write(self.style.ERROR(f"App {app} does not exist in frontend. Skipping."))
                     continue
@@ -108,13 +110,13 @@ class Command(BaseCommand):
                     for name in target_names:
                         if name in dirs:
                             dir_path = os.path.join(root, name)
-                            self.collect_directory_contents(dir_path, collected_files[name], settings.FRONTEND_DIR)
+                            self.collect_directory_contents(dir_path, collected_files[name], ADJANGO_FRONTEND_APPS)
                         # Проверяем файлы с расширениями фронтенда
                         for ext in ['.ts', '.tsx', '.js', '.jsx']:
                             file_name = name + ext
                             if file_name in files:
                                 file_path = os.path.join(root, file_name)
-                                self.collect_file_contents(file_path, collected_files[name], settings.FRONTEND_DIR)
+                                self.collect_file_contents(file_path, collected_files[name], ADJANGO_FRONTEND_APPS)
 
         for name in target_names:
             if collected_files[name]:
@@ -143,5 +145,5 @@ class Command(BaseCommand):
 
     @staticmethod
     def get_all_apps():
-        apps_path = os.path.join(settings.ADJANGO_BACKENDS_APPS)
-        return [name for name in os.listdir(str(apps_path)) if os.path.isdir(os.path.join(str(apps_path), name))]
+        return [name for name in os.listdir(str(ADJANGO_BACKENDS_APPS)) if
+                os.path.isdir(os.path.join(str(ADJANGO_BACKENDS_APPS), name))]
