@@ -7,7 +7,7 @@
 - [Installation](#installation-)
 - [Settings](#settings-)
 - [Overview](#overview)
-  - [Manager & Services](#manager--services-)
+  - [Manager & Services](#manager--services-%EF%B8%8F)
   - [Utils](#utils-)
   - [Decorators](#decorators-)
   - [Other](#other)
