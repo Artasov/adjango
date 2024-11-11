@@ -97,6 +97,11 @@ order: Order = await Order.objects.aget(id=69)
 # Retrieve related objects asynchronously.
 order.user = await order.related('user')
 products = await order.products.aall()
+# Works the same with intermediate processing/query filters
+orders = await Order.objects.prefetch_related('products').aall()
+for o in orders:
+    for p in o.products.all():
+        print(p.id)
 #thk u
 ```
 ### Utils 🔧

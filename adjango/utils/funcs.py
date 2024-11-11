@@ -77,11 +77,11 @@ async def aset(related_manager, data, *args, **kwargs) -> None:
     await sync_to_async(related_manager.set)(data, *args, **kwargs)
 
 
-async def aadd(queryset: Manager, data: Any, *args: Any, **kwargs: Any) -> None:
+async def aadd(objects: Manager | QuerySet, data: Any, *args: Any, **kwargs: Any) -> None:
     """
     Асинхронно добавляет объект или данные в ManyToMany поле через метод add().
 
-    @param queryset: Менеджер модели или поле, в которое нужно добавить данные.
+    @param objects: Менеджер модели или поле, в которое нужно добавить данные.
     @param data: Данные или объект, который нужно добавить.
     @param args: Дополнительные аргументы для метода add().
     @param kwargs: Дополнительные именованные аргументы для метода add().
@@ -90,10 +90,10 @@ async def aadd(queryset: Manager, data: Any, *args: Any, **kwargs: Any) -> None:
 
     @usage: await aadd(my_model_instance.related_field, related_obj)
     """
-    return await sync_to_async(queryset.add)(data, *args, **kwargs)
+    return await sync_to_async(objects.add)(data, *args, **kwargs)
 
 
-async def aall(objects: Manager) -> list:
+async def aall(objects: Manager | QuerySet) -> list:
     """
     Асинхронно возвращает все объекты, управляемые менеджером.
 

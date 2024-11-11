@@ -39,6 +39,10 @@ async def view_test_arelated(request):
     products = await order.products.aall()
     pprint(order.user)
     pprint(products)
+    orders = await Order.objects.prefetch_related('products').aall()
+    for o in orders:
+        for p in o.products.all():
+            print(p.id)
 
 
 urlpatterns = [
