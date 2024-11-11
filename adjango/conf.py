@@ -1,3 +1,4 @@
+# conf.py
 from django.conf import settings
 
 

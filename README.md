@@ -1,15 +1,23 @@
-# ADjango 
+# 🚀 ADjango 
 
 > Sometimes I use this in different projects, so I decided to put it on pypi
 
-`ADjango` — это удобная библиотека для упрощения работы с Django, которая предлагает различные полезные декораторы, утилиты для асинхронного программирования, планировщик задач для Celery, работу с транзакциями и многое другое.
+`ADjango` — это удобная библиотека для упрощения работы с Django, которая предлагает различные полезные менеджеры, сервисы, декораторы, утилиты для асинхронного программирования, планировщик задач для Celery, работу с транзакциями и многое другое.
 
-## Installation
+- [Installation](#installation-)
+- [Settings](#settings-)
+- [Overview](#overview)
+  - [Manager & Services](#manager--services-)
+  - [Utils](#utils-)
+  - [Decorators](#decorators-)
+  - [Other](#other)
+
+## Installation 🛠️
 ```bash
 pip install adjango
 ```
 
-## Settings
+## Settings ⚙️
 
 * ### Add the application to the project.
     ```python
@@ -21,8 +29,9 @@ pip install adjango
 * ### In `settings.py` set the params
     ```python
     # settings.py
+    # Ни один из параметров не является обязательным.  
   
-    # * required, but only for usage @a/controller decorators
+    # For usage @a/controller decorators
     LOGIN_URL = '/login/' 
   
     # optional
@@ -45,13 +54,56 @@ pip install adjango
 ## Overview
 Most functions, if available in asynchronous form, are also available in synchronous form.
 
-### Managers
+### Manager & Services 🛎️
+Простой пример и сразу все понятно...
+```python
+from adjango.fields import AManyToManyField
+from adjango.managers.base import AManager
+from adjango.services.base import ABaseService
+from adjango.managers.polymorphic import APolymorphicManager
 
-### Services
 
-### Utils
+class User(AbstractUser, ABaseService):
+    objects = AManager()
 
-### Decorators
+class Product(Model, ABaseService):
+    objects = AManager()
+    # objects = APolymorphicManager() # ya u can
+    name = CharField(max_length=100)
+
+class Order(Model, ABaseService):
+    objects = AManager()
+    user = ForeignKey(User, CASCADE)
+    products = AManyToManyField(Product)
+
+# Теперь возможно следующее...
+products = await Product.objects.aall()
+products = await Product.objects.afilter(name='name')
+# Возвращает объект либо None если не найдено
+order = await Order.objects.agetorn(id=69) # aget or none
+if not order: raise
+
+# Устанавливаем продукты в заказ
+await order.products.aset(products)
+# Или queryset сразу...
+await order.products.aset(
+  Product.objects.filter(name='name') 
+)
+await order.products.aadd(products[0])
+
+# Получаем снова заказ без связанных объектов
+order: Order = await Order.objects.aget(id=69)
+# Асинхронно получаем связанные объекты.
+order.user = await order.arelated('user')
+products = await order.products.aall()
+# thk u
+```
+### Utils 🔧
+  `aall`, `afilter`,  `arelated`, и так далее доступны как отдельные функции
+  ```python
+  from adjango.utils.funcs import aall, agetorn, afilter, aset, aadd, arelated
+  ```
+### Decorators 🎀
 * `aforce_data`
 
     Декоратор `aforce_data` объединяет данные из `GET`, `POST` и `JSON` тела 
@@ -105,9 +157,9 @@ Most functions, if available in asynchronous form, are also available in synchro
         ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION = HCE.handle
         ```
     
+### Other
 
-
-* `AsyncAtomicContextManager`
+* `AsyncAtomicContextManager`🧘
 
     Асинхронный контекст-менеджер для работы с транзакциями, который обеспечивает атомарность операций.
     ```python
@@ -118,7 +170,7 @@ Most functions, if available in asynchronous form, are also available in synchro
             ...  
     ```
 
-* `Tasker`
+* `Tasker`📋
 
     Класс Tasker предоставляет методы для планирования задач в `Celery` и `Celery Beat`.
     ```python

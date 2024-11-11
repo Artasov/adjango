@@ -1,3 +1,4 @@
+# management/commands/remakemigrations.py
 from time import sleep
 
 from django.core.management import BaseCommand, call_command

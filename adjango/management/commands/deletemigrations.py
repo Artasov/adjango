@@ -1,3 +1,4 @@
+# management/commands/deletemigrations.py
 import glob
 import os
 

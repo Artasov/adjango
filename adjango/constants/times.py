@@ -1,3 +1,4 @@
+# constants/times.py
 MIN_1 = 1 * 60
 MIN_5 = 5 * 60
 MIN_10 = 10 * 60

@@ -1,3 +1,4 @@
+# management/commands/add_paths.py
 import os
 
 from django.core.management.base import BaseCommand

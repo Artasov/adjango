@@ -1,3 +1,4 @@
+# managers/polymorphic.py
 try:
     from polymorphic.managers import PolymorphicManager
     from adjango.managers.base import AManager

@@ -1,3 +1,4 @@
+# descriptors.py
 from django.db.models.fields.related_descriptors import ManyToManyDescriptor
 
 from adjango.managers.base import AManager

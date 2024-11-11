@@ -1,3 +1,4 @@
+# middleware.py
 class IPAddressMiddleware:
     """
     Позволяет легко получать IP-адрес через `request.ip`.
