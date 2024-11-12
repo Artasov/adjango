@@ -6,12 +6,11 @@ from django.db.models import (
 )
 
 from adjango.fields import AManyToManyField
-from adjango.models.base import AModel
+from adjango.models.base import AModel, AAbstractUser
 from adjango.models.polymorphic import APolymorphicModel
-from adjango.services.base import ABaseService
 
 
-class User(AbstractUser, ABaseService):
+class User(AAbstractUser):
     phone = CharField(max_length=20, unique=True)
 
 
