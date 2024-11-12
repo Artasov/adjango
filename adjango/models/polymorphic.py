@@ -1,11 +1,12 @@
 # models/polymorphic.py
+
 try:
+    from adjango.services.polymorphic import APolymorphicBaseService
     from polymorphic.models import PolymorphicModel
     from adjango.managers.polymorphic import APolymorphicManager
-    from adjango.services.base import ABaseService
 
 
-    class APolymorphicModel(PolymorphicModel, ABaseService):
+    class APolymorphicModel(PolymorphicModel, APolymorphicBaseService):
         objects = APolymorphicManager()
 
         class Meta:
