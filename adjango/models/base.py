@@ -15,3 +15,6 @@ class AModel(Model, ABaseService):
 
 class AAbstractUser(AbstractUser, AModel):
     objects = AUserManager()
+
+    class Meta:
+        abstract = True
