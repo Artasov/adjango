@@ -1,7 +1,6 @@
-# polymorphic_models.py
+# models/polymorphic.py
 try:
     from polymorphic.models import PolymorphicModel
-
     from adjango.managers.polymorphic import APolymorphicManager
     from adjango.services.base import ABaseService
 

@@ -129,7 +129,7 @@ class Command(BaseCommand):
                         continue
                 if file_name in exclude_names:
                     continue
-                file_path = os.path.join(root, file_name)
+                file_path = str(os.path.join(root, file_name))
                 relative_path = os.path.relpath(file_path, custom_path)
                 self.check_and_fix_file(file_path, relative_path)
 

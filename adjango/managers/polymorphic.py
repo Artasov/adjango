@@ -1,14 +1,10 @@
 # managers/polymorphic.py
 try:
     from polymorphic.managers import PolymorphicManager
-    from adjango.managers.base import AManager
+    from adjango.querysets.polymorphic import APolymorphicQuerySet
 
 
-    class APolymorphicManager(PolymorphicManager, AManager):
-        """
-        Custom manager that combines async methods from AManager with polymorphic capabilities.
-        Inherits from both PolymorphicManager and AManager to ensure all functionalities are available.
-        """
+    class APolymorphicManager(PolymorphicManager.from_queryset(APolymorphicQuerySet)):
         pass
 except ImportError:
     pass

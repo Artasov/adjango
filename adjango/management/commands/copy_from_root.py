@@ -1,3 +1,4 @@
+# management/commands/copy_from_root.py
 import os
 
 from django.core.management.base import BaseCommand, CommandError
@@ -74,7 +75,7 @@ class Command(BaseCommand):
                     self.stdout.write(f"Skipping excluded file: {os.path.join(root, file_name)}")
                     continue
 
-                file_path = os.path.join(root, file_name)
+                file_path = str(os.path.join(root, file_name))
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         content = f.read()
