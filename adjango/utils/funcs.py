@@ -59,11 +59,7 @@ async def arelated(obj: Model, field: str) -> Any:
 
     @usage: result = await arelated(my_model_instance, "related_field_name")
     """
-    try:
-        if getattr(obj, field) is None:
-            raise Exception(f"Field '{field}' does not exist for object '{obj.__class__.__name__}'")
-    except SynchronousOnlyOperation:
-        return await sync_to_async(getattr)(obj, field)
+    return await sync_to_async(getattr)(obj, field)
 
 
 async def aset(related_manager, data, *args, **kwargs) -> None:
