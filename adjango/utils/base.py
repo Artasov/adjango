@@ -1,14 +1,20 @@
 # utils/base.py
 from __future__ import annotations
 
+import re
+from datetime import date, datetime, timedelta
+from decimal import Decimal
 from pprint import pprint
-from typing import Any
+from typing import Any, Union, Tuple
 
 import aiohttp
 from asgiref.sync import sync_to_async
+from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.files.base import ContentFile
 from django.db.transaction import Atomic
+from django.urls import reverse
+from django.utils.timezone import now
 
 
 class AsyncAtomicContextManager(Atomic):
@@ -86,3 +92,109 @@ def add_user_to_group(user: Any, group_name: str) -> None:
 async def apprint(*args: Any, **kwargs: Any) -> None:
     """ Асинхронно выводит данные с использованием pprint. """
     await sync_to_async(pprint)(*args, **kwargs)
+
+
+def build_full_url(pattern_name: str, *args: Any, **kwargs: Any) -> str:
+    """
+    Строит полный URL на основе имени шаблона и переданных аргументов.
+
+    :param pattern_name: Имя URL-шаблона.
+    :param args: Позиционные аргументы для URL.
+    :param kwargs: Ключевые аргументы для URL.
+    :return: Полный URL как строка.
+    """
+    relative_url = reverse(pattern_name, args=args, kwargs=kwargs)
+    full_url = f"{settings.DOMAIN_URL.rstrip('/')}{relative_url}"
+    return full_url
+
+
+def calculate_age(birth_date: date) -> int:
+    """
+    Вычисляет возраст на основе даты рождения.
+
+    :param birth_date: Дата рождения.
+    :return: Возраст в годах.
+    """
+    today = date.today()
+    age = today.year - birth_date.year
+    if (today.month, today.day) < (birth_date.month, birth_date.day):
+        age -= 1
+    return age
+
+
+def is_phone(phone: str) -> bool:
+    """
+    Проверяет, соответствует ли строка формату телефонного номера.
+
+    :param phone: Строка для проверки.
+    :return: True, если строка является допустимым телефонным номером, иначе False.
+    """
+    pattern = re.compile(r'^\+?[\d\s\-()]{7,15}$')
+    cleaned_phone = re.sub(r'\s+', '', phone)
+    return bool(pattern.match(cleaned_phone))
+
+
+def is_email(email: str) -> bool:
+    """
+    Проверяет, соответствует ли строка формату email-адреса.
+
+    :param email: Строка для проверки.
+    :return: True, если строка является допустимым email-адресом, иначе False.
+    """
+    pattern = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
+    return bool(pattern.match(email))
+
+
+def phone_format(phone: str) -> str:
+    """
+    Форматирует телефонный номер, убирая все символы, кроме цифр.
+
+    :param phone: Исходный телефонный номер.
+    :return: Отформатированный телефонный номер.
+    """
+    return re.sub(r'\D', '', phone)
+
+
+def diff_by_timedelta(timedelta_obj: timedelta) -> datetime:
+    """
+    Вычисляет новую дату и время, добавляя заданный интервал к текущему времени.
+
+    :param timedelta_obj: Объект timedelta для добавления.
+    :return: Новая дата и время.
+    """
+    return now() + timedelta_obj
+
+
+def decrease_by_percentage(
+        num: Union[int, float, Decimal],
+        percent: Union[int, float, Decimal]
+) -> Decimal:
+    """
+    Уменьшает число на заданный процент с высокой точностью.
+
+    :param num: Число, которое нужно уменьшить.
+    :param percent: Процент уменьшения.
+    :return: Число после уменьшения на заданный процент.
+    """
+    num_dec = Decimal(num)
+    percent_dec = Decimal(percent)
+    result = num_dec * (Decimal(1) - percent_dec / Decimal(100))
+    return result.quantize(Decimal('1.00'))  # Настройте точность по необходимости
+
+
+def get_plural_form_number(number: int, forms: Tuple[str, str, str]) -> str:
+    """
+    Возвращает правильную форму слова в зависимости от числа.
+
+    Пример: get_plural_form_number(minutes, ('минуту', 'минуты', 'минут'))
+
+    :param number: Число для определения формы.
+    :param forms: Кортеж из трёх форм слова.
+    :return: Правильная форма слова.
+    """
+    if number % 10 == 1 and number % 100 != 11:
+        return forms[0]
+    elif 2 <= number % 10 <= 4 and (number % 100 < 10 or number % 100 >= 20):
+        return forms[1]
+    else:
+        return forms[2]
