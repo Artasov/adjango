@@ -1,7 +1,7 @@
 # middleware.py
 import logging
 
-from adjango.conf import ADJANGO_IP_LOGGER
+from adjango.conf import ADJANGO_IP_LOGGER, ADJANGO_IP_META_NAME
 
 
 class IPAddressMiddleware:
@@ -26,4 +26,8 @@ class IPAddressMiddleware:
             request.ip = request.META.get("REMOTE_ADDR")
         else:
             request.ip = None
+        if ADJANGO_IP_META_NAME:
+            if request.META.get(ADJANGO_IP_META_NAME):
+                request.META['REMOTE_ADDR'] = request.META.get(ADJANGO_IP_META_NAME)
+                request.ip = request.META.get(ADJANGO_IP_META_NAME)
         return self.get_response(request)
