@@ -50,6 +50,7 @@ CELERY_TASK_EAGER_PROPAGATES = True
 # adjango settings
 LOGIN_URL = '/login/'
 ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION = HCE.handle
+ADJANGO_IP_LOGGER = 'global'
 
 MIDDLEWARE = [
     'adjango.middleware.IPAddressMiddleware',  # add request.ip in views
