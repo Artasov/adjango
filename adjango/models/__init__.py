@@ -1,2 +1,6 @@
 from .base import AModel
-from .polymorphic import APolymorphicModel
+
+try:
+    from .polymorphic import APolymorphicModel
+except ImportError:
+    pass
