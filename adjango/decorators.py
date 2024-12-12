@@ -9,7 +9,6 @@ from typing import Callable, Any
 
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
-from django.db import transaction
 from django.http import HttpResponseNotAllowed, HttpResponse, QueryDict, RawPostDataException
 from django.shortcuts import redirect
 
@@ -138,16 +137,20 @@ def controller(
             if log_time: start_time = time()
             if auth_required and not request.user.is_authenticated: return redirect(not_auth_redirect)
             if settings.DEBUG:
-                with transaction.atomic():
-                    return fn(request, *args, **kwargs)
+                result = fn(request, *args, **kwargs)
+                if log_time:
+                    end_time = time()
+                    elapsed_time = end_time - start_time
+                    log.info(f"Execution time {fn_name}: {elapsed_time:.2f} seconds")
+                return result
             else:
                 try:
+                    result = fn(request, *args, **kwargs)
                     if log_time:
                         end_time = time()
                         elapsed_time = end_time - start_time
-                        log.info(f"Execution time of {fn_name}: {elapsed_time:.2f} seconds")
-                    with transaction.atomic():
-                        return fn(request, *args, **kwargs)
+                        log.info(f"Execution time {fn_name}: {elapsed_time:.2f} seconds")
+                    return result
                 except Exception as e:
                     log.critical(f"ERROR in {fn_name}: {traceback_str(e)}", exc_info=True)
                     if hasattr(settings, 'ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION'):

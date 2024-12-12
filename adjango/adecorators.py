@@ -98,14 +98,20 @@ def acontroller(
 
             if log_time: start_time = time()
             if settings.DEBUG:
-                return await fn(request, *args, **kwargs)
+                result = await fn(request, *args, **kwargs)
+                if log_time:
+                    end_time = time()
+                    elapsed_time = end_time - start_time
+                    log.info(f"Execution time {fn_name}: {elapsed_time:.2f} seconds")
+                return result
             else:
                 try:
+                    result = await fn(request, *args, **kwargs)
                     if log_time:
                         end_time = time()
                         elapsed_time = end_time - start_time
-                        log.info(f"Execution time of {fn_name}: {elapsed_time:.2f} seconds")
-                    return await fn(request, *args, **kwargs)
+                        log.info(f"Execution time {fn_name}: {elapsed_time:.2f} seconds")
+                    return result
                 except Exception as e:
                     log.critical(f"ERROR in {fn_name}: {traceback_str(e)}", exc_info=True)
 
