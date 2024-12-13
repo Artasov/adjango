@@ -21,3 +21,22 @@ class AUpdatedAtMixin(AModel):
 class ACreatedUpdatedAtMixin(ACreatedAtMixin, AUpdatedAtMixin):
     class Meta:
         abstract = True
+
+
+class ACreatedAtIndexedMixin(AModel):
+    created_at = DateTimeField(_('Created at'), auto_now_add=True, db_index=True)
+
+    class Meta:
+        abstract = True
+
+
+class AUpdatedAtIndexedMixin(AModel):
+    updated_at = DateTimeField(_('Updated at'), auto_now=True, db_index=True)
+
+    class Meta:
+        abstract = True
+
+
+class ACreatedUpdatedAtIndexedMixin(ACreatedAtIndexedMixin, AUpdatedAtIndexedMixin):
+    class Meta:
+        abstract = True
