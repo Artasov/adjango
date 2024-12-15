@@ -1,6 +1,7 @@
 # utils/base.py
 from __future__ import annotations
 
+import asyncio
 import re
 from datetime import date, datetime, timedelta
 from decimal import Decimal
@@ -15,6 +16,17 @@ from django.core.files.base import ContentFile
 from django.db.transaction import Atomic
 from django.urls import reverse
 from django.utils.timezone import now
+
+
+def is_async_context() -> bool:
+    """
+    Проверяет, выполняется ли код в асинхронном контексте.
+    """
+    try:
+        loop = asyncio.get_running_loop()
+        return loop.is_running()
+    except RuntimeError:
+        return False
 
 
 class AsyncAtomicContextManager(Atomic):

@@ -30,6 +30,8 @@ async def view_test_arelated(request):
     # Просто каждый раз ищем или создаем один и тот же объект заказа
     product, _ = await Product.objects.aget_or_create(name='TEST1', price=100)
     order, _ = await Order.objects.aget_or_create(user=request.user)
+
+    pprint(order.user)
     order: Order
     await order.products.aset([product])
     # Получаем заказ без связанных объектов
@@ -37,8 +39,6 @@ async def view_test_arelated(request):
     # Асинхронно получаем связанные объекты.
     order.user = await order.arelated('user')
     products = await order.products.aall()
-    pprint(order.user)
-    pprint(products)
     orders = await Order.objects.prefetch_related('products').aall()
     for o in orders:
         for p in o.products.all():
