@@ -19,8 +19,5 @@ class AQuerySet(QuerySet):
     async def afilter(self, *args, **kwargs) -> list:
         return await afilter(self, *args, **kwargs)
 
-    async def aset(self, data, *args, **kwargs) -> None:
-        return await aset(self, data, *args, **kwargs)
-
     async def aadd(self, data, *args, **kwargs) -> None:
         return await aadd(self, data, *args, **kwargs)

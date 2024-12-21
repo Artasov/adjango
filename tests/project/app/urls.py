@@ -31,9 +31,10 @@ async def view_test_arelated(request):
     product, _ = await Product.objects.aget_or_create(name='TEST1', price=100)
     order, _ = await Order.objects.aget_or_create(user=request.user)
 
-    pprint(order.user)
+    pprint((await order.oto_user).username)
     order: Order
-    await order.products.aset([product])
+    print(order.products)
+    await order.products.aset(objs=[product])
     # Получаем заказ без связанных объектов
     order: Order = await Order.objects.aget(user=request.user)
     # Асинхронно получаем связанные объекты.
