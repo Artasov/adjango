@@ -17,6 +17,16 @@ from adjango.conf import ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION, ADJANGO_C
 from adjango.utils.common import traceback_str
 
 
+def admin_description(description):
+    """Just sugar, so as not to write a description separately"""
+
+    def decorator(func):
+        func.short_description = description
+        return func
+
+    return decorator
+
+
 def task(logger: str = None):
     """
     Декоратор для задач Celery, который логирует начало и конец выполнения задачи и её ошибки.
