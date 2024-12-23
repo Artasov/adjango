@@ -11,7 +11,7 @@ try:
             """
             Асинхронно получает реальный экземпляр полиморфной модели.
 
-            @return: Реальный экземпляр модели или None, если он не найден.
+            :return: Реальный экземпляр модели или None, если он не найден.
             """
             return await sync_to_async(self.get_real_instance)()
 except ImportError:

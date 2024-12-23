@@ -16,13 +16,13 @@ class IHandlerControllerException(ABC):
         """
         Пример функции обработки исключений.
 
-        @param fn_name: Имя функции, в которой произошло исключение.
-        @param request: Объект запроса (WSGIRequest или ASGIRequest).
-        @param e: Исключение, которое нужно обработать.
-        @param args: Позиционные аргументы, переданные в функцию.
-        @param kwargs: Именованные аргументы, переданные в функцию.
+        :param fn_name: Имя функции, в которой произошло исключение.
+        :param request: Объект запроса (WSGIRequest или ASGIRequest).
+        :param e: Исключение, которое нужно обработать.
+        :param args: Позиционные аргументы, переданные в функцию.
+        :param kwargs: Именованные аргументы, переданные в функцию.
 
-        @return: None
+        :return: None
 
         @usage:
             _handling_function(fn_name, request, e)
@@ -40,13 +40,13 @@ class HCE(IHandlerControllerException):
         """
         Пример функции обработки исключений.
 
-        @param fn_name: Имя функции, в которой произошло исключение.
-        @param request: Объект запроса (WSGIRequest или ASGIRequest).
-        @param e: Исключение, которое нужно обработать.
-        @param args: Позиционные аргументы, переданные в функцию.
-        @param kwargs: Именованные аргументы, переданные в функцию.
+        :param fn_name: Имя функции, в которой произошло исключение.
+        :param request: Объект запроса (WSGIRequest или ASGIRequest).
+        :param e: Исключение, которое нужно обработать.
+        :param args: Позиционные аргументы, переданные в функцию.
+        :param kwargs: Именованные аргументы, переданные в функцию.
 
-        @return: None
+        :return: None
 
         @usage:
             _handling_function(fn_name, request, e)

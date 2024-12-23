@@ -146,13 +146,13 @@ for o in orders:
                 """
                 An example of an exception handling function.
         
-                @param fn_name: The name of the function where the exception occurred.
-                @param request: The request object (WSGIRequest or ASGIRequest).
-                @param e: The exception to be handled.
-                @param args: Positional arguments passed to the function.
-                @param kwargs: Named arguments passed to the function.
+                :param fn_name: The name of the function where the exception occurred.
+                :param request: The request object (WSGIRequest or ASGIRequest).
+                :param e: The exception to be handled.
+                :param args: Positional arguments passed to the function.
+                :param kwargs: Named arguments passed to the function.
         
-                @return: None
+                :return: None
                 """
                 pass
         ```

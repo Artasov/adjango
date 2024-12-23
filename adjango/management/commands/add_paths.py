@@ -137,8 +137,8 @@ class Command(BaseCommand):
         """
         Checks and updates the file by adding or correcting the file path comment at the top.
 
-        @param file_path: Full path to the file.
-        @param relative_path: Relative path of the file from the app's directory or custom path.
+        :param file_path: Full path to the file.
+        :param relative_path: Relative path of the file from the app's directory or custom path.
         """
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
@@ -181,8 +181,8 @@ class Command(BaseCommand):
         """
         Writes the updated lines back to the file.
 
-        @param file_path: Full path to the file.
-        @param lines: List of lines to write to the file.
+        :param file_path: Full path to the file.
+        :param lines: List of lines to write to the file.
         """
         with open(file_path, 'w', encoding='utf-8') as f:
             f.writelines(lines)

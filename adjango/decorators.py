@@ -17,11 +17,25 @@ from adjango.conf import ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION, ADJANGO_C
 from adjango.utils.common import traceback_str
 
 
-def admin_description(description):
-    """Just sugar, so as not to write a description separately"""
-
+def admin_description(description: str):
     def decorator(func):
         func.short_description = description
+        return func
+
+    return decorator
+
+
+def admin_order_field(field: str):
+    def decorator(func):
+        func.admin_order_field = field
+        return func
+
+    return decorator
+
+
+def admin_allow_tags(allow: bool = True):
+    def decorator(func):
+        func.allow_tags = allow
         return func
 
     return decorator
@@ -31,7 +45,7 @@ def task(logger: str = None):
     """
     Декоратор для задач Celery, который логирует начало и конец выполнения задачи и её ошибки.
 
-    @param logger: Имя логгера для логирования. Если не передано, логирование не будет выполнено.
+    :param logger: Имя логгера для логирования. Если не передано, логирование не будет выполнено.
     """
 
     def decorator(func):
@@ -59,9 +73,9 @@ def allowed_only(allowed_methods: list[str]) -> Callable[[Callable[..., HttpResp
     """
     Декоратор для ограничения методов запроса.
 
-    @param allowed_methods: Список разрешенных методов (GET, POST и т.д.).
+    :param allowed_methods: Список разрешенных методов (GET, POST и т.д.).
 
-    @return: Функция, которая ограничивает вызов view-функции в зависимости от метода запроса.
+    :return: Функция, которая ограничивает вызов view-функции в зависимости от метода запроса.
 
     @usage:
         @allowed_only(['GET', 'POST'])
@@ -85,9 +99,9 @@ def force_data(fn: Callable[..., Any]) -> Callable[..., Any]:
     """
     Декоратор для объединения данных из POST, GET и JSON тела запроса.
 
-    @param fn: Функция, которая будет обернута.
+    :param fn: Функция, которая будет обернута.
 
-    @return: Функция, в которой объединены данные из разных частей запроса.
+    :return: Функция, в которой объединены данные из разных частей запроса.
 
     @usage:
         @force_data
@@ -121,14 +135,14 @@ def controller(
     """
     Синхронный контроллер с логированием, проверкой аутентификации и обработкой исключений.
 
-    @param name: Название контроллера.
-    @param logger: Имя логгера для записи сообщений.
-    @param log_name: Логировать имя контроллера.
-    @param log_time: Логировать время выполнения контроллера.
-    @param auth_required: Проверять ли аутентификацию пользователя.
-    @param not_auth_redirect: URL для редиректа, если пользователь не аутентифицирован.
+    :param name: Название контроллера.
+    :param logger: Имя логгера для записи сообщений.
+    :param log_name: Логировать имя контроллера.
+    :param log_time: Логировать время выполнения контроллера.
+    :param auth_required: Проверять ли аутентификацию пользователя.
+    :param not_auth_redirect: URL для редиректа, если пользователь не аутентифицирован.
 
-    @return: Синхронный контроллер с логированием и обработкой исключений.
+    :return: Синхронный контроллер с логированием и обработкой исключений.
 
     @usage:
         @controller

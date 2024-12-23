@@ -13,10 +13,10 @@ def send_emails(subject: str, emails: tuple[str, ...] | list[str, ...], template
     """
     Отправляет email с использованием указанного шаблона.
 
-    @param subject: Тема письма.
-    @param emails: Список email-адресов получателей.
-    @param template: Путь к шаблону письма.
-    @param context: Контекст для рендеринга шаблона.
+    :param subject: Тема письма.
+    :param emails: Список email-адресов получателей.
+    :param template: Путь к шаблону письма.
+    :param context: Контекст для рендеринга шаблона.
     """
     from adjango.conf import ADJANGO_EMAIL_LOGGER_NAME
     log = logging.getLogger(ADJANGO_EMAIL_LOGGER_NAME)

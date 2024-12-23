@@ -41,9 +41,9 @@ class AsyncAtomicContextManager(Atomic):
         """
         Инициализация асинхронного атомарного контекст-менеджера.
 
-        @param using: Название базы данных, которая будет использоваться.
-        @param savepoint: Определяет, будет ли использоваться savepoint.
-        @param durable: Флаг для долговечных транзакций.
+        :param using: Название базы данных, которая будет использоваться.
+        :param savepoint: Определяет, будет ли использоваться savepoint.
+        :param durable: Флаг для долговечных транзакций.
         """
         super().__init__(using, savepoint, durable)
 
@@ -51,7 +51,7 @@ class AsyncAtomicContextManager(Atomic):
         """
         Асинхронно входит в транзакционный контекст.
 
-        @return: Возвращает контекст менеджера.
+        :return: Возвращает контекст менеджера.
         """
         await sync_to_async(super().__enter__)()
         return self
@@ -60,11 +60,11 @@ class AsyncAtomicContextManager(Atomic):
         """
         Асинхронно выходит из транзакционного контекста.
 
-        @param exc_type: Тип исключения, если оно возникло.
-        @param exc_value: Объект исключения, если оно возникло.
-        @param traceback: Стек вызовов, если возникло исключение.
+        :param exc_type: Тип исключения, если оно возникло.
+        :param exc_value: Объект исключения, если оно возникло.
+        :param traceback: Стек вызовов, если возникло исключение.
 
-        @return: None
+        :return: None
         """
         await sync_to_async(super().__exit__)(exc_type, exc_value, traceback)
 
@@ -73,8 +73,8 @@ async def download_file_to_temp(url: str) -> ContentFile:
     """
     Асинхронно скачивает файл с указанного URL и сохраняет его в объект ContentFile в памяти.
 
-    @param url: URL файла, который нужно скачать.
-    @return: Объект ContentFile с содержимым скачанного файла.
+    :param url: URL файла, который нужно скачать.
+    :return: Объект ContentFile с содержимым скачанного файла.
 
     @raises ValueError: Если скачивание не удалось (код ответа не 200).
     """
@@ -91,10 +91,10 @@ def add_user_to_group(user: Any, group_name: str) -> None:
     """
     Добавляет пользователя в указанную группу.
 
-    @param user: Пользователь, которого нужно добавить в группу.
-    @param group_name: Имя группы, в которую нужно добавить пользователя.
+    :param user: Пользователь, которого нужно добавить в группу.
+    :param group_name: Имя группы, в которую нужно добавить пользователя.
 
-    @return: None
+    :return: None
     """
     group, created = Group.objects.get_or_create(name=group_name)
     if user not in group.user_set.all():

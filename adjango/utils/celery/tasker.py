@@ -20,13 +20,13 @@ class Tasker:
         """
         Планирует задачу. Если не указаны eta или countdown, задача выполняется немедленно. Возвращает ID задачи.
 
-        @param task: Celery задача для выполнения.
-        @param eta: Время, когда задача должна быть выполнена (datetime). Приоритетнее, чем countdown.
-        @param countdown: Через сколько секунд выполнить задачу, если eta не указано.
-        @param expires: Время, после которого задача не должна быть выполнена (datetime). Если не указано, не истекает.
-        @param queue: Очередь, в которую нужно отправить задачу.
-        @param kwargs: Именованные аргументы для задачи.
-        @return: Возвращает ID запланированной задачи.
+        :param task: Celery задача для выполнения.
+        :param eta: Время, когда задача должна быть выполнена (datetime). Приоритетнее, чем countdown.
+        :param countdown: Через сколько секунд выполнить задачу, если eta не указано.
+        :param expires: Время, после которого задача не должна быть выполнена (datetime). Если не указано, не истекает.
+        :param queue: Очередь, в которую нужно отправить задачу.
+        :param kwargs: Именованные аргументы для задачи.
+        :return: Возвращает ID запланированной задачи.
         """
         if not eta and not countdown:
             result = task.apply_async(kwargs=kwargs, queue=queue, expires=expires)
@@ -42,7 +42,7 @@ class Tasker:
         """
         Отменяет задачу по её ID.
 
-        @param task_id: ID задачи, которую нужно отменить.
+        :param task_id: ID задачи, которую нужно отменить.
         """
         from celery.result import AsyncResult
         AsyncResult(task_id).revoke(terminate=True)
@@ -53,12 +53,12 @@ class Tasker:
         """
         Планирует задачу через Celery Beat с использованием базы данных для задач с долгосрочным выполнением.
 
-        @param task: Celery задача для выполнения.
-        @param name: Название задачи в Celery Beat.
-        @param schedule_time: Время, когда задача должна быть выполнена (datetime) для одноразовых задач.
-        @param interval: Интервал выполнения задачи (в секундах), если это периодическая задача.
-        @param crontab: Расписание задачи с использованием Crontab (например, crontab(hour=7, minute=30)).
-        @param kwargs: Именованные аргументы для задачи.
+        :param task: Celery задача для выполнения.
+        :param name: Название задачи в Celery Beat.
+        :param schedule_time: Время, когда задача должна быть выполнена (datetime) для одноразовых задач.
+        :param interval: Интервал выполнения задачи (в секундах), если это периодическая задача.
+        :param crontab: Расписание задачи с использованием Crontab (например, crontab(hour=7, minute=30)).
+        :param kwargs: Именованные аргументы для задачи.
         """
         if interval:
             # Планируем задачу с периодическим интервалом
@@ -87,12 +87,12 @@ class Tasker:
         """
         Планирует задачу через Celery Beat с использованием базы данных для задач с долгосрочным выполнением.
 
-        @param task: Celery задача для выполнения.
-        @param name: Название задачи в Celery Beat.
-        @param schedule_time: Время, когда задача должна быть выполнена (datetime) для одноразовых задач.
-        @param interval: Интервал выполнения задачи (в секундах), если это периодическая задача.
-        @param crontab: Расписание задачи с использованием Crontab (например, crontab(hour=7, minute=30)).
-        @param kwargs: Именованные аргументы для задачи.
+        :param task: Celery задача для выполнения.
+        :param name: Название задачи в Celery Beat.
+        :param schedule_time: Время, когда задача должна быть выполнена (datetime) для одноразовых задач.
+        :param interval: Интервал выполнения задачи (в секундах), если это периодическая задача.
+        :param crontab: Расписание задачи с использованием Crontab (например, crontab(hour=7, minute=30)).
+        :param kwargs: Именованные аргументы для задачи.
         """
         if interval:
             # Планируем задачу с периодическим интервалом
