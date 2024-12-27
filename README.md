@@ -2,13 +2,17 @@
 
 > Sometimes I use this in different projects, so I decided to put it on pypi
 
-`ADjango` is a convenient library for simplifying work with Django, which offers various useful managers, services, decorators, utilities for asynchronous programming, a task scheduler for Celery, working with transactions and much more.
+`ADjango` is a convenient library for simplifying work with Django DRF and other,
+which offers various useful `managers`, `services`, `serializers`, `decorators`, utilities 
+for `asynchronous` programming, a task scheduler for Celery, working 
+with `transactions` and much more.
 - [Installation](#installation-%EF%B8%8F)
 - [Settings](#settings-%EF%B8%8F)
 - [Overview](#overview)
   - [Manager & Services](#manager--services-%EF%B8%8F)
   - [Utils](#utils-)
   - [Decorators](#decorators-)
+  - [Serializers](#serializers-)
   - [Other](#other)
 
 ## Installation 🛠️
