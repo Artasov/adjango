@@ -241,14 +241,12 @@ class UserService:
         ).prefetch_related(
             'clients',
             'psychologists',
-            'psychologists__psychologist',
-            'psychologists__psychologist__user',
         ).filter(
             Q(
                 Q(clients=self) | Q(psychologists=self),
                 status=Consultation.Status.PAID,
                 date__isnull=False,
-                date__lt=now_ + timedelta(minutes=settings.MINUTES_AFTER_START_CONSULTATION_TOBE_CONSIDERED_COMPLETED),
+                date__lt=now_,
                 consultations_feedbacks__user=self,
             ) |
             Q(
