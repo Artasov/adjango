@@ -162,7 +162,100 @@ for o in orders:
         from adjango.handlers import HCE # use my example if u need
         ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION = HCE.handle
         ```
-    
+### Serializers 🔧
+`ADjango` extends `Django REST Framework` serializers to support asynchronous 
+operations, making it easier to handle data in async views.
+Support methods like `adata`, `avalid_data`, `ais_valid`, and `asave`.
+```python
+from adjango.querysets.base import AQuerySet
+from adjango.aserializers import (
+  AModelSerializer, ASerializer, AListSerializer
+)
+from adjango.serializers import create_dynamic_serializer
+...
+
+class ConsultationPublicSerializer(AModelSerializer):
+    clients = UserPublicSerializer(many=True, read_only=True)
+    psychologists = UserPsyPublicSerializer(many=True, read_only=True)
+    config = ConsultationConfigSerializer(read_only=True)
+
+    class Meta:
+        model = Consultation
+        fields = '__all__'
+
+# From the complete serializer we cut off the pieces into smaller ones
+ConsultationSerializerTier1 = create_dynamic_serializer(
+    ConsultationPublicSerializer, ('id', 'date',)
+)
+ConsultationSerializerTier2 = create_dynamic_serializer(
+    ConsultationPublicSerializer, (
+        'id', 'date', 'psychologists', 'clients', 'config'
+    ), {
+        'psychologists': UserPublicSerializer(many=True),  # overridden
+    }
+)
+
+# Use it, in compact format
+@acontroller('Completed Consultations')
+@api_view(('GET',))
+@permission_classes((IsAuthenticated,))
+async def consultations_completed(request):
+    page = int(request.query_params.get('page', 1))
+    page_size = int(request.query_params.get('page_size', 10))
+    return Response({
+        'results': await ConsultationSerializerTier2(
+            await request.user.completed_consultations[
+                  (page - 1) * page_size:page * page_size
+                  ].aall(),
+            many=True,
+            context={'request': request}
+        ).adata
+    }, status=200)
+
+...
+class UserService:
+    ...
+    @property
+    def completed_consultations(self: 'User') -> AQuerySet['Consultation']:
+        """
+        Returns an optimized AQuerySet of all completed consultations of the user
+        (both psychologist and client).
+        """
+        from apps.psychology.models import Consultation
+        now_ = now()
+        return Consultation.objects.defer(
+            'communication_type',
+            'language',
+            'reserved_by',
+            'notifies',
+            'cancel_initiator',
+            'original_consultation',
+            'consultations_feedbacks',
+        ).select_related(
+            'config',
+            'conference',
+        ).prefetch_related(
+            'clients',
+            'psychologists',
+            'psychologists__psychologist',
+            'psychologists__psychologist__user',
+        ).filter(
+            Q(
+                Q(clients=self) | Q(psychologists=self),
+                status=Consultation.Status.PAID,
+                date__isnull=False,
+                date__lt=now_ + timedelta(minutes=settings.MINUTES_AFTER_START_CONSULTATION_TOBE_CONSIDERED_COMPLETED),
+                consultations_feedbacks__user=self,
+            ) |
+            Q(
+                Q(clients=self) | Q(psychologists=self),
+                status=Consultation.Status.CANCELLED,
+                date__isnull=False,
+            )
+        ).distinct().order_by('-updated_at')
+    ...
+```
+
 ### Other
 
 * `AsyncAtomicContextManager`🧘
