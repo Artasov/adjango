@@ -25,6 +25,14 @@ def admin_description(description: str):
     return decorator
 
 
+def admin_label(label: str):
+    def decorator(func):
+        func.label = label
+        return func
+
+    return decorator
+
+
 def admin_order_field(field: str):
     def decorator(func):
         func.admin_order_field = field
