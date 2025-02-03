@@ -2,12 +2,15 @@
 try:
     from polymorphic.query import PolymorphicQuerySet
     from adjango.querysets.base import AQuerySet
-    from adjango.utils.funcs import aall, agetorn, afilter, aset, aadd
+    from adjango.utils.funcs import aall, agetorn, getorn, afilter, aset, aadd
 
 
     class APolymorphicQuerySet(AQuerySet, PolymorphicQuerySet):
         async def aall(self):
             return await aall(self)
+
+        def getorn(self, exception=None, *args, **kwargs):
+            return getorn(self, exception, *args, **kwargs)
 
         async def agetorn(self, exception=None, *args, **kwargs):
             return await agetorn(self, exception, *args, **kwargs)

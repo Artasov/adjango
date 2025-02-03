@@ -16,6 +16,38 @@ from django.shortcuts import resolve_url
 from adjango.utils.base import download_file_to_temp
 
 
+async def getorn(
+        queryset: QuerySet,
+        exception: Type[Exception] | None = None,
+        *args: Any,
+        **kwargs: Any,
+
+) -> Any:
+    """
+    Получает единственный объект из заданного QuerySet,
+    соответствующий переданным параметрам.
+
+    :param queryset: QuerySet, из которого нужно получить объект.
+    :param exception: Класс исключения, которое будет выброшено, если объект не найден.
+                      Если None, возвращается None.
+
+    :return: Объект модели или None, если объект не найден и exception не задан.
+
+    @behavior:
+        - Пытается получить объект с помощью queryset.aget().
+        - Если объект не найден, выбрасывает исключение exception или возвращает None.
+
+    @usage:
+        result = getorn(MyCustomException, id=1)
+    """
+    try:
+        return await queryset.get(*args, **kwargs)
+    except queryset.model.DoesNotExist:
+        if exception is not None:
+            raise exception()
+    return None
+
+
 async def agetorn(
         queryset: QuerySet,
         exception: Type[Exception] | None = None,
@@ -38,7 +70,7 @@ async def agetorn(
         - Если объект не найден, выбрасывает исключение exception или возвращает None.
 
     @usage:
-        result = await aget(MyModel.objects, MyCustomException, id=1)
+        result = await agetorn(MyCustomException, id=1)
     """
     try:
         return await queryset.aget(*args, **kwargs)

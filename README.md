@@ -111,7 +111,7 @@ for o in orders:
 ### Utils 🔧
   `aall`, `afilter`,  `arelated`, и так далее доступны как отдельные функции
   ```python
-  from adjango.utils.funcs import aall, agetorn, afilter, aset, aadd, arelated
+  from adjango.utils.funcs import aall, getorn, agetorn, afilter, aset, aadd, arelated
   ```
 ### Decorators 🎀
 * `aforce_data`
