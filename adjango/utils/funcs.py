@@ -16,7 +16,7 @@ from django.shortcuts import resolve_url
 from adjango.utils.base import download_file_to_temp
 
 
-async def getorn(
+def getorn(
         queryset: QuerySet,
         exception: Type[Exception] | None = None,
         *args: Any,
