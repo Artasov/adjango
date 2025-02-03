@@ -41,7 +41,7 @@ async def getorn(
         result = getorn(MyCustomException, id=1)
     """
     try:
-        return await queryset.get(*args, **kwargs)
+        return queryset.get(*args, **kwargs)
     except queryset.model.DoesNotExist:
         if exception is not None:
             raise exception()
