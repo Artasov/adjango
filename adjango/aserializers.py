@@ -22,10 +22,7 @@ def serializer_errors_to_field_errors(serializer_errors) -> List[FieldError]:
     field_errors = []
     for field, messages in serializer_errors.items():
         for message in messages:
-            field_errors.append(FieldError(
-                field=field,
-                message=_(message)
-            ))
+            field_errors.append(FieldError(field=field, message=message))
     return field_errors
 
 
