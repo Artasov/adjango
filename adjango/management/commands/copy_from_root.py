@@ -3,11 +3,6 @@ import os
 
 from django.core.management.base import BaseCommand, CommandError
 
-try:
-    import pyperclip
-except ImportError:
-    pyperclip = None
-
 
 class Command(BaseCommand):
     help = 'Copies the combined content of all files in the specified directory and its subdirectories to the clipboard.'
@@ -89,6 +84,11 @@ class Command(BaseCommand):
         if not concatenated_text:
             self.stdout.write(self.style.WARNING("No content to copy."))
             return
+
+        try:
+            import pyperclip
+        except ImportError:
+            pyperclip = None
 
         if pyperclip is None:
             raise CommandError("The 'pyperclip' module is not installed. Install it using 'pip install pyperclip'.")

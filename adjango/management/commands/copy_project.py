@@ -72,12 +72,6 @@ import sys
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-# Optionally: if you want to copy to the clipboard, install pyperclip (pip install pyperclip)
-try:
-    import pyperclip
-except ImportError:
-    pyperclip = None
-
 
 class Command(BaseCommand):
     help = 'Copies project objects based on the configuration (files, folders, classes, functions) with additional options.'
@@ -170,6 +164,11 @@ class Command(BaseCommand):
             except Exception as e:
                 self.stderr.write(self._color_text(f'Error writing to file {output_file}: {str(e)}', 'red'))
         else:
+            # Optionally: if you want to copy to the clipboard, install pyperclip (pip install pyperclip)
+            try:
+                import pyperclip
+            except ImportError:
+                pyperclip = None
             if pyperclip:
                 pyperclip.copy(final_text)
                 self.stdout.write(self._color_text('Result copied to clipboard', 'green'))
