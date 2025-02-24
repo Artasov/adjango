@@ -1,21 +1,24 @@
-# 🚀 ADjango 
+# 🚀 ADjango
 
 > Sometimes I use this in different projects, so I decided to put it on pypi
 
 `ADjango` is a convenient library for simplifying work with Django DRF and other,
-which offers various useful `managers`, `services`, `serializers`, `decorators`, utilities 
-for `asynchronous` programming, a task scheduler for Celery, working 
+which offers various useful `managers`, `services`, `serializers`, `decorators`, utilities
+for `asynchronous` programming, a task scheduler for Celery, working
 with `transactions` and much more.
+
 - [Installation](#installation-%EF%B8%8F)
 - [Settings](#settings-%EF%B8%8F)
 - [Overview](#overview)
-  - [Manager & Services](#manager--services-%EF%B8%8F)
-  - [Utils](#utils-)
-  - [Decorators](#decorators-)
-  - [Serializers](#serializers-)
-  - [Other](#other)
+    - [Manager & Services](#manager--services-%EF%B8%8F)
+    - [Utils](#utils-)
+    - [Decorators](#decorators-)
+    - [Serializers](#serializers-)
+    - [Management](#management)
+    - [Other](#other)
 
 ## Installation 🛠️
+
 ```bash
 pip install adjango
 ```
@@ -25,7 +28,7 @@ pip install adjango
 * ### Add the application to the project.
     ```python
     INSTALLED_APPS = [
-        #...
+        # ...
         'adjango',
     ]
     ```
@@ -54,11 +57,15 @@ pip install adjango
         ...
     ]
     ```
+
 ## Overview
+
 Most functions, if available in asynchronous form, are also available in synchronous form.
 
 ### Manager & Services 🛎️
+
 A simple example and everything is immediately clear...
+
 ```python
 from adjango.fields import AManyToManyField
 from adjango.managers.base import AManager
@@ -66,33 +73,37 @@ from adjango.services.base import ABaseService
 from adjango.models import AModel
 from adjango.polymorphic_models import APolymorphicModel
 
+
 class User(AbstractUser, ABaseService):
     objects = AManager()
+
+
 # Its equal with...
 class User(AbstractUser, AModel): pass
-    
+
 
 class Product(APolymorphicModel):
     # APolymorphicManager() of course here already exists
     name = CharField(max_length=100)
 
+
 class Order(AModel):
     user = ForeignKey(User, CASCADE)
     products = AManyToManyField(Product)
 
-    
+
 # The following is now possible...
 products = await Product.objects.aall()
 products = await Product.objects.afilter(name='name')
 # Returns an object or None if not found
-order = await Order.objects.agetorn(id=69) # aget or none
+order = await Order.objects.agetorn(id=69)  # aget or none
 if not order: raise
 
 # We install products in the order
 await order.products.aset(products)
 # Or queryset right away...
 await order.products.aset(
-  Product.objects.filter(name='name') 
+    Product.objects.filter(name='name')
 )
 await order.products.aadd(products[0])
 
@@ -106,28 +117,33 @@ orders = await Order.objects.prefetch_related('products').aall()
 for o in orders:
     for p in o.products.all():
         print(p.id)
-#thk u
+# thk u
 ```
+
 ### Utils 🔧
-  `aall`, `afilter`,  `arelated`, и так далее доступны как отдельные функции
+
+`aall`, `afilter`,  `arelated`, и так далее доступны как отдельные функции
+
   ```python
   from adjango.utils.funcs import aall, getorn, agetorn, afilter, aset, aadd, arelated
   ```
+
 ### Decorators 🎀
+
 * `aforce_data`
 
-    The `aforce_data` decorator combines data from the `GET`, `POST` and `JSON` body 
-    request in `request.data`. This makes it easy to access all request data in one place.
+  The `aforce_data` decorator combines data from the `GET`, `POST` and `JSON` body
+  request in `request.data`. This makes it easy to access all request data in one place.
 
 * `atomic`
 
-    An asynchronous decorator that wraps 
-    function into a transactional context. If an exception occurs, all changes are rolled back.
+  An asynchronous decorator that wraps
+  function into a transactional context. If an exception occurs, all changes are rolled back.
 
 * `acontroller/controller`
 
-    An asynchronous decorator that wraps 
-    function into a transactional context. If an exception occurs, all changes are rolled back.
+  An asynchronous decorator that wraps
+  function into a transactional context. If an exception occurs, all changes are rolled back.
     ```python
     from adjango.adecorators import acontroller
 
@@ -139,8 +155,8 @@ for o in orders:
     async def my_view_one_more(request):
         pass
     ```
-    * These decorators automatically catch uncaught exceptions and log if the logger is configured 
-    `ADJANGO_CONTROLLERS_LOGGER_NAME` `ADJANGO_CONTROLLERS_LOGGING`. 
+    * These decorators automatically catch uncaught exceptions and log if the logger is configured
+      `ADJANGO_CONTROLLERS_LOGGER_NAME` `ADJANGO_CONTROLLERS_LOGGING`.
     * You can also implement the interface:
         ```python
         class IHandlerControllerException(ABC):
@@ -160,23 +176,28 @@ for o in orders:
                 """
                 pass
         ```
-        and use `handle` to get an uncaught exception:
+      and use `handle` to get an uncaught exception:
         ```python
         # settings.py
         from adjango.handlers import HCE # use my example if u need
         ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION = HCE.handle
         ```
+
 ### Serializers 🔧
-`ADjango` extends `Django REST Framework` serializers to support asynchronous 
+
+`ADjango` extends `Django REST Framework` serializers to support asynchronous
 operations, making it easier to handle data in async views.
 Support methods like `adata`, `avalid_data`, `ais_valid`, and `asave`.
+
 ```python
 from adjango.querysets.base import AQuerySet
 from adjango.aserializers import (
-  AModelSerializer, ASerializer, AListSerializer
+    AModelSerializer, ASerializer, AListSerializer
 )
 from adjango.serializers import create_dynamic_serializer
+
 ...
+
 
 class ConsultationPublicSerializer(AModelSerializer):
     clients = UserPublicSerializer(many=True, read_only=True)
@@ -186,6 +207,7 @@ class ConsultationPublicSerializer(AModelSerializer):
     class Meta:
         model = Consultation
         fields = '__all__'
+
 
 # From the complete serializer we cut off the pieces into smaller ones
 ConsultationSerializerTier1 = create_dynamic_serializer(
@@ -198,6 +220,7 @@ ConsultationSerializerTier2 = create_dynamic_serializer(
         'psychologists': UserPublicSerializer(many=True),  # overridden
     }
 )
+
 
 # Use it, in compact format
 @acontroller('Completed Consultations')
@@ -216,9 +239,13 @@ async def consultations_completed(request):
         ).adata
     }, status=200)
 
+
 ...
+
+
 class UserService:
     ...
+
     @property
     def completed_consultations(self: 'User') -> AQuerySet['Consultation']:
         """
@@ -255,14 +282,21 @@ class UserService:
                 date__isnull=False,
             )
         ).distinct().order_by('-updated_at')
+
     ...
 ```
+
+### Management
+
+* `copy_project`
+  Documentation in the _py_ module itself - **[copy_project](adjango/management/commands/copy_project.py)**
+
 
 ### Other
 
 * `AsyncAtomicContextManager`🧘
 
-    An asynchronous context manager for working with transactions, which ensures the atomicity of operations.
+  An asynchronous context manager for working with transactions, which ensures the atomicity of operations.
     ```python
     from adjango.utils.base import AsyncAtomicContextManager
     
@@ -273,7 +307,7 @@ class UserService:
 
 * `Tasker`📋
 
-    The Tasker class provides methods for scheduling tasks in `Celery` and `Celery Beat`.
+  The Tasker class provides methods for scheduling tasks in `Celery` and `Celery Beat`.
     ```python
     from adjango.utils.tasks import Tasker
     
@@ -309,7 +343,7 @@ class UserService:
 
 * `send_emails`
 
-    Allows you to send emails using templates and context rendering.
+  Allows you to send emails using templates and context rendering.
     ```python
     from adjango.utils.mail import send_emails
     

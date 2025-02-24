@@ -53,6 +53,9 @@ ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION = HCE.handle
 ADJANGO_IP_LOGGER = 'global'
 ADJANGO_IP_META_NAME = 'HTTP_X_FORWARDED_FOR'
 
+# For copy_project manage.py command
+COPY_PROJECT_CONFIGURATIONS = BASE_DIR / 'project' / 'copy_conf.py'
+
 MIDDLEWARE = [
     'adjango.middleware.IPAddressMiddleware',  # add request.ip in views
     'django.middleware.security.SecurityMiddleware',
