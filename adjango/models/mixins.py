@@ -1,4 +1,5 @@
 from django.db.models import DateTimeField
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from adjango.models import AModel
@@ -6,6 +7,13 @@ from adjango.models import AModel
 
 class ACreatedAtMixin(AModel):
     created_at = DateTimeField(_('Created at'), auto_now_add=True)
+
+    class Meta:
+        abstract = True
+
+
+class ACreatedAtEditableMixin(AModel):
+    created_at = DateTimeField(_('Created at'), default=timezone.now)
 
     class Meta:
         abstract = True
