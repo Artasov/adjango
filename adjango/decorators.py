@@ -25,6 +25,14 @@ def admin_description(description: str):
     return decorator
 
 
+def admin_boolean(value: bool):
+    def decorator(func):
+        func.boolean = value
+        return func
+
+    return decorator
+
+
 def admin_label(label: str):
     def decorator(func):
         func.label = label
