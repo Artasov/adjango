@@ -9,7 +9,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
 
-def send_emails(subject: str, emails: tuple[str, ...] | list[str, ...], template: str, context=None):
+def send_emails(subject: str, emails: list[str] | tuple[str], template: str, context=None) -> bool:
     """
     Отправляет email с использованием указанного шаблона.
 
@@ -27,5 +27,7 @@ def send_emails(subject: str, emails: tuple[str, ...] | list[str, ...], template
             html_message=render_to_string(template, context=context if context is not None else {})
     ):
         log.info(f'Successfully sent {template=} {emails=}')
+        return True
     else:
         log.critical(f'Failed to send {template=} {emails=} {context=}')
+        return False

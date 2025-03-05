@@ -1,4 +1,4 @@
-'''
+"""
 Django management command to copy project objects (files, directories) based on a configuration file.
 
 This command reads a configuration file specified in settings.COPY_PROJECT_CONFIGURATIONS,
@@ -71,7 +71,7 @@ Usage:
 
 If --output is specified, the collected source code is written to the given file.
 Otherwise, if the pyperclip module is installed, the result is copied to the clipboard.
-'''
+"""
 
 import os
 import sys
@@ -83,11 +83,15 @@ from django.core.management.base import BaseCommand
 class Command(BaseCommand):
     help = 'Copies project objects (files, directories) based on a configuration with additional options.'
 
-    # You can adjust this list to include whatever file extensions your frontend/backend uses.
+    # ВНИМАНИЕ: Исправлен список KNOWN_EXTENSIONS (добавлена запятая перед '.yml')
     KNOWN_EXTENSIONS = [
-        '.py', '.js', '.jsx', '.tsx', '.ts', '.html', '.css'
+        '.py', '.js', '.jsx', '.tsx', '.ts', '.html', '.css', '.h', '.cpp', '.ui', '.pro',
         '.yml', '.md', '.txt', '.cfg', '.gitignore', '.po', '.conf'
     ]
+
+    def __init__(self, stdout=None, stderr=None, no_color=False, force_color=False):
+        super().__init__(stdout, stderr, no_color, force_color)
+        self.collected_sources = None
 
     def add_arguments(self, parser):
         parser.add_argument('conf_name', nargs='?', default='base', type=str,
@@ -169,11 +173,11 @@ class Command(BaseCommand):
                 )
 
     def process_config(self, prefix, conf_item, opts):
-        '''
+        """
         Recursively processes the configuration dictionary.
-        - If conf_item is a dict (and not a special directive), we descend into that directory or that sub-structure.
+        - If conf_item is a dict (and not a special directive), we descend into that directory or sub-structure.
         - If conf_item == '__copy__', we copy the corresponding file or directory (possibly with extension fallback).
-        '''
+        """
         if isinstance(conf_item, dict):
             # Merge local exclude, add_paths, and start_dir if redefined
             local_options = opts.copy()
@@ -195,10 +199,11 @@ class Command(BaseCommand):
 
         elif isinstance(conf_item, str):
             if conf_item == '__copy__':
-                # We want to copy the file or directory at 'prefix'
+                # Мы хотим скопировать все файлы или папку по префиксу
                 try:
-                    path_to_copy = self.resolve_path(prefix, opts['start_dir'])
-                    self.copy_path(path_to_copy, opts)
+                    paths_to_copy = self.resolve_path(prefix, opts['start_dir'])
+                    for path_to_copy in paths_to_copy:
+                        self.copy_path(path_to_copy, opts)
                     self.stdout.write(self._color_text(f'Copied: {prefix}', 'green'))
                 except FileNotFoundError as er:
                     self.stderr.write(self._color_text(f'Not found: {prefix} ({str(er)})', 'red'))
@@ -210,46 +215,49 @@ class Command(BaseCommand):
             self.stderr.write(self._color_text(f'Invalid configuration for {prefix}', 'red'))
 
     def resolve_path(self, dotted_path, start_dir):
-        '''
-        Converts a dotted path (e.g., "apps.core.routes.root") into a filesystem path
-        relative to the given start_dir. If the exact path doesn't exist,
-        tries appending known extensions (e.g., .py, .js, .jsx, etc.).
-        Raises FileNotFoundError if the path does not exist after all attempts.
-        '''
+        """
+        Преобразует точечный путь в файловую систему.
+        Если существует папка с таким именем — она добавляется.
+        Плюс, если есть файлы с известными расширениями ('.h', '.cpp' и т.д.) и тем же базовым именем,
+        они также добавляются. Если не найдено ничего, возбуждается FileNotFoundError.
+        """
         parts = dotted_path.split('.')
         base_path = os.path.join(start_dir, *parts)
 
-        # 1) If it exists as-is (folder or file), return immediately
-        if os.path.exists(base_path):
-            return base_path
+        found_paths = []
+        # Если есть директория с таким именем, добавляем её
+        if os.path.isdir(base_path):
+            found_paths.append(base_path)
 
-        # 2) Otherwise, try appending known extensions
+        # Ищем все файлы с известными расширениями
         for ext in self.KNOWN_EXTENSIONS:
             test_path = base_path + ext
-            if os.path.exists(test_path):
-                return test_path
+            if os.path.isfile(test_path):
+                found_paths.append(test_path)
 
-        # If we still haven't found a match, raise an error
-        raise FileNotFoundError(f'Path does not exist: {base_path}')
+        # Если совсем ничего нет — ошибка
+        if not found_paths:
+            raise FileNotFoundError(
+                f'Path does not exist: {base_path} (including all known extensions)'
+            )
+
+        return found_paths
 
     def copy_path(self, path_to_copy, opts):
-        '''
-        Copies the content of a file or an entire directory into the collected_sources list.
-        If path_to_copy is a directory, it is traversed recursively, respecting exclude rules.
-        If path_to_copy is a file, it is read and possibly prepended with a path comment.
-        '''
+        """
+        Копирует контент файла или всей директории, добавляя при необходимости путь-комментарий.
+        """
         if os.path.isdir(path_to_copy):
             self.copy_directory(path_to_copy, opts)
         else:
             self.copy_file(path_to_copy, opts)
 
     def copy_directory(self, directory_path, opts):
-        '''
-        Recursively copies all files from the given directory, skipping folders/files
-        that match any of the substrings in opts['exclude'].
-        '''
+        """
+        Рекурсивно копирует файлы из заданной директории, пропуская те, что содержат подстроки из opts['exclude'].
+        """
         for root, dirs, files in os.walk(directory_path):
-            # Exclude directories
+            # Исключаем директории
             dirs[:] = [
                 d for d in dirs
                 if not any(excl in d for excl in opts.get('exclude', []))
@@ -258,13 +266,12 @@ class Command(BaseCommand):
                 if any(excl in file for excl in opts.get('exclude', [])):
                     continue
                 file_full = os.path.join(root, file)
-                # Copy file
                 self.copy_file(file_full, opts)
 
     def copy_file(self, file_path, opts):
-        '''
-        Reads the file, optionally prepends a path comment, and appends the result to collected_sources.
-        '''
+        """
+        Считывает файл, при необходимости добавляет комментарий с путем и кладет результат в collected_sources.
+        """
         with open(file_path, encoding='utf-8') as f:
             content = f.read()
 
@@ -274,20 +281,17 @@ class Command(BaseCommand):
 
     @staticmethod
     def add_path_comment(source, file_path, start_dir):
-        '''
-        Adds a comment with the relative path from start_dir to the beginning of the source code.
-        If the source code already begins with a comment (containing at least one '/'),
-        that line is removed before inserting the new comment.
-        The comment style is chosen based on the file extension, using forward slashes.
-        '''
+        """
+        Добавляет комментарий с относительным путем (от start_dir) в начало файла.
+        Если первая строка уже содержит подобный комментарий (с '/') — удаляем её.
+        Формат комментария выбирается по расширению файла.
+        """
         rel_path = os.path.relpath(file_path, start_dir).replace('\\', '/')
 
         ext = os.path.splitext(file_path)[1].lower()
         if ext == '.py':
             new_comment = f'# {rel_path}\n'
-        elif ext == '.js':
-            new_comment = f'// {rel_path}\n'
-        elif ext == '.jsx' or ext == '.tsx' or ext == '.ts':
+        elif ext in ('.js', '.jsx', '.ts', '.tsx'):
             new_comment = f'// {rel_path}\n'
         elif ext == '.html':
             new_comment = f'<!-- {rel_path} -->\n'
@@ -300,8 +304,9 @@ class Command(BaseCommand):
         lines = source.splitlines()
         if lines:
             first_line = lines[0].strip()
-            # If the first line is a comment containing '/'
-            if first_line.startswith(('#', '//', '/*', '<!--', '/')) and '/' in first_line:
+            # Если первая строка — это комментарий с прямым слешем
+            if (first_line.startswith(('#', '//', '/*', '<!--', '/'))
+                    and '/' in first_line):
                 lines = lines[1:]
                 source = '\n'.join(lines)
 
