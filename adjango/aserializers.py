@@ -92,7 +92,7 @@ class AModelSerializer(DRFModelSerializer):
         if raise_exception and not is_valid: raise SerializerErrors(self.errors)
         return is_valid
 
-    async def is_valid(self, raise_exception=False, **kwargs):
+    def is_valid(self, raise_exception=False, **kwargs):
         is_valid = super().is_valid(**kwargs)
         if raise_exception and not is_valid: raise SerializerErrors(self.errors)
         return is_valid
