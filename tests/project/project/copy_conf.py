@@ -37,7 +37,18 @@ configurations = {
             'README': '__copy__',
         },
     },
-    'config_v_2': {
-        ...
+    'wide-containers': {
+        '__start_dir__': r'F:\dev\wide-containers',  # optional, defaults to BASE_DIR if not specified
+        '__exclude__': [
+            '__init__',
+            'pycache',
+            '.pyc',
+        ],
+        '__add_paths__': True,
+
+        'src': '__copy__',
+        'package': '__copy__',
+        'tsconfig': '__copy__',
+        'webpack.config': '__copy__',
     }
 }

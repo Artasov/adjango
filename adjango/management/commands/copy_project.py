@@ -86,7 +86,7 @@ class Command(BaseCommand):
     # ВНИМАНИЕ: Исправлен список KNOWN_EXTENSIONS (добавлена запятая перед '.yml')
     KNOWN_EXTENSIONS = [
         '.py', '.js', '.jsx', '.tsx', '.ts', '.html', '.css', '.h', '.cpp', '.ui', '.pro',
-        '.yml', '.md', '.txt', '.cfg', '.gitignore', '.po', '.conf'
+        '.yml', '.md', '.txt', '.cfg', '.gitignore', '.po', '.conf', '.json'
     ]
 
     def __init__(self, stdout=None, stderr=None, no_color=False, force_color=False):
