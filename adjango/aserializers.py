@@ -1,7 +1,11 @@
 from typing import TypedDict, List
 
 try:
-    from rest_framework.serializers import ListSerializer as DRFListSerializer
+    from rest_framework.serializers import (
+        ListSerializer as DRFListSerializer,
+        LIST_SERIALIZER_KWARGS_REMOVE,
+        LIST_SERIALIZER_KWARGS
+    )
     from rest_framework.serializers import ModelSerializer as DRFModelSerializer
     from rest_framework.serializers import Serializer as DRFSerializer
     from rest_framework import status
@@ -107,5 +111,16 @@ class AModelSerializer(DRFModelSerializer):
 
     @classmethod
     def many_init(cls, *args, **kwargs):
-        kwargs['child'] = cls()
-        return AListSerializer(*args, **kwargs)
+        list_kwargs = {}
+        for key in LIST_SERIALIZER_KWARGS_REMOVE:
+            value = kwargs.pop(key, None)
+            if value is not None:
+                list_kwargs[key] = value
+        list_kwargs['child'] = cls(*args, **kwargs)
+        list_kwargs.update({
+            key: value for key, value in kwargs.items()
+            if key in LIST_SERIALIZER_KWARGS
+        })
+        meta = getattr(cls, 'Meta', None)
+        list_serializer_class = getattr(meta, 'list_serializer_class', AListSerializer)
+        return list_serializer_class(*args, **list_kwargs)
