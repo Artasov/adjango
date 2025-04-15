@@ -83,11 +83,10 @@ from django.core.management.base import BaseCommand
 class Command(BaseCommand):
     help = 'Copies project objects (files, directories) based on a configuration with additional options.'
 
-    # ВНИМАНИЕ: Исправлен список KNOWN_EXTENSIONS (добавлена запятая перед '.yml')
     KNOWN_EXTENSIONS = [
         '.py', '.js', '.jsx', '.tsx', '.ts', '.html', '.css', '.h', '.cpp', '.ui', '.pro',
         '.yml', '.md', '.txt', '.cfg', '.gitignore', '.po', '.conf', '.json', '.gradle',
-        '.properties', '.bat', '.java',
+        '.properties', '.bat', '.java', '.toml', '.env',
     ]
 
     def __init__(self, stdout=None, stderr=None, no_color=False, force_color=False):
