@@ -1,3 +1,4 @@
+# models/mixins.py
 from django.db.models import DateTimeField
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _

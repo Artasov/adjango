@@ -1,7 +1,13 @@
 pip install --upgrade setuptools wheel
 pip install twine
+
+
+
 python setup.py sdist bdist_wheel
 twine upload dist/*
+
+
+
 
 ТЕСТОВЫЙ twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 ПРОДОВЫЙ twine upload dist/*

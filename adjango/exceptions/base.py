@@ -1,3 +1,4 @@
+# exceptions/base.py
 from typing import Type
 
 from django.utils.translation import gettext_lazy as _

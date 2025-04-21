@@ -1,3 +1,4 @@
+# management/commands/copy_project.py
 """
 Django management command to copy project objects (files, directories) based on a configuration file.
 
