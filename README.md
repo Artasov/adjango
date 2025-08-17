@@ -69,17 +69,19 @@ A simple example and everything is immediately clear...
 ```python
 from adjango.fields import AManyToManyField
 from adjango.managers.base import AManager
-from adjango.services.object.base import ABaseModelObjectService
-from adjango.models import AModel
+from adjango.services.base import ABaseService
+from adjango.models import AModel, AAbstractUser
 from adjango.polymorphic_models import APolymorphicModel
 
 
-class User(AbstractUser, ABaseModelObjectService):
+class UserService(ABaseService["User"]):
+  def __init__(self, obj: "User") -> None:
+    super().__init__(obj)
+
+
+class User(AAbstractUser[UserService]):
+  service_class = UserService
   objects = AManager()
-
-
-# Its equal with...
-class User(AbstractUser, AModel): pass
 
 
 class Product(APolymorphicModel):

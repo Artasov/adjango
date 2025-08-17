@@ -7,10 +7,18 @@ from django.db.models import (
 
 from adjango.fields import AManyToManyField
 from adjango.models.base import AModel, AAbstractUser
+from adjango.services.base import ABaseService
 from adjango.models.polymorphic import APolymorphicModel
 
 
-class User(AAbstractUser):
+
+class UserService(ABaseService["User"]):
+    def __init__(self, obj: "User") -> None:
+        super().__init__(obj)
+
+
+class User(AAbstractUser[UserService]):
+    service_class = UserService
     phone = CharField(max_length=20, unique=True)
 
 
