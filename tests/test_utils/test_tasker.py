@@ -47,6 +47,42 @@ def test_tasker_beat_interval():
         create.assert_called_once()
 
 
+@pytest.mark.django_db
+def test_tasker_beat_crontab():
+    dummy_task = SimpleNamespace(name="task.name")
+    with (
+        patch(
+            "adjango.utils.celery.tasker.CrontabSchedule.objects.get_or_create",
+            return_value=(Mock(), True),
+        ) as get_or_create,
+        patch("adjango.utils.celery.tasker.PeriodicTask.objects.create") as create,
+    ):
+        Tasker.beat(dummy_task, name="t1", crontab={"minute": "0"})
+        get_or_create.assert_called_once_with(minute="0")
+        create.assert_called_once()
+
+
+@pytest.mark.django_db
+def test_tasker_beat_onetime():
+    dummy_task = SimpleNamespace(name="task.name")
+    schedule_time = datetime(2024, 1, 1, 2, 3)
+    with patch(
+        "adjango.utils.celery.tasker.CrontabSchedule.objects.get_or_create",
+        return_value=(Mock(), True),
+    ) as get_or_create, patch(
+        "adjango.utils.celery.tasker.PeriodicTask.objects.create"
+    ) as create:
+        Tasker.beat(dummy_task, name="t1", schedule_time=schedule_time)
+        get_or_create.assert_called_once_with(
+            minute=schedule_time.minute,
+            hour=schedule_time.hour,
+            day_of_week="*",
+            day_of_month=schedule_time.day,
+            month_of_year=schedule_time.month,
+        )
+        create.assert_called_once()
+
+
 @pytest.mark.asyncio
 @pytest.mark.django_db
 async def test_tasker_abeat_interval():
@@ -64,5 +100,52 @@ async def test_tasker_abeat_interval():
     ):
         await Tasker.abeat(dummy_task, name="t1", interval=10)
         aget_or_create.assert_called_once()
+        acreate.assert_called_once()
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db
+async def test_tasker_abeat_crontab():
+    dummy_task = SimpleNamespace(name="task.name")
+    with (
+        patch(
+            "adjango.utils.celery.tasker.CrontabSchedule.objects.aget_or_create",
+            new_callable=AsyncMock,
+            return_value=(Mock(), True),
+        ) as aget_or_create,
+        patch(
+            "adjango.utils.celery.tasker.PeriodicTask.objects.acreate",
+            new_callable=AsyncMock,
+        ) as acreate,
+    ):
+        await Tasker.abeat(dummy_task, name="t1", crontab={"minute": "0"})
+        aget_or_create.assert_called_once_with(minute="0")
+        acreate.assert_called_once()
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db
+async def test_tasker_abeat_onetime():
+    dummy_task = SimpleNamespace(name="task.name")
+    schedule_time = datetime(2024, 1, 1, 4, 5)
+    with (
+        patch(
+            "adjango.utils.celery.tasker.CrontabSchedule.objects.aget_or_create",
+            new_callable=AsyncMock,
+            return_value=(Mock(), True),
+        ) as aget_or_create,
+        patch(
+            "adjango.utils.celery.tasker.PeriodicTask.objects.acreate",
+            new_callable=AsyncMock,
+        ) as acreate,
+    ):
+        await Tasker.abeat(dummy_task, name="t1", schedule_time=schedule_time)
+        aget_or_create.assert_called_once_with(
+            minute=schedule_time.minute,
+            hour=schedule_time.hour,
+            day_of_week="*",
+            day_of_month=schedule_time.day,
+            month_of_year=schedule_time.month,
+        )
         acreate.assert_called_once()
 

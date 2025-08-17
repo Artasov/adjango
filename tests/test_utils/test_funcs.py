@@ -30,6 +30,7 @@ async def test_getorn_and_agetorn():
 
     p_async = await agetorn(Product.objects, None, name="p1")
     assert p_async == p
+    assert await agetorn(Product.objects, None, name="missing") is None
 
     class MyError(Exception):
         pass
@@ -46,7 +47,7 @@ async def test_getorn_and_agetorn():
 async def test_arelated_aset_aadd_aall_afilter():
     from app.models import Product, Order, User
 
-    user = await User.objects.acreate(username="u", phone="1")
+    user = await User.objects.acreate(username="u", phone="200")
     order = await Order.objects.acreate(user=user)
     p1 = await Product.objects.acreate(name="p1", price=1)
     p2 = await Product.objects.acreate(name="p2", price=2)
@@ -67,6 +68,23 @@ async def test_arelated_aset_aadd_aall_afilter():
 
     related_user = await arelated(order, "user")
     assert related_user == user
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db
+async def test_arelated_errors():
+    from app.models import User, Order
+    from types import SimpleNamespace
+
+    obj = SimpleNamespace(user=None)
+    with pytest.raises(ValueError):
+        await arelated(obj, "user")
+
+    user = await User.objects.acreate(username="u3", phone="3")
+    order = await Order.objects.acreate(user_id=user.pk)
+    order_fresh = await Order.objects.aget(pk=order.pk)
+    related = await arelated(order_fresh, "user")
+    assert related == user
 
 
 @pytest.mark.asyncio
