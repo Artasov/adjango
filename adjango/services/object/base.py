@@ -1,18 +1,23 @@
 # services/base.py
+from typing import Any, Generic, TypeVar
+
 from django.db.models import Model
 
 from adjango.services.base import ABaseService
 from adjango.utils.funcs import arelated
 
 
-class ABaseModelObjectService:
-    service_class: type(ABaseService) = None
+ServiceT = TypeVar('ServiceT', bound=ABaseService)
 
-    async def arelated(self: Model, field: str):
+
+class ABaseModelObjectService(Generic[ServiceT]):
+    service_class: type[ServiceT] | None = None
+
+    async def arelated(self: Model, field: str) -> Any:
         return await arelated(self, field)
 
     @property
-    def service(self):
+    def service(self) -> ServiceT:
         if not self.service_class:
             raise NotImplementedError('service_class is not defined')
-        return self.service_class(self)
+        return self.service_class(self)  # type: ignore[arg-type]
