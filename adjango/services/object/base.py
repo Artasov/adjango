@@ -6,7 +6,7 @@ from django.db.models import Model
 from adjango.services.base import ABaseService
 from adjango.utils.funcs import arelated
 
-ServiceT = TypeVar('ServiceT', bound=ABaseService)
+ServiceT = TypeVar('ServiceT', bound=ABaseService[Any])
 
 
 class ABaseModelObjectService(Generic[ServiceT]):
