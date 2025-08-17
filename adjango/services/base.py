@@ -1,8 +1,9 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from adjango.models import AModel
 
 
 class ABaseService(ABC):
-    def __init__(self, obj: type(AModel)):
-        self.obj = obj
+    @abstractmethod
+    def __init__(self, obj: AModel) -> None:
+        self.obj: AModel = obj

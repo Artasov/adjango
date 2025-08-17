@@ -7,6 +7,7 @@ from django.core.handlers.asgi import ASGIRequest
 from django.core.handlers.wsgi import WSGIRequest
 
 from adjango.utils.common import traceback_str
+from adjango.utils.celery.tasker import Tasker
 
 
 class IHandlerControllerException(ABC):
@@ -54,6 +55,7 @@ class HCE(IHandlerControllerException):
         import logging
         from django.conf import settings
         from adjango.tasks import send_emails_task
+
         log = logging.getLogger('global')
         error_text = (f'ERROR in {fn_name}:\n'
                       f'{traceback_str(e)}\n'
@@ -66,9 +68,10 @@ class HCE(IHandlerControllerException):
                       f'{kwargs=}')
         log.error(error_text)
         if not settings.DEBUG:
-            send_emails_task.delay(
+            Tasker.put(
+                send_emails_task,
                 subject='SERVER ERROR',
                 emails=('admin@example.com', 'admin2@example.com',),
                 template='admin/exception_report.html',
-                context={'error': error_text}
+                context={'error': error_text},
             )
