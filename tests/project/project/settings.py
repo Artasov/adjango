@@ -5,9 +5,11 @@ from os.path import join
 from pathlib import Path
 from typing import Any
 
+
 def _dummy_handler(fn_name, request, e, *args, **kwargs):
     """Simple placeholder error handler for tests."""
     return None
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-@!c2^-9o^q#&te$c(u(k$l$cm^17p6p9e7cp1v8hnkdzg)a4^w'
@@ -25,6 +27,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_celery_beat',
+    'adjango',
     'app'
 ]
 

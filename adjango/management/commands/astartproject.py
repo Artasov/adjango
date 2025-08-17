@@ -1,81 +1,46 @@
 # management/commands/astartproject.py
-"""Create new Django project with config package and apps/core structure."""
+"""Create new Django project by copying base_project template."""
 
+import shutil
 from pathlib import Path
 
-from django.core.management import BaseCommand, CommandError, call_command
+from django.core.management import BaseCommand, CommandError
 
 
 class Command(BaseCommand):
-    """Custom startproject command creating config package and default core app."""
+    """Custom startproject command using pre-defined base_project template."""
 
-    help = "Create a new project with inner 'config' package and default 'core' app."  # noqa: A003
+    help = "Create a new project by copying base_project skeleton."  # noqa: A003
 
     def add_arguments(self, parser):
         parser.add_argument(
-            'name',
-            help='Name of the project (outer directory).'
-        )
-        parser.add_argument(
             'directory',
             nargs='?',
-            default=None,
-            help='Optional target directory.'
+            default='.',
+            help='Optional target directory (default: current directory).',
         )
 
     def handle(self, *args, **options):
-        project_name = options['name']
-        directory = options['directory']
+        raw_dir = options['directory']
 
-        target_dir = Path(directory or project_name).resolve()
-        if target_dir.exists():
-            raise CommandError(f"Directory '{target_dir}' already exists")
+        # Определяем целевую директорию
+        if raw_dir in (None, '.'):
+            target_dir = Path.cwd()
+        else:
+            given = Path(raw_dir)
+            target_dir = (Path.cwd() / given) if not given.is_absolute() else given
+        target_dir = target_dir.resolve()
 
-        target_dir.mkdir(parents=True)
+        if target_dir.exists() and any(target_dir.iterdir()):
+            raise CommandError(f"Directory '{target_dir}' already exists and is not empty")
 
-        # Use Django's startproject to create base structure with inner package 'config'.
-        call_command('startproject', 'config', str(target_dir))
+        target_dir.mkdir(parents=True, exist_ok=True)
 
-        apps_dir = target_dir / 'apps'
-        core_dir = apps_dir / 'core'
-        roads_dir = core_dir / 'roads'
+        # Копируем base_project
+        base_project_dir = Path(__file__).resolve().parent.parent.parent / 'base_project'
+        if not base_project_dir.exists():
+            raise CommandError(f"Base project not found: {base_project_dir}")
 
-        # Create apps/core/roads structure
-        roads_dir.mkdir(parents=True)
-        (apps_dir / '__init__.py').write_text('')
-        (core_dir / '__init__.py').write_text('')
-        (roads_dir / '__init__.py').write_text('')
-        (roads_dir / 'root.py').write_text(
-            'from django.urls import path\n\nurlpatterns = []\n'
-        )
-
-        # Adjust settings
-        settings_path = target_dir / 'config' / 'settings.py'
-        content = settings_path.read_text().splitlines()
-
-        # Insert apps.core into INSTALLED_APPS
-        for i, line in enumerate(content):
-            if line.strip().startswith('INSTALLED_APPS') and line.strip().endswith('['):
-                content.insert(i + 1, "    'apps.core',")
-                break
-        else:  # pragma: no cover - default startproject always has INSTALLED_APPS
-            raise CommandError('INSTALLED_APPS not found in settings.py')
-
-        # Set ROOT_URLCONF to core roads
-        replaced = False
-        for i, line in enumerate(content):
-            if line.strip().startswith('ROOT_URLCONF'):
-                content[i] = "ROOT_URLCONF = 'apps.core.roads.root'"
-                replaced = True
-                break
-        if not replaced:
-            content.append("ROOT_URLCONF = 'apps.core.roads.root'")
-
-        settings_path.write_text('\n'.join(content) + '\n')
-
-        # Remove default urls.py as routes are stored in core roads
-        default_urls = target_dir / 'config' / 'urls.py'
-        if default_urls.exists():
-            default_urls.unlink()
+        shutil.copytree(base_project_dir, target_dir, dirs_exist_ok=True)
 
         self.stdout.write(self.style.SUCCESS(f"Project created at {target_dir}"))
