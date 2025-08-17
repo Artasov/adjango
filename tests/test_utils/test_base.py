@@ -1,4 +1,3 @@
-import asyncio
 from datetime import date, timedelta
 
 import pytest
@@ -25,6 +24,7 @@ from adjango.utils.base import (
 @pytest.mark.asyncio
 async def test_is_async_context_async():
     assert is_async_context()
+
 
 def test_is_async_context_sync():
     assert not is_async_context()
@@ -112,8 +112,10 @@ async def test_download_file_to_temp(monkeypatch):
     class FakeSession(SimpleNamespace):
         async def __aenter__(self):
             return self
+
         async def __aexit__(self, exc_type, exc, tb):
             return False
+
         def get(self, url):
             return FakeResponse()
 
@@ -121,4 +123,3 @@ async def test_download_file_to_temp(monkeypatch):
     file = await download_file_to_temp("http://example.com/file.txt")
     assert file.name == "file.txt"
     assert file.read() == b"data"
-
