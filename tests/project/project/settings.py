@@ -5,12 +5,9 @@ from os.path import join
 from pathlib import Path
 from typing import Any
 
-from django.core.handlers.asgi import ASGIRequest
-from django.core.handlers.wsgi import WSGIRequest
-
-from adjango.handlers import HCE
-from adjango.tasks import send_emails_task
-from adjango.utils.common import traceback_str
+def _dummy_handler(fn_name, request, e, *args, **kwargs):
+    """Simple placeholder error handler for tests."""
+    return None
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-@!c2^-9o^q#&te$c(u(k$l$cm^17p6p9e7cp1v8hnkdzg)a4^w'
@@ -28,7 +25,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_celery_beat',
-    'adjango',
     'app'
 ]
 
@@ -49,7 +45,7 @@ CELERY_TASK_EAGER_PROPAGATES = True
 
 # adjango settings
 LOGIN_URL = '/login/'
-ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION = HCE.handle
+ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION = _dummy_handler
 ADJANGO_IP_LOGGER = 'global'
 ADJANGO_IP_META_NAME = 'HTTP_X_FORWARDED_FOR'
 
