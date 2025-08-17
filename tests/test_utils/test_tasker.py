@@ -2,6 +2,8 @@ from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
+from kombu.exceptions import OperationalError
+
 import pytest
 
 from adjango.utils.celery.tasker import Tasker
@@ -23,6 +25,17 @@ def test_tasker_put_variants():
     dummy_task.apply_async.reset_mock()
     Tasker.put(dummy_task)
     dummy_task.apply_async.assert_called_with(kwargs={}, queue=None, expires=None)
+
+
+def test_tasker_put_fallback_on_broker_error():
+    dummy_task = Mock()
+    dummy_task.apply_async.side_effect = OperationalError()
+    dummy_task.apply.return_value = SimpleNamespace(id="321")
+
+    task_id = Tasker.put(dummy_task, param=1)
+
+    assert task_id == "321"
+    dummy_task.apply.assert_called_once_with(kwargs={"param": 1})
 
 
 def test_tasker_cancel_task():
