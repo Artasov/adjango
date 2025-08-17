@@ -16,7 +16,6 @@ with `transactions` and much more.
     - [Decorators](#decorators-)
     - [Serializers](#serializers-)
     - [Management](#management)
-    - [manage.py](#managepy)
     - [Other](#other)
 
 ## Installation 🛠️
@@ -340,8 +339,6 @@ class UserService(ABaseService['User']):
 * `copy_project`
   Documentation in the _py_ module itself - **[copy_project](adjango/management/commands/copy_project.py)**
 
-
-### manage.py
 
 ADjango ships with extra management commands to speed up project scaffolding.
 
