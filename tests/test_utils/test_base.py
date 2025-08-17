@@ -18,6 +18,7 @@ from adjango.utils.base import (
     is_phone,
     phone_format,
     download_file_to_temp,
+    apprint,
 )
 
 
@@ -43,7 +44,7 @@ async def test_async_atomic_context_manager():
 @pytest.mark.django_db
 def test_add_user_to_group():
     User = get_user_model()
-    user = User.objects.create_user(username="u", phone="1", password="p")
+    user = User.objects.create_user(username="u", phone="100", password="p")
     add_user_to_group(user, "test")
     group = Group.objects.get(name="test")
     assert group.user_set.filter(pk=user.pk).exists()
@@ -59,6 +60,20 @@ def test_build_full_url(settings):
 def test_calculate_age():
     birth = date.today().replace(year=date.today().year - 20)
     assert calculate_age(birth) == 20
+
+
+def test_calculate_age_before_birthday():
+    import calendar
+
+    today = date.today()
+    birth_year = today.year - 20
+    next_month = today.month + 1
+    if next_month > 12:
+        next_month = 1
+        birth_year += 1
+    day = min(today.day, calendar.monthrange(birth_year, next_month)[1])
+    birth = date(birth_year, next_month, day)
+    assert calculate_age(birth) == 19
 
 
 def test_is_phone():
@@ -123,3 +138,48 @@ async def test_download_file_to_temp(monkeypatch):
     file = await download_file_to_temp("http://example.com/file.txt")
     assert file.name == "file.txt"
     assert file.read() == b"data"
+
+
+@pytest.mark.asyncio
+async def test_download_file_to_temp_error(monkeypatch):
+    from types import SimpleNamespace
+
+    class FakeResponse(SimpleNamespace):
+        status = 404
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+        async def read(self):
+            return b""
+
+    class FakeSession(SimpleNamespace):
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+        def get(self, url):
+            return FakeResponse()
+
+    monkeypatch.setattr("adjango.utils.base.aiohttp.ClientSession", lambda: FakeSession())
+    with pytest.raises(ValueError):
+        await download_file_to_temp("http://example.com/file.txt")
+
+
+@pytest.mark.asyncio
+async def test_apprint(monkeypatch):
+    calls = {}
+
+    def fake_pprint(*args, **kwargs):
+        calls["args"] = args
+        calls["kwargs"] = kwargs
+
+    monkeypatch.setattr("adjango.utils.base.pprint", fake_pprint)
+    await apprint("data", key="value")
+    assert calls["args"] == ("data",)
+    assert calls["kwargs"] == {"key": "value"}
