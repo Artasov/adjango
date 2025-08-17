@@ -3,6 +3,7 @@ import json
 from datetime import datetime
 
 from django_celery_beat.models import PeriodicTask, IntervalSchedule, CrontabSchedule
+from kombu.exceptions import OperationalError
 
 
 class Tasker:
@@ -28,12 +29,16 @@ class Tasker:
         :param kwargs: Именованные аргументы для задачи.
         :return: Возвращает ID запланированной задачи.
         """
-        if not eta and not countdown:
-            result = task.apply_async(kwargs=kwargs, queue=queue, expires=expires)
-        elif eta:
-            result = task.apply_async(kwargs=kwargs, eta=eta, queue=queue, expires=expires)
-        else:
-            result = task.apply_async(kwargs=kwargs, countdown=countdown, queue=queue, expires=expires)
+        try:
+            if not eta and not countdown:
+                result = task.apply_async(kwargs=kwargs, queue=queue, expires=expires)
+            elif eta:
+                result = task.apply_async(kwargs=kwargs, eta=eta, queue=queue, expires=expires)
+            else:
+                result = task.apply_async(kwargs=kwargs, countdown=countdown, queue=queue, expires=expires)
+        except OperationalError:
+            # If the broker is unavailable, execute task locally instead of failing.
+            result = task.apply(kwargs=kwargs)
 
         return result.id
 
