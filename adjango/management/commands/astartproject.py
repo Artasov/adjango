@@ -1,16 +1,19 @@
 # management/commands/astartproject.py
-"""Create new Django project by copying base_project template."""
+"""Create new Django project by cloning adjango-template repository."""
 
 import shutil
+import subprocess
 from pathlib import Path
 
 from django.core.management import BaseCommand, CommandError
 
 
 class Command(BaseCommand):
-    """Custom startproject command using pre-defined base_project template."""
+    """Custom startproject command using remote adjango-template skeleton."""
 
-    help = "Create a new project by copying base_project skeleton."  # noqa: A003
+    help = "Create a new project by cloning https://github.com/Artasov/adjango-template"  # noqa: A003
+
+    REPO_URL = "https://github.com/Artasov/adjango-template"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -36,11 +39,18 @@ class Command(BaseCommand):
 
         target_dir.mkdir(parents=True, exist_ok=True)
 
-        # Копируем base_project
-        base_project_dir = Path(__file__).resolve().parent.parent.parent / 'base_project'
-        if not base_project_dir.exists():
-            raise CommandError(f"Base project not found: {base_project_dir}")
+        # Клонируем шаблон
+        try:
+            subprocess.run(
+                ["git", "clone", "--depth", "1", self.REPO_URL, str(target_dir)],
+                check=True,
+            )
+        except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+            raise CommandError(f"Failed to clone repository: {exc}")
 
-        shutil.copytree(base_project_dir, target_dir, dirs_exist_ok=True)
+        # Удаляем .git чтобы проект начинался «с нуля»
+        git_dir = target_dir / ".git"
+        if git_dir.exists():
+            shutil.rmtree(git_dir, ignore_errors=True)
 
         self.stdout.write(self.style.SUCCESS(f"Project created at {target_dir}"))

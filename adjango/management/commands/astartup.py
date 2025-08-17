@@ -26,7 +26,7 @@ class Command(BaseCommand):
         if app_dir.exists():
             raise CommandError(f"App '{app_name}' already exists")
 
-        # Define required subdirectories and file names (no routes here; astartproject will add routes/root.py)
+        # Define required subdirectories and file names (no routes here)
         directories = {
             'controllers': 'base.py',
             'admin': 'base.py',
@@ -45,37 +45,45 @@ class Command(BaseCommand):
 
         (app_dir / '__init__.py').write_text('', encoding='utf-8')
 
-        # Update settings.py to include the new app
-        settings_path = base_dir / 'config' / 'settings.py'
-        if not settings_path.exists():
-            raise CommandError('settings.py not found at config/settings.py')
+        # Possible config files where INSTALLED_APPS may reside
+        candidate_paths = [
+            base_dir / 'config' / 'settings.py',
+            base_dir / 'config' / 'modules' / 'apps.py',
+        ]
 
-        content = settings_path.read_text(encoding='utf-8').splitlines()
+        updated = False
+        for settings_path in candidate_paths:
+            if not settings_path.exists():
+                continue
 
-        inserted = False
-        for i, line in enumerate(content):
-            stripped = line.strip()
-            # Default Django: "INSTALLED_APPS = ["
-            if stripped.startswith('INSTALLED_APPS') and stripped.endswith('['):
-                content.insert(i + 1, f"    'apps.{app_name}',")
-                inserted = True
+            content = settings_path.read_text(encoding='utf-8').splitlines()
+            new_content = []
+            inside_apps = False
+            added = False
+
+            for line in content:
+                stripped = line.strip()
+
+                if stripped.startswith('INSTALLED_APPS') and stripped.endswith('['):
+                    inside_apps = True
+                    new_content.append(line)
+                    continue
+
+                if inside_apps and stripped.startswith(']') and not added:
+                    new_content.append(f"    'apps.{app_name}',")
+                    added = True
+                    inside_apps = False
+                    new_content.append(line)
+                    continue
+
+                new_content.append(line)
+
+            if added:
+                settings_path.write_text('\n'.join(new_content) + '\n', encoding='utf-8')
+                updated = True
                 break
 
-        if not inserted:
-            # Fallback: try to find a line that is exactly the opening bracket on the next line
-            try:
-                idx = next(
-                    i for i, ln in enumerate(content)
-                    if ln.strip() == 'INSTALLED_APPS = [' or ln.strip() == 'INSTALLED_APPS=['
-                )
-                content.insert(idx + 1, f"    'apps.{app_name}',")
-                inserted = True
-            except StopIteration:
-                pass
-
-        if not inserted:
-            raise CommandError('INSTALLED_APPS not found in settings.py')
-
-        settings_path.write_text('\n'.join(content) + '\n', encoding='utf-8')
+        if not updated:
+            raise CommandError('INSTALLED_APPS not found in config/settings.py or config/modules/apps.py')
 
         self.stdout.write(self.style.SUCCESS(f"App '{app_name}' created"))

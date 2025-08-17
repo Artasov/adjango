@@ -12,6 +12,7 @@ with `transactions` and much more.
 - [Overview](#overview)
     - [Manager & Services](#manager--services-%EF%B8%8F)
     - [Utils](#utils-)
+    - [Mixins](#Mixins-)
     - [Decorators](#decorators-)
     - [Serializers](#serializers-)
     - [Management](#management)
@@ -35,7 +36,8 @@ pip install adjango
 * ### In `settings.py` set the params
     ```python
     # settings.py
-    # None of the parameters are required.  
+  
+    # NONE OF THE PARAMETERS ARE REQUIRED  
   
     # For usage @a/controller decorators
     LOGIN_URL = '/login/' 
@@ -70,20 +72,44 @@ A simple example and everything is immediately clear...
 from adjango.fields import AManyToManyField
 from adjango.managers.base import AManager
 from adjango.services.base import ABaseService
-from adjango.models import AModel, AAbstractUser
-from adjango.polymorphic_models import APolymorphicModel
+from adjango.models import AModel
+from adjango.models.base import AAbstractUser
+from adjango.models.polymorphic import APolymorphicModel
+
+...
+...  # Service layer usage
+...
+
+# services/user.py
+if TYPE_CHECKING:
+  from apps.core.models import User
 
 
-class UserService(ABaseService["User"]):
-  def __init__(self, obj: "User") -> None:
-    super().__init__(obj)
+class UserService(ABaseService['User']):
+  def __init__(self, user: 'User') -> None:
+    super().__init__(user)
+    self.user = user
+
+  def get_full_name(self) -> str:
+    return f"{self.user.first_name} {self.user.last_name}"
 
 
+# models/user.py (User redefinition)
 class User(AAbstractUser[UserService]):
   service_class = UserService
   objects = AManager()
 
 
+# and u can use with nice type hints:
+user = await User.objects.aget(id=1)
+full_name = user.service.get_full_name()
+
+...
+...  # Other best features
+...
+
+
+# models/commerce.py
 class Product(APolymorphicModel):
   # APolymorphicManager() of course here already exists
   name = CharField(max_length=100)
@@ -124,11 +150,31 @@ for o in orders:
 
 ### Utils 🔧
 
-`aall`, `afilter`,  `arelated`, и так далее доступны как отдельные функции
+`aall`, `afilter`,  `arelated`, and so on are available as individual functions
 
   ```python
-  from adjango.utils.funcs import aall, getorn, agetorn, afilter, aset, aadd, arelated
+  from adjango.utils.funcs import (
+    aall, getorn, agetorn, 
+    afilter, aset, aadd, arelated
+  )
   ```
+
+### Mixins 🎨
+```python
+from adjango.models.mixins import (
+    ACreatedAtMixin, ACreatedAtIndexedMixin, ACreatedAtEditableMixin,
+    AUpdatedAtMixin, AUpdatedAtIndexedMixin,
+    ACreatedUpdatedAtMixin, ACreatedUpdatedAtIndexedMixin
+)
+
+class EventProfile(
+    ACreatedUpdatedAtIndexedMixin[EventProfileService]
+):
+    service_class = EventProfileService
+    
+    event = ForeignKey('events.Event', CASCADE, 'members', verbose_name=_('Event'))
+```
+
 
 ### Decorators 🎀
 
@@ -245,11 +291,11 @@ async def consultations_completed(request):
 ...
 
 
-class UserService:
+class UserService(ABaseService['User']):
     ...
 
     @property
-    def completed_consultations(self: 'User') -> AQuerySet['Consultation']:
+    def completed_consultations(self) -> AQuerySet['Consultation']:
         """
         Returns an optimized AQuerySet of all completed consultations of the user
         (both psychologist and client).
@@ -272,14 +318,14 @@ class UserService:
             'psychologists',
         ).filter(
             Q(
-                Q(clients=self) | Q(psychologists=self),
+                Q(clients=self.user) | Q(psychologists=self.user),
                 status=Consultation.Status.PAID,
                 date__isnull=False,
                 date__lt=now_,
-                consultations_feedbacks__user=self,
+                consultations_feedbacks__user=self.user,
             ) |
             Q(
-                Q(clients=self) | Q(psychologists=self),
+                Q(clients=self) | Q(psychologists=self.user),
                 status=Consultation.Status.CANCELLED,
                 date__isnull=False,
             )

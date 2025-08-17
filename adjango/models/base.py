@@ -1,7 +1,8 @@
 # models/base.py
+from typing import Generic, TypeVar
+
 from django.contrib.auth.models import AbstractUser
 from django.db.models import Model
-from typing import Generic, TypeVar
 
 from adjango.managers.base import AManager, AUserManager
 from adjango.services.base import ABaseService
