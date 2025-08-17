@@ -6,7 +6,6 @@ from django.db.models import Model
 from adjango.services.base import ABaseService
 from adjango.utils.funcs import arelated
 
-
 ServiceT = TypeVar('ServiceT', bound=ABaseService)
 
 
@@ -19,5 +18,5 @@ class ABaseModelObjectService(Generic[ServiceT]):
     @property
     def service(self) -> ServiceT:
         if not self.service_class:
-            raise NotImplementedError('service_class is not defined')
-        return self.service_class(self)  # type: ignore[arg-type]
+            raise NotImplementedError(f'Define service_class in your model {self.__class__}')
+        return self.service_class(self)

@@ -6,8 +6,8 @@ from abc import ABC, abstractmethod
 from django.core.handlers.asgi import ASGIRequest
 from django.core.handlers.wsgi import WSGIRequest
 
-from adjango.utils.common import traceback_str
 from adjango.utils.celery.tasker import Tasker
+from adjango.utils.common import traceback_str
 
 
 class IHandlerControllerException(ABC):

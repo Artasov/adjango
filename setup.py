@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="adjango",
-    version="0.5.6",
+    version="0.6.0",
     author="xlartas",
     author_email="ivanhvalevskey@gmail.com",
     description="A library with many features for interacting with Django",
@@ -38,7 +38,7 @@ setuptools.setup(
         "Intended Audience :: Developers",
         "Topic :: Software Development :: Libraries :: Application Frameworks",
     ],
-    python_requires='>=3.8',
+    python_requires='>=3.12',
     keywords='adjango django utils funcs features async managers services',
     project_urls={
         'Source': 'https://github.com/Artasov/adjango',

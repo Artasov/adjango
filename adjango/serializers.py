@@ -4,7 +4,7 @@ try:
         ListSerializer as DRFListSerializer,
         ModelSerializer as DRFModelSerializer,
         Serializer as DRFSerializer,
-        BaseSerializer,
+        BaseSerializer,  # noqa
     )
     from rest_framework import status
     from rest_framework.exceptions import APIException
