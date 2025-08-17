@@ -3,10 +3,10 @@ from django.contrib.auth.models import AbstractUser
 from django.db.models import Model
 
 from adjango.managers.base import AManager, AUserManager
-from adjango.services.base import ABaseService
+from adjango.services.object.base import ABaseModelObjectService
 
 
-class AModel(Model, ABaseService):
+class AModel(Model, ABaseModelObjectService):
     objects = AManager()
 
     class Meta:

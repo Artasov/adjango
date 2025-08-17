@@ -1,9 +1,8 @@
-# services/base.py
-from django.db.models import Model
+from abc import ABC
 
-from adjango.utils.funcs import arelated
+from adjango.models import AModel
 
 
-class ABaseService:
-    async def arelated(self: Model, field: str):
-        return await arelated(self, field)
+class ABaseService(ABC):
+    def __init__(self, obj: type(AModel)):
+        self.obj = obj

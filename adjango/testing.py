@@ -4,9 +4,9 @@ import json
 from asgiref.sync import sync_to_async
 
 try:
-    import pytest
-    from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED
-    from rest_framework.test import APIClient
+    import pytest  # noqa
+    from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED  # noqa
+    from rest_framework.test import APIClient  # noqa
 except ImportError:
     pass
 
@@ -22,8 +22,8 @@ class AsyncTestAPIClient:
         if user:
             self._client.force_authenticate(user=user)
 
-    async def apost(self, url, data=None, expected_status=HTTP_201_CREATED, format='json'):
-        response = await sync_to_async(self._client.post)(url, data=data, format=format)
+    async def apost(self, url, data=None, expected_status=HTTP_201_CREATED, format='json', **kwargs):
+        response = await sync_to_async(self._client.post)(url, data=data, format=format, **kwargs)
         self._handle_fail_if_not_expected(response, expected_status)
         return response
 
@@ -32,13 +32,13 @@ class AsyncTestAPIClient:
         self._handle_fail_if_not_expected(response, expected_status)
         return response
 
-    async def aput(self, url, data=None, expected_status=HTTP_200_OK, format='json'):
-        response = await sync_to_async(self._client.put)(url, data=data, format=format)
+    async def aput(self, url, data=None, expected_status=HTTP_200_OK, format='json', **kwargs):
+        response = await sync_to_async(self._client.put)(url, data=data, format=format, **kwargs)
         self._handle_fail_if_not_expected(response, expected_status)
         return response
 
-    async def apatch(self, url, data=None, expected_status=HTTP_200_OK, format='json'):
-        response = await sync_to_async(self._client.patch)(url, data=data, format=format)
+    async def apatch(self, url, data=None, expected_status=HTTP_200_OK, format='json', **kwargs):
+        response = await sync_to_async(self._client.patch)(url, data=data, format=format, **kwargs)
         self._handle_fail_if_not_expected(response, expected_status)
         return response
 

@@ -2,12 +2,11 @@
 
 import adjango.fields
 import adjango.managers.base
-import adjango.services.base
-import adjango.services.polymorphic
+import adjango.services.object.base
+import adjango.services.object.polymorphic
 from django.conf import settings
 import django.contrib.auth.validators
 from django.db import migrations, models
-import django.db.models.deletion
 import django.utils.timezone
 
 
@@ -42,7 +41,7 @@ class Migration(migrations.Migration):
             options={
                 'abstract': False,
             },
-            bases=(models.Model, adjango.services.base.ABaseService),
+            bases=(models.Model, adjango.services.object.base.ABaseModelObjectService),
             managers=[
                 ('objects', adjango.managers.base.AUserManager()),
             ],
@@ -58,7 +57,7 @@ class Migration(migrations.Migration):
             options={
                 'abstract': False,
             },
-            bases=(models.Model, adjango.services.polymorphic.APolymorphicBaseService),
+            bases=(models.Model, adjango.services.object.polymorphic.APolymorphicModelObjectBaseService),
         ),
         migrations.CreateModel(
             name='Order',
@@ -70,6 +69,6 @@ class Migration(migrations.Migration):
             options={
                 'abstract': False,
             },
-            bases=(models.Model, adjango.services.base.ABaseService),
+            bases=(models.Model, adjango.services.object.base.ABaseModelObjectService),
         ),
     ]

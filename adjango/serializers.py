@@ -18,7 +18,7 @@ from adjango.aserializers import AModelSerializer
 T = TypeVar('T', bound=AModelSerializer)
 
 
-def create_dynamic_serializer(
+def dynamic_serializer(
         base_serializer: Type[T],
         include_fields: Tuple[str, ...],
         field_overrides: Optional[Dict[str, Union[Type[BaseSerializer], BaseSerializer]]] = None

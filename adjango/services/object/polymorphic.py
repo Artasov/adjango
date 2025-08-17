@@ -3,10 +3,10 @@ try:
     from asgiref.sync import sync_to_async
     from polymorphic.models import PolymorphicModel
 
-    from adjango.services.base import ABaseService
+    from adjango.services.object.base import ABaseModelObjectService
 
 
-    class APolymorphicBaseService(ABaseService):
+    class APolymorphicModelObjectBaseService(ABaseModelObjectService):
         async def aget_real_instance(self: PolymorphicModel):
             """
             Асинхронно получает реальный экземпляр полиморфной модели.

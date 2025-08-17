@@ -10,6 +10,7 @@ from adjango.conf import ADJANGO_IP_LOGGER, ADJANGO_IP_META_NAME, MEDIA_SUBSTITU
 class IPAddressMiddleware:
     """
     Позволяет легко получать IP-адрес через `request.ip`.
+    settings.ADJANGO_IP_META_NAME - название HTTP-заголовка, содержащего IP-адрес
     """
 
     def __init__(self, get_response):

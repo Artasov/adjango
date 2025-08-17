@@ -9,7 +9,7 @@ from typing import Callable, Any
 
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponseNotAllowed, HttpResponse, QueryDict, RawPostDataException
+from django.http import HttpResponse, QueryDict, RawPostDataException
 from django.shortcuts import redirect
 
 from adjango.conf import ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION, ADJANGO_CONTROLLERS_LOGGING, \
@@ -17,41 +17,9 @@ from adjango.conf import ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION, ADJANGO_C
 from adjango.utils.common import traceback_str
 
 
-def admin_description(description: str):
-    def decorator(func):
-        func.short_description = description
-        return func
-
-    return decorator
-
-
-def admin_boolean(value: bool):
-    def decorator(func):
-        func.boolean = value
-        return func
-
-    return decorator
-
-
 def admin_label(label: str):
     def decorator(func):
         func.label = label
-        return func
-
-    return decorator
-
-
-def admin_order_field(field: str):
-    def decorator(func):
-        func.admin_order_field = field
-        return func
-
-    return decorator
-
-
-def admin_allow_tags(allow: bool = True):
-    def decorator(func):
-        func.allow_tags = allow
         return func
 
     return decorator
@@ -81,32 +49,6 @@ def task(logger: str = None):
             return result
 
         return wrapper
-
-    return decorator
-
-
-def allowed_only(allowed_methods: list[str]) -> Callable[[Callable[..., HttpResponse]], Callable[..., HttpResponse]]:
-    """
-    Декоратор для ограничения методов запроса.
-
-    :param allowed_methods: Список разрешенных методов (GET, POST и т.д.).
-
-    :return: Функция, которая ограничивает вызов view-функции в зависимости от метода запроса.
-
-    @usage:
-        @allowed_only(['GET', 'POST'])
-        def my_view(request):
-            ...
-    """
-
-    def decorator(fn: Callable[..., HttpResponse]) -> Callable[..., HttpResponse]:
-        def wrapped_view(request: WSGIRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-            if request.method in allowed_methods:
-                return fn(request, *args, **kwargs)
-            else:
-                return HttpResponseNotAllowed(allowed_methods)
-
-        return wrapped_view
 
     return decorator
 

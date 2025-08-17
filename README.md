@@ -69,13 +69,13 @@ A simple example and everything is immediately clear...
 ```python
 from adjango.fields import AManyToManyField
 from adjango.managers.base import AManager
-from adjango.services.base import ABaseService
+from adjango.services.object.base import ABaseModelObjectService
 from adjango.models import AModel
 from adjango.polymorphic_models import APolymorphicModel
 
 
-class User(AbstractUser, ABaseService):
-    objects = AManager()
+class User(AbstractUser, ABaseModelObjectService):
+  objects = AManager()
 
 
 # Its equal with...
@@ -83,13 +83,13 @@ class User(AbstractUser, AModel): pass
 
 
 class Product(APolymorphicModel):
-    # APolymorphicManager() of course here already exists
-    name = CharField(max_length=100)
+  # APolymorphicManager() of course here already exists
+  name = CharField(max_length=100)
 
 
 class Order(AModel):
-    user = ForeignKey(User, CASCADE)
-    products = AManyToManyField(Product)
+  user = ForeignKey(User, CASCADE)
+  products = AManyToManyField(Product)
 
 
 # The following is now possible...
@@ -103,7 +103,7 @@ if not order: raise
 await order.products.aset(products)
 # Or queryset right away...
 await order.products.aset(
-    Product.objects.filter(name='name')
+  Product.objects.filter(name='name')
 )
 await order.products.aadd(products[0])
 
@@ -115,8 +115,8 @@ products = await order.products.aall()
 # Works the same with intermediate processing/query filters
 orders = await Order.objects.prefetch_related('products').aall()
 for o in orders:
-    for p in o.products.all():
-        print(p.id)
+  for p in o.products.all():
+    print(p.id)
 # thk u
 ```
 
@@ -194,7 +194,7 @@ from adjango.querysets.base import AQuerySet
 from adjango.aserializers import (
     AModelSerializer, ASerializer, AListSerializer
 )
-from adjango.serializers import create_dynamic_serializer
+from adjango.serializers import dynamic_serializer
 
 ...
 
@@ -210,10 +210,10 @@ class ConsultationPublicSerializer(AModelSerializer):
 
 
 # From the complete serializer we cut off the pieces into smaller ones
-ConsultationSerializerTier1 = create_dynamic_serializer(
+ConsultationSerializerTier1 = dynamic_serializer(
     ConsultationPublicSerializer, ('id', 'date',)
 )
-ConsultationSerializerTier2 = create_dynamic_serializer(
+ConsultationSerializerTier2 = dynamic_serializer(
     ConsultationPublicSerializer, (
         'id', 'date', 'psychologists', 'clients', 'config'
     ), {
