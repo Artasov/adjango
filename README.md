@@ -16,6 +16,7 @@ with `transactions` and much more.
     - [Decorators](#decorators-)
     - [Serializers](#serializers-)
     - [Management](#management)
+    - [manage.py](#managepy)
     - [Other](#other)
 
 ## Installation 🛠️
@@ -339,6 +340,42 @@ class UserService(ABaseService['User']):
 * `copy_project`
   Documentation in the _py_ module itself - **[copy_project](adjango/management/commands/copy_project.py)**
 
+
+### manage.py
+
+ADjango ships with extra management commands to speed up project scaffolding.
+
+* `astartproject` — clones the [adjango-template](https://github.com/Artasov/adjango-template)
+  into the given directory and strips its Git history.
+  ```bash
+  django-admin astartproject myproject
+  ```
+
+* `astartup` — creates an app skeleton inside `apps/` and registers it in
+  `INSTALLED_APPS`.
+  ```bash
+  python manage.py astartup blog
+  ```
+  After running the command you will have the following structure:
+  ```
+  apps/
+      blog/
+          controllers/base.py
+          models/base.py
+          services/base.py
+          serializers/base.py
+          tests/base.py
+  ```
+
+* `newentities` — generates empty exception, model, service, serializer and
+  test stubs for the specified models in the target app.
+  ```bash
+  python manage.py newentities order apps.commerce Order,Product,Price
+  ```
+  Or create a single model:
+  ```bash
+  python manage.py newentities order apps.commerce Order
+  ```
 
 ### Other
 
