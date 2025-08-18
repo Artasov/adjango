@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import Any, Optional, Type
+from typing import Any, Iterable, Optional, Type, TypeVar
 from urllib.parse import urlparse
 
 from asgiref.sync import sync_to_async
@@ -15,13 +15,15 @@ from django.shortcuts import resolve_url
 
 from adjango.utils.base import download_file_to_temp
 
+_M = TypeVar("_M", bound=Model)
+
 
 def getorn(
-    queryset: QuerySet,
+    queryset: QuerySet[_M],
     exception: Type[Exception] | None = None,
     *args: Any,
     **kwargs: Any,
-) -> Any:
+) -> _M | None:
     """
     Gets single object from given QuerySet matching passed parameters.
 
@@ -47,11 +49,11 @@ def getorn(
 
 
 async def agetorn(
-    queryset: QuerySet,
+    queryset: QuerySet[_M],
     exception: Type[Exception] | None = None,
     *args: Any,
     **kwargs: Any,
-) -> Any:
+) -> _M | None:
     """
     Async gets single object from given QuerySet matching passed parameters.
 
@@ -76,7 +78,7 @@ async def agetorn(
     return None
 
 
-async def arelated(obj: Model, field: str) -> Any:
+async def arelated(obj: Model, field: str) -> Model:
     """
     Async gets related object from model by specified related field name.
 
@@ -96,7 +98,7 @@ async def arelated(obj: Model, field: str) -> Any:
         return await sync_to_async(getattr)(obj, field)
 
 
-async def aset(related_manager, data, *args, **kwargs) -> None:
+async def aset(related_manager: Manager[_M] | QuerySet[_M], data: Iterable[_M], *args, **kwargs) -> None:
     """
     Set related objects for ManyToMany field asynchronously.
 
@@ -107,7 +109,7 @@ async def aset(related_manager, data, *args, **kwargs) -> None:
     await sync_to_async(related_manager.set)(data, *args, **kwargs)
 
 
-async def aadd(objects: Manager | QuerySet, data: Any, *args: Any, **kwargs: Any) -> None:
+async def aadd(objects: Manager[_M] | QuerySet[_M], data: _M, *args: Any, **kwargs: Any) -> None:
     """
     Async adds object or data to ManyToMany field via add() method.
 
@@ -123,7 +125,7 @@ async def aadd(objects: Manager | QuerySet, data: Any, *args: Any, **kwargs: Any
     return await sync_to_async(objects.add)(data, *args, **kwargs)
 
 
-async def aall(objects: Manager | QuerySet) -> list:
+async def aall(objects: Manager[_M] | QuerySet[_M]) -> list[_M]:
     """
     Async returns all objects managed by manager.
 
@@ -136,7 +138,7 @@ async def aall(objects: Manager | QuerySet) -> list:
     return await sync_to_async(lambda: list(objects.all()))()
 
 
-async def afilter(queryset: QuerySet, *args: Any, **kwargs: Any) -> list:
+async def afilter(queryset: QuerySet[_M], *args: Any, **kwargs: Any) -> list[_M]:
     """
     Async filters objects from QuerySet by given parameters.
 
