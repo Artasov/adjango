@@ -27,4 +27,3 @@ def test_send_emails_fail(settings):
         assert not send_emails("subj", ("to@example.com",), "tmpl.html", {"a": 1})
         send_mail_mock.assert_called_once()
         logger.critical.assert_called_once()
-

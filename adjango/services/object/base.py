@@ -1,12 +1,16 @@
-# services/base.py
-from typing import Any, Generic, TypeVar
+# services/object/base.py
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from django.db.models import Model
 
-from adjango.services.base import ABaseService
 from adjango.utils.funcs import arelated
 
-ServiceT = TypeVar('ServiceT', bound=ABaseService[Any])
+if TYPE_CHECKING:
+    from adjango.services.base import ABaseService
+
+ServiceT = TypeVar("ServiceT", bound="ABaseService[Any]")
 
 
 class ABaseModelObjectService(Generic[ServiceT]):
@@ -18,5 +22,7 @@ class ABaseModelObjectService(Generic[ServiceT]):
     @property
     def service(self) -> ServiceT:
         if not self.service_class:
-            raise NotImplementedError(f'Define service_class in your model {self.__class__}')
+            raise NotImplementedError(
+                f"Define service_class in your model {self.__class__}"
+            )
         return self.service_class(self)

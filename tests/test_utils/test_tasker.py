@@ -15,12 +15,16 @@ def test_tasker_put_variants():
 
     task_id = Tasker.put(dummy_task, countdown=10, queue="q", param=1)
     assert task_id == "123"
-    dummy_task.apply_async.assert_called_with(kwargs={"param": 1}, countdown=10, queue="q", expires=None)
+    dummy_task.apply_async.assert_called_with(
+        kwargs={"param": 1}, countdown=10, queue="q", expires=None
+    )
 
     dummy_task.apply_async.reset_mock()
     eta = datetime(2024, 1, 1)
     Tasker.put(dummy_task, eta=eta)
-    dummy_task.apply_async.assert_called_with(kwargs={}, eta=eta, queue=None, expires=None)
+    dummy_task.apply_async.assert_called_with(
+        kwargs={}, eta=eta, queue=None, expires=None
+    )
 
     dummy_task.apply_async.reset_mock()
     Tasker.put(dummy_task)
@@ -79,12 +83,13 @@ def test_tasker_beat_crontab():
 def test_tasker_beat_onetime():
     dummy_task = SimpleNamespace(name="task.name")
     schedule_time = datetime(2024, 1, 1, 2, 3)
-    with patch(
-        "adjango.utils.celery.tasker.CrontabSchedule.objects.get_or_create",
-        return_value=(Mock(), True),
-    ) as get_or_create, patch(
-        "adjango.utils.celery.tasker.PeriodicTask.objects.create"
-    ) as create:
+    with (
+        patch(
+            "adjango.utils.celery.tasker.CrontabSchedule.objects.get_or_create",
+            return_value=(Mock(), True),
+        ) as get_or_create,
+        patch("adjango.utils.celery.tasker.PeriodicTask.objects.create") as create,
+    ):
         Tasker.beat(dummy_task, name="t1", schedule_time=schedule_time)
         get_or_create.assert_called_once_with(
             minute=schedule_time.minute,
@@ -161,4 +166,3 @@ async def test_tasker_abeat_onetime():
             month_of_year=schedule_time.month,
         )
         acreate.assert_called_once()
-

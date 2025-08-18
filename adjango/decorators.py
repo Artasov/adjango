@@ -5,15 +5,18 @@ import json
 import logging
 from functools import wraps
 from time import time
-from typing import Callable, Any
+from typing import Any, Callable
 
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, QueryDict, RawPostDataException
 from django.shortcuts import redirect
 
-from adjango.conf import ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION, ADJANGO_CONTROLLERS_LOGGING, \
-    ADJANGO_CONTROLLERS_LOGGER_NAME
+from adjango.conf import (
+    ADJANGO_CONTROLLERS_LOGGER_NAME,
+    ADJANGO_CONTROLLERS_LOGGING,
+    ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION,
+)
 from adjango.utils.common import traceback_str
 
 
@@ -27,9 +30,9 @@ def admin_label(label: str):
 
 def task(logger: str = None):
     """
-    Декоратор для задач Celery, который логирует начало и конец выполнения задачи и её ошибки.
+    Decorator for Celery tasks that logs start and end of task execution and its errors.
 
-    :param logger: Имя логгера для логирования. Если не передано, логирование не будет выполнено.
+    :param logger: Logger name for logging. If not provided, logging will not be performed.
     """
 
     def decorator(func):
@@ -42,10 +45,11 @@ def task(logger: str = None):
             try:
                 result = func(*args, **kwargs)
             except Exception as e:
-                log.critical(f'Error executing task: {func.__name__}')
+                log.critical(f"Error executing task: {func.__name__}")
                 log.critical(traceback_str(e))
                 raise e
-            if log: log.info(f"End executing task: {func.__name__}\n{args}\n{kwargs}")
+            if log:
+                log.info(f"End executing task: {func.__name__}\n{args}\n{kwargs}")
             return result
 
         return wrapper
@@ -55,11 +59,11 @@ def task(logger: str = None):
 
 def force_data(fn: Callable[..., Any]) -> Callable[..., Any]:
     """
-    Декоратор для объединения данных из POST, GET и JSON тела запроса.
+    Decorator for merging data from POST, GET and JSON request body.
 
-    :param fn: Функция, которая будет обернута.
+    :param fn: Function to be wrapped.
 
-    :return: Функция, в которой объединены данные из разных частей запроса.
+    :return: Function with merged data from different parts of request.
 
     @usage:
         @force_data
@@ -69,12 +73,18 @@ def force_data(fn: Callable[..., Any]) -> Callable[..., Any]:
 
     @wraps(fn)
     def _wrapped_view(request: WSGIRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        if not hasattr(request, 'data'): request.data = {}
-        request.data.update(request.POST.dict() if isinstance(request.POST, QueryDict) else request.POST)
-        request.data.update(request.GET.dict() if isinstance(request.GET, QueryDict) else request.GET)
+        if not hasattr(request, "data"):
+            request.data = {}
+        request.data.update(
+            request.POST.dict() if isinstance(request.POST, QueryDict) else request.POST
+        )
+        request.data.update(
+            request.GET.dict() if isinstance(request.GET, QueryDict) else request.GET
+        )
         try:
-            json_data = json.loads(request.body.decode('utf-8'))
-            if isinstance(json_data, dict): request.data.update(json_data)
+            json_data = json.loads(request.body.decode("utf-8"))
+            if isinstance(json_data, dict):
+                request.data.update(json_data)
         except (ValueError, TypeError, UnicodeDecodeError, RawPostDataException):
             pass
         return fn(request, *args, **kwargs)
@@ -83,24 +93,24 @@ def force_data(fn: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def controller(
-        name: str | None = None,
-        logger: str = None,
-        log_name: bool = True,
-        log_time: bool = False,
-        auth_required: bool = False,
-        not_auth_redirect: str = settings.LOGIN_URL
+    name: str | None = None,
+    logger: str = None,
+    log_name: bool = True,
+    log_time: bool = False,
+    auth_required: bool = False,
+    not_auth_redirect: str = settings.LOGIN_URL,
 ) -> Callable[..., Any]:
     """
-    Синхронный контроллер с логированием, проверкой аутентификации и обработкой исключений.
+    Synchronous controller with logging, authentication checking and exception handling.
 
-    :param name: Название контроллера.
-    :param logger: Имя логгера для записи сообщений.
-    :param log_name: Логировать имя контроллера.
-    :param log_time: Логировать время выполнения контроллера.
-    :param auth_required: Проверять ли аутентификацию пользователя.
-    :param not_auth_redirect: URL для редиректа, если пользователь не аутентифицирован.
+    :param name: Controller name.
+    :param logger: Logger name for writing messages.
+    :param log_name: Log controller name.
+    :param log_time: Log controller execution time.
+    :param auth_required: Whether to check user authentication.
+    :param not_auth_redirect: URL for redirect if user is not authenticated.
 
-    :return: Синхронный контроллер с логированием и обработкой исключений.
+    :return: Synchronous controller with logging and exception handling.
 
     @usage:
         @controller
@@ -115,9 +125,11 @@ def controller(
             fn_name = name or fn.__name__
             start_time = None
             if log_name or (log_name is None and ADJANGO_CONTROLLERS_LOGGING):
-                log.info(f'Ctrl: {request.method} | {fn_name}')
-            if log_time: start_time = time()
-            if auth_required and not request.user.is_authenticated: return redirect(not_auth_redirect)
+                log.info(f"Ctrl: {request.method} | {fn_name}")
+            if log_time:
+                start_time = time()
+            if auth_required and not request.user.is_authenticated:
+                return redirect(not_auth_redirect)
             if settings.DEBUG:
                 result = fn(request, *args, **kwargs)
                 if log_time:
@@ -131,13 +143,20 @@ def controller(
                     if log_time:
                         end_time = time()
                         elapsed_time = end_time - start_time
-                        log.info(f"Execution time {fn_name}: {elapsed_time:.2f} seconds")
+                        log.info(
+                            f"Execution time {fn_name}: {elapsed_time:.2f} seconds"
+                        )
                     return result
                 except Exception as e:
-                    log.critical(f"ERROR in {fn_name}: {traceback_str(e)}", exc_info=True)
-                    if hasattr(settings, 'ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION'):
+                    log.critical(
+                        f"ERROR in {fn_name}: {traceback_str(e)}", exc_info=True
+                    )
+                    if hasattr(
+                        settings, "ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION"
+                    ):
                         handling_function = ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION
-                        if callable(handling_function): handling_function(fn_name, request, e, *args, **kwargs)
+                        if callable(handling_function):
+                            handling_function(fn_name, request, e, *args, **kwargs)
                     raise e
 
         return inner

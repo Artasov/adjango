@@ -5,10 +5,10 @@ from adjango.decorators import task
 
 
 @shared_task
-@task(logger='global')
+@task(logger="global")
 def test_task(param1: str, param2: int, param3: dict) -> bool:
     """
-    Пример Celery задачи, которая принимает три параметра, включая словарь.
+    Example Celery task that takes three parameters, including a dictionary.
     """
     print(param1)
     print(param2)

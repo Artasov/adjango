@@ -8,17 +8,17 @@ from django.utils.timezone import now
 from adjango.utils.base import (
     AsyncAtomicContextManager,
     add_user_to_group,
+    apprint,
     build_full_url,
     calculate_age,
     decrease_by_percentage,
     diff_by_timedelta,
+    download_file_to_temp,
     get_plural_form_number,
     is_async_context,
     is_email,
     is_phone,
     phone_format,
-    download_file_to_temp,
-    apprint,
 )
 
 
@@ -102,10 +102,10 @@ def test_decrease_by_percentage():
 
 
 def test_get_plural_form_number():
-    forms = ("яблоко", "яблока", "яблок")
-    assert get_plural_form_number(1, forms) == "яблоко"
-    assert get_plural_form_number(2, forms) == "яблока"
-    assert get_plural_form_number(5, forms) == "яблок"
+    forms = ("apple", "apples", "apples")
+    assert get_plural_form_number(1, forms) == "apple"
+    assert get_plural_form_number(2, forms) == "apples"
+    assert get_plural_form_number(5, forms) == "apples"
 
 
 @pytest.mark.asyncio
@@ -134,7 +134,9 @@ async def test_download_file_to_temp(monkeypatch):
         def get(self, url):
             return FakeResponse()
 
-    monkeypatch.setattr("adjango.utils.base.aiohttp.ClientSession", lambda: FakeSession())
+    monkeypatch.setattr(
+        "adjango.utils.base.aiohttp.ClientSession", lambda: FakeSession()
+    )
     file = await download_file_to_temp("http://example.com/file.txt")
     assert file.name == "file.txt"
     assert file.read() == b"data"
@@ -166,7 +168,9 @@ async def test_download_file_to_temp_error(monkeypatch):
         def get(self, url):
             return FakeResponse()
 
-    monkeypatch.setattr("adjango.utils.base.aiohttp.ClientSession", lambda: FakeSession())
+    monkeypatch.setattr(
+        "adjango.utils.base.aiohttp.ClientSession", lambda: FakeSession()
+    )
     with pytest.raises(ValueError):
         await download_file_to_temp("http://example.com/file.txt")
 

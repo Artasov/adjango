@@ -8,15 +8,15 @@ class ATextChoices(TextChoices):
     @classmethod
     def get_label(cls, value) -> Optional[str]:
         """
-        Возвращает human‑readable label для переданного значения или Enum‑члена.
-        Если значение некорректно — возвращает None.
+        Returns human-readable label for passed value or Enum member.
+        If value is invalid - returns None.
         """
-        # Если передан сам Enum‑член — сразу возвращаем его label
+        # If Enum member itself is passed - return its label directly
         if isinstance(value, cls):
             return value.label
 
         try:
-            # Попытка получить член по его значению и вернуть его label
+            # Try to get member by its value and return its label
             return cls(value).label
         except (ValueError, KeyError):
             return None

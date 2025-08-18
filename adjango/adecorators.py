@@ -6,13 +6,18 @@ import json
 import logging
 from functools import wraps
 from time import time
-from typing import Callable, Any
+from typing import Any, Callable
 
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.handlers.asgi import ASGIRequest
-from django.http import HttpResponseNotAllowed, HttpResponse, QueryDict, RawPostDataException
+from django.http import (
+    HttpResponse,
+    HttpResponseNotAllowed,
+    QueryDict,
+    RawPostDataException,
+)
 
 from adjango.conf import ADJANGO_CONTROLLERS_LOGGER_NAME, ADJANGO_CONTROLLERS_LOGGING
 from adjango.utils.base import AsyncAtomicContextManager
@@ -22,26 +27,34 @@ from adjango.utils.funcs import auser_passes_test
 
 def aforce_data(fn: Callable[..., Any]) -> Callable[..., Any]:
     """
-    Асинхронный декоратор для объединения данных из POST, GET и JSON тела запроса.
+    Async decorator for merging data from POST, GET and JSON request body.
 
-    :param fn: Асинхронная функция, которая будет обернута.
+    :param fn: Async function to be wrapped.
 
-    :return: Асинхронная функция, в которой объединены данные из разных частей запроса.
+    :return: Async function with merged data from different parts of request.
 
     @usage:
-        @force_data
-        def my_view(request):
+        @aforce_data
+        async def my_view(request):
             print(request.data)
     """
 
     @wraps(fn)
-    async def _wrapped_view(request: ASGIRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        if not hasattr(request, 'data'): request.data = {}
-        request.data.update(request.POST.dict() if isinstance(request.POST, QueryDict) else request.POST)
-        request.data.update(request.GET.dict() if isinstance(request.GET, QueryDict) else request.GET)
+    async def _wrapped_view(
+        request: ASGIRequest, *args: Any, **kwargs: Any
+    ) -> HttpResponse:
+        if not hasattr(request, "data"):
+            request.data = {}
+        request.data.update(
+            request.POST.dict() if isinstance(request.POST, QueryDict) else request.POST
+        )
+        request.data.update(
+            request.GET.dict() if isinstance(request.GET, QueryDict) else request.GET
+        )
         try:
-            json_data = json.loads(request.body.decode('utf-8'))
-            if isinstance(json_data, dict): request.data.update(json_data)
+            json_data = json.loads(request.body.decode("utf-8"))
+            if isinstance(json_data, dict):
+                request.data.update(json_data)
         except (ValueError, TypeError, UnicodeDecodeError, RawPostDataException):
             pass
         return await fn(request, *args, **kwargs)
@@ -51,7 +64,7 @@ def aforce_data(fn: Callable[..., Any]) -> Callable[..., Any]:
 
 def aatomic(fn: Callable[..., Any]) -> Callable[..., Any]:
     """
-    Асинхронный декоратор, который оборачивает представление в контекст менеджера транзакций.
+    Async decorator that wraps view in transaction context manager.
 
     @usage: @aatomic
             async def my_view(request): ...
@@ -66,20 +79,20 @@ def aatomic(fn: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def acontroller(
-        name: str | None = None,
-        logger: str = None,
-        log_name: bool = None,
-        log_time: bool = False
+    name: str | None = None,
+    logger: str = None,
+    log_name: bool = None,
+    log_time: bool = False,
 ) -> Callable[..., Any]:
     """
-    Асинхронный контроллер с логированием и обработкой исключений.
+    Async controller with logging and exception handling.
 
-    :param name: Название контроллера.
-    :param logger: Имя логгера для записи сообщений.
-    :param log_name: Логировать имя контроллера.
-    :param log_time: Логировать время выполнения контроллера.
+    :param name: Controller name.
+    :param logger: Logger name for writing messages.
+    :param log_name: Log controller name.
+    :param log_time: Log controller execution time.
 
-    :return: Асинхронный контроллер с логированием и обработкой исключений.
+    :return: Async controller with logging and exception handling.
 
     @usage:
         @acontroller
@@ -94,9 +107,10 @@ def acontroller(
             fn_name = name or fn.__name__
             start_time = None
             if log_name or (log_name is None and ADJANGO_CONTROLLERS_LOGGING):
-                log.info(f'ACtrl: {request.method} | {fn_name}')
+                log.info(f"ACtrl: {request.method} | {fn_name}")
 
-            if log_time: start_time = time()
+            if log_time:
+                start_time = time()
             if settings.DEBUG:
                 result = await fn(request, *args, **kwargs)
                 if log_time:
@@ -110,10 +124,14 @@ def acontroller(
                     if log_time:
                         end_time = time()
                         elapsed_time = end_time - start_time
-                        log.info(f"Execution time {fn_name}: {elapsed_time:.2f} seconds")
+                        log.info(
+                            f"Execution time {fn_name}: {elapsed_time:.2f} seconds"
+                        )
                     return result
                 except Exception as e:
-                    log.critical(f"ERROR in {fn_name}: {traceback_str(e)}", exc_info=True)
+                    log.critical(
+                        f"ERROR in {fn_name}: {traceback_str(e)}", exc_info=True
+                    )
 
                     raise e
 
@@ -122,13 +140,15 @@ def acontroller(
     return decorator
 
 
-def aallowed_only(allowed_methods: list[str]) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+def aallowed_only(
+    allowed_methods: list[str],
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
-    Асинхронный декоратор для ограничения методов запроса.
+    Async decorator for limiting request methods.
 
-    :param allowed_methods: Список разрешенных методов (GET, POST и т.д.).
+    :param allowed_methods: List of allowed methods (GET, POST etc.).
 
-    :return: Асинхронная функция, которая ограничивает вызов view-функции в зависимости от метода запроса.
+    :return: Async function that limits view function call depending on request method.
 
     @usage:
         @aallowed_only(['GET', 'POST'])
@@ -137,7 +157,9 @@ def aallowed_only(allowed_methods: list[str]) -> Callable[[Callable[..., Any]], 
     """
 
     def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
-        async def wrapped_view(request: ASGIRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        async def wrapped_view(
+            request: ASGIRequest, *args: Any, **kwargs: Any
+        ) -> HttpResponse:
             if request.method in allowed_methods:
                 if asyncio.iscoroutinefunction(fn):
                     return await fn(request, *args, **kwargs)
@@ -152,9 +174,9 @@ def aallowed_only(allowed_methods: list[str]) -> Callable[[Callable[..., Any]], 
 
 
 def alogin_required(
-        function: Callable[..., Any] | None = None,
-        redirect_field_name: str = REDIRECT_FIELD_NAME,
-        login_url: str | None = None,
+    function: Callable[..., Any] | None = None,
+    redirect_field_name: str = REDIRECT_FIELD_NAME,
+    login_url: str | None = None,
 ) -> Callable[..., Any]:
     """
     Asynchronous decorator for views that checks if the user is authenticated,

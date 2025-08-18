@@ -38,32 +38,32 @@ class Command(BaseCommand):
           python manage.py add_paths social_oauth --path /absolute/path/to/directory
     """
 
-    help = 'Adds a file path comment at the top of .py and frontend files in the specified app(s).'
+    help = "Adds a file path comment at the top of .py and frontend files in the specified app(s)."
 
     def add_arguments(self, parser):
         parser.add_argument(
-            'app_name',
-            nargs='?',
+            "app_name",
+            nargs="?",
             default=None,
-            help='(Optional) Name of the app to process. If not specified, all apps will be processed.'
+            help="(Optional) Name of the app to process. If not specified, all apps will be processed.",
         )
         parser.add_argument(
-            '--exclude',
-            nargs='*',
-            default=['migrations', '__init__.py'],
-            help="List of folder or file names to exclude. Defaults to 'migrations' and '__init__.py'."
+            "--exclude",
+            nargs="*",
+            default=["migrations", "__init__.py"],
+            help="List of folder or file names to exclude. Defaults to 'migrations' and '__init__.py'.",
         )
         parser.add_argument(
-            '--path',
+            "--path",
             type=str,
             default=None,
-            help="(Optional) Absolute path to the directory to process. Overrides default app directories."
+            help="(Optional) Absolute path to the directory to process. Overrides default app directories.",
         )
 
     def handle(self, *args, **options):
-        app_name = options['app_name']
-        exclude_names = options['exclude']
-        custom_path = options['path']
+        app_name = options["app_name"]
+        exclude_names = options["exclude"]
+        custom_path = options["path"]
 
         if custom_path:
             if not os.path.isabs(custom_path):
@@ -75,26 +75,35 @@ class Command(BaseCommand):
             self.stdout.write(f"Processing custom path: '{custom_path}'")
             # Determine file extensions based on directory (assuming backend if processing .py)
             # This can be adjusted as needed
-            file_extensions = ('.py', '.ts', '.tsx', '.js', '.jsx')
+            file_extensions = (".py", ".ts", ".tsx", ".js", ".jsx")
             self.process_custom_path(custom_path, exclude_names, file_extensions)
         else:
             # Process backend apps
-            self.process_apps(app_name, exclude_names, ADJANGO_BACKENDS_APPS, '.py')
+            self.process_apps(app_name, exclude_names, ADJANGO_BACKENDS_APPS, ".py")
 
             # Process frontend apps
-            self.process_apps(app_name, exclude_names, ADJANGO_FRONTEND_APPS, ('.ts', '.tsx', '.js', '.jsx'))
+            self.process_apps(
+                app_name,
+                exclude_names,
+                ADJANGO_FRONTEND_APPS,
+                (".ts", ".tsx", ".js", ".jsx"),
+            )
 
     def process_apps(self, app_name, exclude_names, apps_dir, file_extensions):
         if app_name:
             app_paths = [os.path.join(apps_dir, app_name)]
             if not os.path.exists(app_paths[0]):
-                self.stderr.write(f"App '{app_name}' does not exist in the specified directory '{apps_dir}'.")
+                self.stderr.write(
+                    f"App '{app_name}' does not exist in the specified directory '{apps_dir}'."
+                )
                 return
         else:
             # Process all apps in the directory
             app_paths = [
-                os.path.join(apps_dir, name) for name in os.listdir(apps_dir)
-                if os.path.isdir(os.path.join(apps_dir, name)) and not name.startswith('__')
+                os.path.join(apps_dir, name)
+                for name in os.listdir(apps_dir)
+                if os.path.isdir(os.path.join(apps_dir, name))
+                and not name.startswith("__")
             ]
 
         for app_path in app_paths:
@@ -141,14 +150,14 @@ class Command(BaseCommand):
         :param relative_path: Relative path of the file from the app's directory or custom path.
         """
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 lines = f.readlines()
         except (UnicodeDecodeError, FileNotFoundError) as e:
             self.stderr.write(f"Skipping file '{file_path}': {e}")
             return
 
         # Determine comment style based on file extension
-        if file_path.endswith('.py'):
+        if file_path.endswith(".py"):
             expected_comment = f'# {relative_path.replace(os.sep, "/")}\n'
         else:
             expected_comment = f'// {relative_path.replace(os.sep, "/")}\n'
@@ -158,7 +167,7 @@ class Command(BaseCommand):
             if first_line == expected_comment.strip():
                 # The file already has the correct comment
                 return
-            elif first_line.startswith(('#', '//')):
+            elif first_line.startswith(("#", "//")):
                 # The file has a comment, but it's incorrect
                 if first_line != expected_comment.strip():
                     # Update the comment
@@ -184,5 +193,5 @@ class Command(BaseCommand):
         :param file_path: Full path to the file.
         :param lines: List of lines to write to the file.
         """
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             f.writelines(lines)

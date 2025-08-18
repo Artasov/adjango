@@ -5,7 +5,7 @@ try:
     from rest_framework.serializers import (
         ListSerializer as DRFListSerializer,
         LIST_SERIALIZER_KWARGS_REMOVE,
-        LIST_SERIALIZER_KWARGS
+        LIST_SERIALIZER_KWARGS,
     )
     from rest_framework.serializers import ModelSerializer as DRFModelSerializer
     from rest_framework.serializers import Serializer as DRFSerializer
@@ -39,18 +39,25 @@ class DetailExceptionDict(TypedDict):
 class DetailAPIException(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
 
-    def __init__(self, detail: DetailExceptionDict, code: str = None, status_code: str = None):
+    def __init__(
+        self, detail: DetailExceptionDict, code: str = None, status_code: str = None
+    ):
         if status_code is not None:
             self.status_code = status_code
-        super().__init__(detail=detail, code=code or 'error')
+        super().__init__(detail=detail, code=code or "error")
 
 
 class SerializerErrors(DetailAPIException):
-    def __init__(self, serializer_errors: dict, code: str = None, status_code: str = HTTP_400_BAD_REQUEST,
-                 message: str = _('Correct the mistakes.')):
+    def __init__(
+        self,
+        serializer_errors: dict,
+        code: str = None,
+        status_code: str = HTTP_400_BAD_REQUEST,
+        message: str = _("Correct the mistakes."),
+    ):
         detail = DetailExceptionDict(
             message=message,
-            fields_errors=serializer_errors_to_field_errors(serializer_errors)
+            fields_errors=serializer_errors_to_field_errors(serializer_errors),
         )
         super().__init__(detail=detail, code=code, status_code=status_code)
 
@@ -77,14 +84,16 @@ class ASerializer(DRFSerializer):
         return is_valid
 
     @property
-    async def adata(self): return await sync_to_async(lambda: self.data)()
+    async def adata(self):
+        return await sync_to_async(lambda: self.data)()
 
     @property
-    async def avalid_data(self): return await sync_to_async(lambda: self.validated_data)()
+    async def avalid_data(self):
+        return await sync_to_async(lambda: self.validated_data)()
 
     @classmethod
     def many_init(cls, *args, **kwargs):
-        kwargs['child'] = cls()
+        kwargs["child"] = cls()
         return AListSerializer(*args, **kwargs)
 
 
@@ -94,12 +103,14 @@ class AModelSerializer(DRFModelSerializer):
 
     async def ais_valid(self, raise_exception=False, **kwargs):
         is_valid = await sync_to_async(self.is_valid)(**kwargs)
-        if raise_exception and not is_valid: raise SerializerErrors(self.errors)
+        if raise_exception and not is_valid:
+            raise SerializerErrors(self.errors)
         return is_valid
 
     def is_valid(self, raise_exception=False, **kwargs):
         is_valid = super().is_valid(**kwargs)
-        if raise_exception and not is_valid: raise SerializerErrors(self.errors)
+        if raise_exception and not is_valid:
+            raise SerializerErrors(self.errors)
         return is_valid
 
     @property
@@ -117,11 +128,14 @@ class AModelSerializer(DRFModelSerializer):
             value = kwargs.pop(key, None)
             if value is not None:
                 list_kwargs[key] = value
-        list_kwargs['child'] = cls(*args, **kwargs)
-        list_kwargs.update({
-            key: value for key, value in kwargs.items()
-            if key in LIST_SERIALIZER_KWARGS
-        })
-        meta = getattr(cls, 'Meta', None)
-        list_serializer_class = getattr(meta, 'list_serializer_class', AListSerializer)
+        list_kwargs["child"] = cls(*args, **kwargs)
+        list_kwargs.update(
+            {
+                key: value
+                for key, value in kwargs.items()
+                if key in LIST_SERIALIZER_KWARGS
+            }
+        )
+        meta = getattr(cls, "Meta", None)
+        list_serializer_class = getattr(meta, "list_serializer_class", AListSerializer)
         return list_serializer_class(*args, **list_kwargs)

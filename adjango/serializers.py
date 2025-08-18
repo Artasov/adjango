@@ -1,63 +1,63 @@
 # serializers.py
 try:
-    from rest_framework.serializers import (
-        ListSerializer as DRFListSerializer,
-        ModelSerializer as DRFModelSerializer,
-        Serializer as DRFSerializer,
-        BaseSerializer,  # noqa
-    )
     from rest_framework import status
     from rest_framework.exceptions import APIException
+    from rest_framework.serializers import BaseSerializer  # noqa
+    from rest_framework.serializers import ListSerializer as DRFListSerializer
+    from rest_framework.serializers import ModelSerializer as DRFModelSerializer
+    from rest_framework.serializers import Serializer as DRFSerializer
     from rest_framework.status import HTTP_400_BAD_REQUEST
 except ImportError:
     pass
-from typing import Type, Optional, Dict, Tuple, cast, Union, TypeVar
+from typing import Dict, Optional, Tuple, Type, TypeVar, Union, cast
 
 from adjango.aserializers import AModelSerializer
 
-T = TypeVar('T', bound=AModelSerializer)
+T = TypeVar("T", bound=AModelSerializer)
 
 
 def dynamic_serializer(
-        base_serializer: Type[T],
-        include_fields: Tuple[str, ...],
-        field_overrides: Optional[Dict[str, Union[Type[BaseSerializer], BaseSerializer]]] = None
+    base_serializer: Type[T],
+    include_fields: Tuple[str, ...],
+    field_overrides: Optional[
+        Dict[str, Union[Type[BaseSerializer], BaseSerializer]]
+    ] = None,
 ) -> Type[T]:
     """
-    Создаёт динамический сериализатор на основе базового сериализатора,
-    включая указанные поля и переопределяя некоторые из них при необходимости.
+    Creates dynamic serializer based on base serializer,
+    including specified fields and overriding some of them when needed.
 
-    :param base_serializer: Базовый класс сериализатора.
-    :param include_fields: Кортеж имен полей для включения.
-    :param field_overrides: Словарь с переопределениями полей, где ключ — имя поля,
-                            а значение — класс сериализатора или экземпляр сериализатора.
-    :return: Новый класс сериализатора.
+    :param base_serializer: Base serializer class.
+    :param include_fields: Tuple of field names to include.
+    :param field_overrides: Dictionary with field overrides, where key is field name,
+                            and value is serializer class or serializer instance.
+    :return: New serializer class.
     """
 
-    # Создаём новый класс Meta с нужными полями
+    # Create new Meta class with needed fields
     class Meta(base_serializer.Meta):
         fields = include_fields
 
-    # Словарь атрибутов для нового сериализатора
-    attrs = {'Meta': Meta}
+    # Attributes dictionary for new serializer
+    attrs = {"Meta": Meta}
 
-    # Если есть переопределения полей, добавляем их
+    # If there are field overrides, add them
     if field_overrides:
         for field_name, serializer in field_overrides.items():
             if isinstance(serializer, type) and issubclass(serializer, BaseSerializer):
-                # Если передан класс сериализатора, создаём его экземпляр
-                # Предполагаем, что если поле связано с множеством объектов, необходимо указать many=True
-                # Здесь можно добавить логику определения many=True на основе модели или других условий
-                # Для простоты предполагаем, что это не требуется
+                # If serializer class is passed, create its instance
+                # Assume that if field is related to multiple objects, many=True should be specified
+                # Here we can add logic to determine many=True based on model or other conditions
+                # For simplicity assume it's not required
                 attrs[field_name] = serializer(read_only=True)
             elif isinstance(serializer, BaseSerializer):
-                # Если передан экземпляр сериализатора, используем его напрямую
+                # If serializer instance is passed, use it directly
                 attrs[field_name] = serializer
             else:
                 raise ValueError(f"Invalid serializer for field '{field_name}'.")
 
-    # Создаём новый класс сериализатора
-    dynamic_class = type('DynamicSerializer', (base_serializer,), attrs)
+    # Create new serializer class
+    dynamic_class = type("DynamicSerializer", (base_serializer,), attrs)
 
-    # Приводим тип к Type[T] с помощью cast
+    # Cast type to Type[T] using cast
     return cast(Type[T], dynamic_class)

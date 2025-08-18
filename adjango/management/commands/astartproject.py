@@ -17,17 +17,17 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            'directory',
-            nargs='?',
-            default='.',
-            help='Optional target directory (default: current directory).',
+            "directory",
+            nargs="?",
+            default=".",
+            help="Optional target directory (default: current directory).",
         )
 
     def handle(self, *args, **options):
-        raw_dir = options['directory']
+        raw_dir = options["directory"]
 
-        # Определяем целевую директорию
-        if raw_dir in (None, '.'):
+        # Determine target directory
+        if raw_dir in (None, "."):
             target_dir = Path.cwd()
         else:
             given = Path(raw_dir)
@@ -35,11 +35,13 @@ class Command(BaseCommand):
         target_dir = target_dir.resolve()
 
         if target_dir.exists() and any(target_dir.iterdir()):
-            raise CommandError(f"Directory '{target_dir}' already exists and is not empty")
+            raise CommandError(
+                f"Directory '{target_dir}' already exists and is not empty"
+            )
 
         target_dir.mkdir(parents=True, exist_ok=True)
 
-        # Клонируем шаблон
+        # Clone template
         try:
             subprocess.run(
                 ["git", "clone", "--depth", "1", self.REPO_URL, str(target_dir)],
@@ -48,7 +50,7 @@ class Command(BaseCommand):
         except (subprocess.CalledProcessError, FileNotFoundError) as exc:
             raise CommandError(f"Failed to clone repository: {exc}")
 
-        # Удаляем .git чтобы проект начинался «с нуля»
+        # Remove .git so project starts "from scratch"
         git_dir = target_dir / ".git"
         if git_dir.exists():
             shutil.rmtree(git_dir, ignore_errors=True)

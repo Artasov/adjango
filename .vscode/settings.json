@@ -1,0 +1,196 @@
+{
+  // ==== Общие настройки редактора ====
+  "files.autoSave": "onFocusChange",
+  "editor.mouseWheelZoom": true,
+  "editor.formatOnSave": true, // форматировать на сохранение
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "always", // авто-фиксы (eslint и др.)
+    "source.organizeImports": "always",
+    "source.fixAll.eslint": "always"
+  },
+  "editor.tabSize": 4,
+  "editor.fontSize": 16,
+  "editor.lineHeight": 16,
+  "editor.glyphMargin": false,
+  "editor.suggestFontSize": 18,
+  "editor.quickSuggestionsDelay": 0,
+  "editor.cursorBlinking": "expand",
+  "editor.cursorStyle": "line",
+  "editor.cursorSmoothCaretAnimation": "explicit",
+  // "editor.fontFamily": "",
+  "editor.inlineSuggest.enabled": true,
+  "explorer.compactFolders": false,
+  // Breadcrumbs
+  "breadcrumbs.icons": false,
+  "breadcrumbs.showKeys": false,
+  "breadcrumbs.showFiles": false,
+  "breadcrumbs.symbolPath": "off",
+  "breadcrumbs.showArrays": false,
+  "breadcrumbs.showEvents": false,
+  "breadcrumbs.showFields": false,
+  "breadcrumbs.showClasses": false,
+  "breadcrumbs.showMethods": false,
+  "breadcrumbs.showBooleans": false,
+  "breadcrumbs.showFunctions": false,
+  "breadcrumbs.showConstants": false,
+  "breadcrumbs.showEnumMembers": false,
+  "breadcrumbs.showConstructors": false,
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
+  "workbench.editor.tabSizing": "shrink",
+  "window.density.editorTabHeight": "compact",
+  "debug.toolBarLocation": "hidden",
+  "debug.focusWindowOnBreak": false,
+  "debug.showInlineBreakpointCandidates": false,
+  "debug.showBreakpointsInOverviewRuler": false,
+  "emmet.includeLanguages": {
+    "blade": "html",
+    "javascript": "javascriptreact",
+    "typescript": "typescriptreact",
+    "css": "sass",
+    "django-html": "html"
+  },
+  "emmet.triggerExpansionOnTab": true,
+  "html.completion.attributeDefaultValue": "singlequotes",
+  "html.autoClosingTags": true,
+  "html.format.enable": true,
+  "html.format.wrapAttributes": "auto",
+  "html.format.wrapLineLength": 120,
+  "javascript.autoClosingTags": true,
+  "typescript.autoClosingTags": true,
+  "terminal.integrated.fontSize": 16,
+  "debug.console.fontSize": 14,
+  "playwright.reuseBrowser": true,
+  "cursor.composer.shouldChimeAfterChatFinishes": true,
+  "git.autofetch": true,
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.sideBar.location": "left",
+  "workbench.tree.indent": 24,
+  "workbench.tree.renderIndentGuides": "none",
+  "workbench.preferredHighContrastLightColorTheme": "Material Night",
+  "workbench.preferredDarkColorTheme": "Material Night",
+  "workbench.preferredHighContrastColorTheme": "Material Night",
+  "workbench.colorTheme": "One Dark Pro Night Flat",
+  // Скрыть шумные директории/файлы из проводника и поиска
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.idea": true,
+    "**/.vscode": false,
+    "**/*.pyc": true,
+    "**/.venv": true,
+    "**/.mypy_cache": true,
+    "**/*~": true
+  },
+  "search.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.idea": true,
+    "**/.venv": true
+  },
+  "files.watcherExclude": {
+    "**/.venv/**": true,
+    "**/__pycache__/**": true
+  },
+  // ==== Иконки ====
+  // Настройка ассоциаций иконок (material-icon-theme)
+  "material-icon-theme.folders.associations": {
+    "services": "tools",
+    "backend": "server",
+    "frontend": "client",
+    "data": "store",
+    "src": "src"
+  },
+  "material-icon-theme.activeIconPack": "react",
+  // ==== Python / Django ====
+  "python.envFile": "${workspaceFolder}/.env",
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.diagnosticMode": "workspace",
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "python.testing.autoTestDiscoverOnSaveEnabled": true,
+  "python.testing.cwd": "${workspaceFolder}",
+  "python.terminal.activateEnvironment": true,
+  "editor.defaultFormatter": "ms-python.black-formatter",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter" // Black для Python
+  },
+  "black-formatter.args": [
+    "--line-length",
+    "120"
+  ],
+  "black-formatter.importStrategy": "fromEnvironment",
+  "isort.args": [
+    "--profile",
+    "black"
+  ], // согласованность с Black
+  // Подсветка Django-шаблонов и Emmet
+  "files.associations": {
+    "**/templates/**/*.html": "django-html",
+    "**/templates/**/*.txt": "django-txt"
+  },
+  "eslint.workingDirectories": [
+    {
+      "mode": "auto"
+    },
+    "frontend"
+  ],
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "typescript.tsdk": "frontend/node_modules/typescript/lib", // использовать TS из проекта
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "javascript.suggest.autoImports": true,
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  // "prettier.configPath": "${workspaceFolder}/frontend/.prettierrc",
+  "stylelint.enable": true,
+  "stylelint.validate": [
+    "css",
+    "scss",
+    "sass"
+  ],
+  "breadcrumbs.enabled": true,
+  "explorer.autoReveal": false,
+  "editor.minimap.enabled": false,
+  "cSpell.language": "en,ru",
+  "cSpell.diagnosticLevel": "Hint", // чтобы подсветка была мягкой
+  "cSpell.enabled": true,
+  "cSpell.allowCompoundWords": true,
+  "cSpell.words": [
+    "onest",
+    "pprint",
+    "Toastify"
+  ],
+  "window.zoomLevel": 1
+}

@@ -8,9 +8,9 @@ from django.test import RequestFactory
 
 from adjango.utils.funcs import (
     aadd,
-    agetorn,
-    afilter,
     aall,
+    afilter,
+    agetorn,
     arelated,
     aset,
     auser_passes_test,
@@ -25,6 +25,7 @@ async def test_getorn_and_agetorn():
 
     p = await Product.objects.acreate(name="p1", price=10)
     from asgiref.sync import sync_to_async
+
     assert await sync_to_async(getorn)(Product.objects, None, name="p1") == p
     assert await sync_to_async(getorn)(Product.objects, None, name="missing") is None
 
@@ -45,7 +46,7 @@ async def test_getorn_and_agetorn():
 @pytest.mark.asyncio
 @pytest.mark.django_db
 async def test_arelated_aset_aadd_aall_afilter():
-    from app.models import Product, Order, User
+    from app.models import Order, Product, User
 
     user = await User.objects.acreate(username="u", phone="200")
     order = await Order.objects.acreate(user=user)
@@ -73,14 +74,15 @@ async def test_arelated_aset_aadd_aall_afilter():
 @pytest.mark.asyncio
 @pytest.mark.django_db
 async def test_arelated_errors():
-    from app.models import User, Order
-    from types import SimpleNamespace
-
-    obj = SimpleNamespace(user=None)
-    with pytest.raises(ValueError):
-        await arelated(obj, "user")
+    from app.models import Order, User
 
     user = await User.objects.acreate(username="u3", phone="3")
+
+    # Test with non-existent field
+    with pytest.raises(ValueError):
+        await arelated(user, "nonexistent_field")
+
+    # Test successful related access
     order = await Order.objects.acreate(user_id=user.pk)
     order_fresh = await Order.objects.aget(pk=order.pk)
     related = await arelated(order_fresh, "user")
@@ -120,8 +122,9 @@ async def test_auser_passes_test():
 
 @pytest.mark.asyncio
 async def test_set_image_by_url(monkeypatch):
-    from adjango.utils.funcs import set_image_by_url
     from django.core.files.base import ContentFile
+
+    from adjango.utils.funcs import set_image_by_url
 
     async def fake_download(url):
         return ContentFile(b"img", name="img.png")
@@ -131,6 +134,7 @@ async def test_set_image_by_url(monkeypatch):
     class DummyField:
         def __init__(self):
             self.saved = None
+
         def save(self, name, content):
             self.saved = (name, content.read())
 
@@ -138,6 +142,7 @@ async def test_set_image_by_url(monkeypatch):
         def __init__(self):
             self.image = DummyField()
             self.saved = False
+
         async def asave(self):
             self.saved = True
 
@@ -146,4 +151,3 @@ async def test_set_image_by_url(monkeypatch):
     assert obj.image.saved[0] == "img.png"
     assert obj.image.saved[1] == b"img"
     assert obj.saved
-

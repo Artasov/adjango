@@ -6,7 +6,7 @@ import re
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from pprint import pprint
-from typing import Any, Union, Tuple
+from typing import Any, Tuple, Union
 
 import aiohttp
 from asgiref.sync import sync_to_async
@@ -20,7 +20,7 @@ from django.utils.timezone import now
 
 def is_async_context() -> bool:
     """
-    Проверяет, выполняется ли код в асинхронном контексте.
+    Checks if code is running in an async context.
     """
     try:
         loop = asyncio.get_running_loop()
@@ -31,38 +31,45 @@ def is_async_context() -> bool:
 
 class AsyncAtomicContextManager(Atomic):
     """
-    Асинхронный контекст-менеджер для работы с транзакциями.
+    Asynchronous context manager for working with transactions.
 
-    @method __aenter__: Асинхронный вход в контекст менеджера транзакции.
-    @method __aexit__: Асинхронный выход из контекста менеджера транзакции.
+    @method __aenter__: Asynchronous entry into transaction context manager.
+    @method __aexit__: Asynchronous exit from transaction context manager.
     """
 
-    def __init__(self, using: str | None = None, savepoint: bool = True, durable: bool = False):
+    def __init__(
+        self, using: str | None = None, savepoint: bool = True, durable: bool = False
+    ):
         """
-        Инициализация асинхронного атомарного контекст-менеджера.
+        Initialize asynchronous atomic context manager.
 
-        :param using: Название базы данных, которая будет использоваться.
-        :param savepoint: Определяет, будет ли использоваться savepoint.
-        :param durable: Флаг для долговечных транзакций.
+        :param using: Database name to be used.
+        :param savepoint: Determines whether savepoint will be used.
+        :param durable: Flag for durable transactions.
         """
         super().__init__(using, savepoint, durable)
 
     async def __aenter__(self) -> AsyncAtomicContextManager:
         """
-        Асинхронно входит в транзакционный контекст.
+        Async entry into transaction context.
 
-        :return: Возвращает контекст менеджера.
+        :return: Returns context manager.
         """
         await sync_to_async(super().__enter__)()
         return self
 
-    async def __aexit__(self, exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback) -> None:
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback,
+    ) -> None:
         """
-        Асинхронно выходит из транзакционного контекста.
+        Async exit from transaction context.
 
-        :param exc_type: Тип исключения, если оно возникло.
-        :param exc_value: Объект исключения, если оно возникло.
-        :param traceback: Стек вызовов, если возникло исключение.
+        :param exc_type: Exception type if one occurred.
+        :param exc_value: Exception object if one occurred.
+        :param traceback: Call stack if exception occurred.
 
         :return: None
         """
@@ -71,49 +78,50 @@ class AsyncAtomicContextManager(Atomic):
 
 async def download_file_to_temp(url: str) -> ContentFile:
     """
-    Асинхронно скачивает файл с указанного URL и сохраняет его в объект ContentFile в памяти.
+    Async download file from specified URL and save it to ContentFile object in memory.
 
-    :param url: URL файла, который нужно скачать.
-    :return: Объект ContentFile с содержимым скачанного файла.
+    :param url: URL of file to download.
+    :return: ContentFile object with downloaded file content.
 
-    @raises ValueError: Если скачивание не удалось (код ответа не 200).
+    @raises ValueError: If download failed (response code not 200).
     """
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             if response.status == 200:
                 file_content = await response.read()
-                file_name = url.split('/')[-1]
+                file_name = url.split("/")[-1]
                 return ContentFile(file_content, name=file_name)
-            raise ValueError(f"Failed to download image from {url}, status code: {response.status}")
+            raise ValueError(
+                f"Failed to download image from {url}, status code: {response.status}"
+            )
 
 
 def add_user_to_group(user: Any, group_name: str) -> None:
     """
-    Добавляет пользователя в указанную группу.
+    Adds user to specified group.
 
-    :param user: Пользователь, которого нужно добавить в группу.
-    :param group_name: Имя группы, в которую нужно добавить пользователя.
-
-    :return: None
+    :param user: User to add to group.
+    :param group_name: Name of group to add user to.
     """
     group, created = Group.objects.get_or_create(name=group_name)
-    if user not in group.user_set.all():
+    # More efficient check using exists()
+    if not group.user_set.filter(pk=user.pk).exists():
         group.user_set.add(user)
 
 
 async def apprint(*args: Any, **kwargs: Any) -> None:
-    """ Асинхронно выводит данные с использованием pprint. """
+    """Async print data using pprint."""
     await sync_to_async(pprint)(*args, **kwargs)
 
 
 def build_full_url(pattern_name: str, *args: Any, **kwargs: Any) -> str:
     """
-    Строит полный URL на основе имени шаблона и переданных аргументов.
+    Builds full URL based on pattern name and passed arguments.
 
-    :param pattern_name: Имя URL-шаблона.
-    :param args: Позиционные аргументы для URL.
-    :param kwargs: Ключевые аргументы для URL.
-    :return: Полный URL как строка.
+    :param pattern_name: URL pattern name.
+    :param args: Positional arguments for URL.
+    :param kwargs: Keyword arguments for URL.
+    :return: Full URL as string.
     """
     relative_url = reverse(pattern_name, args=args, kwargs=kwargs)
     full_url = f"{settings.DOMAIN_URL.rstrip('/')}{relative_url}"
@@ -122,10 +130,10 @@ def build_full_url(pattern_name: str, *args: Any, **kwargs: Any) -> str:
 
 def calculate_age(birth_date: date) -> int:
     """
-    Вычисляет возраст на основе даты рождения.
+    Calculates age based on birth date.
 
-    :param birth_date: Дата рождения.
-    :return: Возраст в годах.
+    :param birth_date: Birth date.
+    :return: Age in years.
     """
     today = date.today()
     age = today.year - birth_date.year
@@ -136,73 +144,101 @@ def calculate_age(birth_date: date) -> int:
 
 def is_phone(phone: str) -> bool:
     """
-    Проверяет, соответствует ли строка формату телефонного номера.
+    Checks if string matches phone number format.
 
-    :param phone: Строка для проверки.
-    :return: True, если строка является допустимым телефонным номером, иначе False.
+    :param phone: String to check.
+    :return: True if string is valid phone number, otherwise False.
     """
-    pattern = re.compile(r'^\+?[\d\s\-()]{7,15}$')
-    cleaned_phone = re.sub(r'\s+', '', phone)
+    pattern = re.compile(r"^\+?[\d\s\-()]{7,15}$")
+    cleaned_phone = re.sub(r"\s+", "", phone)
     return bool(pattern.match(cleaned_phone))
 
 
 def is_email(email: str) -> bool:
     """
-    Проверяет, соответствует ли строка формату email-адреса.
+    Checks if string matches email format.
 
-    :param email: Строка для проверки.
-    :return: True, если строка является допустимым email-адресом, иначе False.
+    :param email: String to check.
+    :return: True if string is valid email address, otherwise False.
     """
-    pattern = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
+    pattern = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
     return bool(pattern.match(email))
 
 
 def phone_format(phone: str) -> str:
     """
-    Форматирует телефонный номер, убирая все символы, кроме цифр.
+    Formats phone number by removing all characters except digits.
 
-    :param phone: Исходный телефонный номер.
-    :return: Отформатированный телефонный номер.
+    :param phone: Original phone number.
+    :return: Formatted phone number containing only digits.
     """
-    return re.sub(r'\D', '', phone)
+    return re.sub(r"\D", "", phone)
+
+
+def normalize_phone(phone: str, country_code: str = "+7") -> str:
+    """
+    Normalizes phone number to international format.
+
+    :param phone: Phone number to normalize
+    :param country_code: Default country code to use
+    :return: Normalized phone number
+    """
+    # Remove all non-digits
+    digits_only = phone_format(phone)
+
+    if not digits_only:
+        return ""
+
+    # Handle Russian phone numbers
+    if country_code == "+7":
+        if digits_only.startswith("8") and len(digits_only) == 11:
+            # Replace leading 8 with 7
+            digits_only = "7" + digits_only[1:]
+        elif digits_only.startswith("7") and len(digits_only) == 11:
+            # Already in correct format
+            pass
+        elif len(digits_only) == 10:
+            # Add country code
+            digits_only = "7" + digits_only
+
+    return "+" + digits_only
 
 
 def diff_by_timedelta(timedelta_obj: timedelta) -> datetime:
     """
-    Вычисляет новую дату и время, добавляя заданный интервал к текущему времени.
+    Calculates new date and time by adding specified interval to current time.
 
-    :param timedelta_obj: Объект timedelta для добавления.
-    :return: Новая дата и время.
+    :param timedelta_obj: Timedelta object to add.
+    :return: New date and time.
     """
     return now() + timedelta_obj
 
 
 def decrease_by_percentage(
-        num: Union[int, float, Decimal],
-        percent: Union[int, float, Decimal]
+    num: Union[int, float, Decimal], percent: Union[int, float, Decimal]
 ) -> Decimal:
     """
-    Уменьшает число на заданный процент с высокой точностью.
+    Decreases number by specified percentage with high precision.
 
-    :param num: Число, которое нужно уменьшить.
-    :param percent: Процент уменьшения.
-    :return: Число после уменьшения на заданный процент.
+    :param num: Number to decrease.
+    :param percent: Percentage to decrease by.
+    :return: Number after decreasing by specified percentage.
     """
     num_dec = Decimal(num)
     percent_dec = Decimal(percent)
     result = num_dec * (Decimal(1) - percent_dec / Decimal(100))
-    return result.quantize(Decimal('1.00'))  # Настройте точность по необходимости
+    return result.quantize(Decimal("1.00"))  # Adjust precision as needed
 
 
 def get_plural_form_number(number: int, forms: Tuple[str, str, str]) -> str:
     """
-    Возвращает правильную форму слова в зависимости от числа.
+    Returns correct word form depending on number.
 
-    Пример: get_plural_form_number(minutes, ('минуту', 'минуты', 'минут'))
+    Example: get_plural_form_number(minutes, ('minute', 'minutes', 'minutes'))
 
-    :param number: Число для определения формы.
-    :param forms: Кортеж из трёх форм слова.
-    :return: Правильная форма слова.
+    :param number: Number to determine form for.
+    :param forms: Tuple of three word forms.
+    :return: Correct word form.
     """
     if number % 10 == 1 and number % 100 != 11:
         return forms[0]

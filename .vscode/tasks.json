@@ -1,0 +1,131 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "1🚀 Backend",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/Scripts/python.exe manage.py runserver",
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}/tests/project",
+        "env": {
+          "PYTHONUNBUFFERED": "1"
+        }
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "2🧪 Run Pytest",
+      "type": "shell",
+      "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe -m pytest tests\\ -v",
+      "group": "test",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "PYTEST": "1"
+        }
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "3🔄 Celery Worker",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/Scripts/python.exe manage.py celeryworker",
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}/tests/project",
+        "env": {
+          "PYTHONUNBUFFERED": "1"
+        }
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": true,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "4⏰ Celery Beat",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/Scripts/python.exe manage.py celerybeat",
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}/tests/project",
+        "env": {
+          "PYTHONUNBUFFERED": "1"
+        }
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": true,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "5🧹 Celery Purge",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/Scripts/python.exe manage.py celerypurge",
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}/tests/project",
+        "env": {
+          "PYTHONUNBUFFERED": "1"
+        }
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "6✨ Python Format",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/Scripts/python.exe -m isort .; ${workspaceFolder}/.venv/Scripts/python.exe -m black .",
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "PYTHONUNBUFFERED": "1"
+        }
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "problemMatcher": []
+    }
+  ]
+}

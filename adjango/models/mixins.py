@@ -8,48 +8,46 @@ from django.utils.translation import gettext_lazy as _
 from adjango.models import AModel
 from adjango.services.base import ABaseService
 
-ServiceT = TypeVar('ServiceT', bound=ABaseService)
+ServiceT = TypeVar("ServiceT", bound=ABaseService)
 
 
 class ACreatedAtMixin(AModel[ServiceT], Generic[ServiceT]):
-    created_at = DateTimeField(_('Created at'), auto_now_add=True)
+    created_at = DateTimeField(_("Created at"), auto_now_add=True)
 
     class Meta:
         abstract = True
 
 
 class ACreatedAtEditableMixin(AModel[ServiceT], Generic[ServiceT]):
-    created_at = DateTimeField(_('Created at'), default=timezone.now)
+    created_at = DateTimeField(_("Created at"), default=timezone.now)
 
     class Meta:
         abstract = True
 
 
 class AUpdatedAtMixin(AModel[ServiceT], Generic[ServiceT]):
-    updated_at = DateTimeField(_('Updated at'), auto_now=True)
+    updated_at = DateTimeField(_("Updated at"), auto_now=True)
 
     class Meta:
         abstract = True
 
 
 class ACreatedUpdatedAtMixin(
-    ACreatedAtMixin[ServiceT],
-    AUpdatedAtMixin[ServiceT],
-    Generic[ServiceT]
+    ACreatedAtMixin[ServiceT], AUpdatedAtMixin[ServiceT], Generic[ServiceT]
 ):
     class Meta:
         abstract = True
 
 
 class ACreatedAtIndexedMixin(AModel[ServiceT], Generic[ServiceT]):
-    created_at = DateTimeField(_('Created at'), auto_now_add=True, db_index=True)
+    created_at = DateTimeField(_("Created at"), auto_now_add=True, db_index=True)
 
     class Meta:
         abstract = True
 
 
 class AUpdatedAtIndexedMixin(AModel[ServiceT], Generic[ServiceT]):
-    updated_at = DateTimeField(_('Updated at'), auto_now=True, db_index=True)
+    updated_at = DateTimeField(_("Updated at"), auto_now=True, db_index=True)
 
     class Meta:
         abstract = True
@@ -58,7 +56,7 @@ class AUpdatedAtIndexedMixin(AModel[ServiceT], Generic[ServiceT]):
 class ACreatedUpdatedAtIndexedMixin(
     ACreatedAtIndexedMixin[ServiceT],
     AUpdatedAtIndexedMixin[ServiceT],
-    Generic[ServiceT]
+    Generic[ServiceT],
 ):
     class Meta:
         abstract = True

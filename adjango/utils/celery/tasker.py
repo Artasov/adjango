@@ -2,40 +2,50 @@
 import json
 from datetime import datetime
 
-from django_celery_beat.models import PeriodicTask, IntervalSchedule, CrontabSchedule
+from django_celery_beat.models import CrontabSchedule, IntervalSchedule, PeriodicTask
 from kombu.exceptions import OperationalError
 
 
 class Tasker:
     """
-    Класс планировщика задач для удобного управления задачами Celery.
+    Task scheduler class for convenient Celery task management.
 
-    @method put: Планирует задачу с возможностью отложенного выполнения или немедленно.
-    @method cancel_task: Отменяет задачу по ID.
-    @method beat: Планирует задачу через Celery Beat с возможностью указания интервалов и расписания.
+    @method put: Schedules task with possibility of delayed execution or immediate.
+    @method cancel_task: Cancels task by ID.
+    @method beat: Schedules task via Celery Beat with ability to specify intervals and schedule.
     """
 
     @staticmethod
-    def put(task: callable, eta: datetime = None, countdown: int = None, expires: datetime = None,
-            queue: str = None, **kwargs) -> str:
+    def put(
+        task: callable,
+        eta: datetime = None,
+        countdown: int = None,
+        expires: datetime = None,
+        queue: str = None,
+        **kwargs,
+    ) -> str:
         """
-        Планирует задачу. Если не указаны eta или countdown, задача выполняется немедленно. Возвращает ID задачи.
+        Schedules task. If eta or countdown not specified, task executes immediately. Returns task ID.
 
-        :param task: Celery задача для выполнения.
-        :param eta: Время, когда задача должна быть выполнена (datetime). Приоритетнее, чем countdown.
-        :param countdown: Через сколько секунд выполнить задачу, если eta не указано.
-        :param expires: Время, после которого задача не должна быть выполнена (datetime). Если не указано, не истекает.
-        :param queue: Очередь, в которую нужно отправить задачу.
-        :param kwargs: Именованные аргументы для задачи.
-        :return: Возвращает ID запланированной задачи.
+        :param task: Celery task to execute.
+        :param eta: Time when task should be executed (datetime). Takes priority over countdown.
+        :param countdown: How many seconds to wait before executing task, if eta not specified.
+        :param expires: Time after which task should not be executed (datetime). If not specified, doesn't expire.
+        :param queue: Queue to send task to.
+        :param kwargs: Named arguments for task.
+        :return: Returns scheduled task ID.
         """
         try:
             if not eta and not countdown:
                 result = task.apply_async(kwargs=kwargs, queue=queue, expires=expires)
             elif eta:
-                result = task.apply_async(kwargs=kwargs, eta=eta, queue=queue, expires=expires)
+                result = task.apply_async(
+                    kwargs=kwargs, eta=eta, queue=queue, expires=expires
+                )
             else:
-                result = task.apply_async(kwargs=kwargs, countdown=countdown, queue=queue, expires=expires)
+                result = task.apply_async(
+                    kwargs=kwargs, countdown=countdown, queue=queue, expires=expires
+                )
         except OperationalError:
             # If the broker is unavailable, execute task locally instead of failing.
             result = task.apply(kwargs=kwargs)
@@ -45,77 +55,100 @@ class Tasker:
     @staticmethod
     def cancel_task(task_id: str) -> None:
         """
-        Отменяет задачу по её ID.
+        Cancels task by its ID.
 
-        :param task_id: ID задачи, которую нужно отменить.
+        :param task_id: ID of task to cancel.
         """
         from celery.result import AsyncResult
+
         AsyncResult(task_id).revoke(terminate=True)
 
     @staticmethod
-    def beat(task: callable, name: str, schedule_time: datetime = None, interval: int = None, crontab: dict = None,
-             **kwargs) -> None:
+    def beat(
+        task: callable,
+        name: str,
+        schedule_time: datetime = None,
+        interval: int = None,
+        crontab: dict = None,
+        **kwargs,
+    ) -> None:
         """
-        Планирует задачу через Celery Beat с использованием базы данных для задач с долгосрочным выполнением.
+        Schedules task through Celery Beat using database for long-term execution tasks.
 
-        :param task: Celery задача для выполнения.
-        :param name: Название задачи в Celery Beat.
-        :param schedule_time: Время, когда задача должна быть выполнена (datetime) для одноразовых задач.
-        :param interval: Интервал выполнения задачи (в секундах), если это периодическая задача.
-        :param crontab: Расписание задачи с использованием Crontab (например, crontab(hour=7, minute=30)).
-        :param kwargs: Именованные аргументы для задачи.
+        :param task: Celery task to execute.
+        :param name: Task name in Celery Beat.
+        :param schedule_time: Time when task should be executed (datetime) for one-time tasks.
+        :param interval: Task execution interval (in seconds), if this is a periodic task.
+        :param crontab: Task schedule using Crontab (e.g., crontab(hour=7, minute=30)).
+        :param kwargs: Named arguments for the task.
         """
         if interval:
-            # Планируем задачу с периодическим интервалом
-            schedule, _ = IntervalSchedule.objects.get_or_create(every=interval, period=IntervalSchedule.SECONDS)
+            # Schedule task with periodic interval
+            schedule, _ = IntervalSchedule.objects.get_or_create(
+                every=interval, period=IntervalSchedule.SECONDS
+            )
         elif crontab:
-            # Планируем задачу с Crontab расписанием
+            # Schedule task with Crontab schedule
             schedule, _ = CrontabSchedule.objects.get_or_create(**crontab)
         else:
-            # Планируем одноразовую задачу
-            schedule, _ = CrontabSchedule.objects.get_or_create(minute=schedule_time.minute, hour=schedule_time.hour,
-                                                                day_of_week='*', day_of_month=schedule_time.day,
-                                                                month_of_year=schedule_time.month)
+            # Schedule one-time task
+            schedule, _ = CrontabSchedule.objects.get_or_create(
+                minute=schedule_time.minute,
+                hour=schedule_time.hour,
+                day_of_week="*",
+                day_of_month=schedule_time.day,
+                month_of_year=schedule_time.month,
+            )
         PeriodicTask.objects.create(
             name=name,
             task=task.name,
             crontab=schedule if not interval else None,
             interval=schedule if interval else None,
             kwargs=json.dumps(kwargs),
-            one_off=not interval  # Указание, что задача одноразовая, если не задан интервал
+            one_off=not interval,  # Indicates that task is one-time if no interval is set
         )
 
     @staticmethod
-    async def abeat(task: callable, name: str, schedule_time: datetime = None, interval: int = None,
-                    crontab: dict = None,
-                    **kwargs) -> None:
+    async def abeat(
+        task: callable,
+        name: str,
+        schedule_time: datetime = None,
+        interval: int = None,
+        crontab: dict = None,
+        **kwargs,
+    ) -> None:
         """
-        Планирует задачу через Celery Beat с использованием базы данных для задач с долгосрочным выполнением.
+        Schedules task through Celery Beat using database for long-term execution tasks.
 
-        :param task: Celery задача для выполнения.
-        :param name: Название задачи в Celery Beat.
-        :param schedule_time: Время, когда задача должна быть выполнена (datetime) для одноразовых задач.
-        :param interval: Интервал выполнения задачи (в секундах), если это периодическая задача.
-        :param crontab: Расписание задачи с использованием Crontab (например, crontab(hour=7, minute=30)).
-        :param kwargs: Именованные аргументы для задачи.
+        :param task: Celery task to execute.
+        :param name: Task name in Celery Beat.
+        :param schedule_time: Time when task should be executed (datetime) for one-time tasks.
+        :param interval: Task execution interval (in seconds), if this is a periodic task.
+        :param crontab: Task schedule using Crontab (e.g., crontab(hour=7, minute=30)).
+        :param kwargs: Named arguments for the task.
         """
         if interval:
-            # Планируем задачу с периодическим интервалом
-            schedule, _ = await IntervalSchedule.objects.aget_or_create(every=interval, period=IntervalSchedule.SECONDS)
+            # Schedule task with periodic interval
+            schedule, _ = await IntervalSchedule.objects.aget_or_create(
+                every=interval, period=IntervalSchedule.SECONDS
+            )
         elif crontab:
-            # Планируем задачу с Crontab расписанием
+            # Schedule task with Crontab schedule
             schedule, _ = await CrontabSchedule.objects.aget_or_create(**crontab)
         else:
-            # Планируем одноразовую задачу
-            schedule, _ = await CrontabSchedule.objects.aget_or_create(minute=schedule_time.minute,
-                                                                       hour=schedule_time.hour,
-                                                                       day_of_week='*', day_of_month=schedule_time.day,
-                                                                       month_of_year=schedule_time.month)
+            # Schedule one-time task
+            schedule, _ = await CrontabSchedule.objects.aget_or_create(
+                minute=schedule_time.minute,
+                hour=schedule_time.hour,
+                day_of_week="*",
+                day_of_month=schedule_time.day,
+                month_of_year=schedule_time.month,
+            )
         await PeriodicTask.objects.acreate(
             name=name,
             task=task.name,
             crontab=schedule if not interval else None,
             interval=schedule if interval else None,
             kwargs=json.dumps(kwargs),
-            one_off=not interval  # Указание, что задача одноразовая, если не задан интервал
+            one_off=not interval,  # Indicates that task is one-time if no interval is set
         )

@@ -1,0 +1,4 @@
+---
+alwaysApply: true
+---
+Для запуска тестов используем '.venv\Scripts\python.exe -m pytest tests\ -v'

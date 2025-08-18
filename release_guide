@@ -10,5 +10,5 @@ twine upload dist/*
 
 
 
-ТЕСТОВЫЙ twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-ПРОДОВЫЙ twine upload dist/*
+TEST twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+PRODUCTION twine upload dist/*

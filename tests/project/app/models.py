@@ -1,8 +1,5 @@
 # app/models.py
-from django.db.models import (
-    CharField, ForeignKey,
-    CASCADE, DecimalField
-)
+from django.db.models import CharField, ForeignKey, CASCADE, DecimalField
 
 from adjango.fields import AManyToManyField
 from adjango.models.base import AModel, AAbstractUser

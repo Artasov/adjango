@@ -4,7 +4,6 @@ try:
     from adjango.querysets.base import AQuerySet
     from adjango.utils.funcs import aall, agetorn, getorn, afilter, aset, aadd
 
-
     class APolymorphicQuerySet(AQuerySet, PolymorphicQuerySet):
         async def aall(self):
             return await aall(self)
@@ -23,5 +22,6 @@ try:
 
         async def aadd(self, data, *args, **kwargs):
             return await aadd(self, data, *args, **kwargs)
+
 except ImportError:
     pass

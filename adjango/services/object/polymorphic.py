@@ -1,18 +1,32 @@
-# services/polymorphic.py
+# services/object/polymorphic.py
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
+
+if TYPE_CHECKING:
+    from adjango.services.base import ABaseService
+
 try:
     from asgiref.sync import sync_to_async
     from polymorphic.models import PolymorphicModel
 
     from adjango.services.object.base import ABaseModelObjectService
 
+    ServiceT = TypeVar("ServiceT", bound="ABaseService[Any]")
 
-    class APolymorphicModelObjectBaseService(ABaseModelObjectService):
-        async def aget_real_instance(self: PolymorphicModel):
+    class APolymorphicModelObjectBaseService(
+        ABaseModelObjectService[ServiceT], Generic[ServiceT]
+    ):
+        """Polymorphic model object service with async capabilities."""
+
+        async def aget_real_instance(self: PolymorphicModel) -> PolymorphicModel:
             """
-            Асинхронно получает реальный экземпляр полиморфной модели.
+            Async gets real instance of polymorphic model.
 
-            :return: Реальный экземпляр модели или None, если он не найден.
+            :return: Real model instance or None if not found.
             """
             return await sync_to_async(self.get_real_instance)()
+
 except ImportError:
+    # django-polymorphic not installed
     pass

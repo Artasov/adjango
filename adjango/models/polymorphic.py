@@ -1,20 +1,31 @@
 # models/polymorphic.py
-from typing import TypeVar, Generic
+from __future__ import annotations
 
-from adjango.services.base import ABaseService
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
+
+if TYPE_CHECKING:
+    from adjango.services.base import ABaseService
 
 try:
-    from adjango.services.object.polymorphic import APolymorphicModelObjectBaseService
     from polymorphic.models import PolymorphicModel
+
     from adjango.managers.polymorphic import APolymorphicManager
+    from adjango.services.object.polymorphic import APolymorphicModelObjectBaseService
 
-    ServiceT = TypeVar('ServiceT', bound=ABaseService)
+    ServiceT = TypeVar("ServiceT", bound="ABaseService[Any]")
 
+    class APolymorphicModel(
+        PolymorphicModel,
+        APolymorphicModelObjectBaseService[ServiceT],
+        Generic[ServiceT],
+    ):
+        """Enhanced polymorphic model with service integration."""
 
-    class APolymorphicModel(PolymorphicModel, APolymorphicModelObjectBaseService[ServiceT], Generic[ServiceT]):
         objects = APolymorphicManager()
 
         class Meta:
             abstract = True
+
 except ImportError:
+    # django-polymorphic not installed
     pass

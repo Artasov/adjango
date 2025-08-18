@@ -10,32 +10,30 @@ from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import SynchronousOnlyOperation
 from django.core.files.base import ContentFile
-from django.db.models import QuerySet, Model, Manager
+from django.db.models import Manager, Model, QuerySet
 from django.shortcuts import resolve_url
 
 from adjango.utils.base import download_file_to_temp
 
 
 def getorn(
-        queryset: QuerySet,
-        exception: Type[Exception] | None = None,
-        *args: Any,
-        **kwargs: Any,
-
+    queryset: QuerySet,
+    exception: Type[Exception] | None = None,
+    *args: Any,
+    **kwargs: Any,
 ) -> Any:
     """
-    Получает единственный объект из заданного QuerySet,
-    соответствующий переданным параметрам.
+    Gets single object from given QuerySet matching passed parameters.
 
-    :param queryset: QuerySet, из которого нужно получить объект.
-    :param exception: Класс исключения, которое будет выброшено, если объект не найден.
-                      Если None, возвращается None.
+    :param queryset: QuerySet to get object from.
+    :param exception: Exception class to raise if object not found.
+                      If None, returns None.
 
-    :return: Объект модели или None, если объект не найден и exception не задан.
+    :return: Model object or None if object not found and exception not specified.
 
     @behavior:
-        - Пытается получить объект с помощью queryset.aget().
-        - Если объект не найден, выбрасывает исключение exception или возвращает None.
+        - Tries to get object using queryset.get().
+        - If object not found, raises exception or returns None.
 
     @usage:
         result = getorn(MyCustomException, id=1)
@@ -49,25 +47,23 @@ def getorn(
 
 
 async def agetorn(
-        queryset: QuerySet,
-        exception: Type[Exception] | None = None,
-        *args: Any,
-        **kwargs: Any,
-
+    queryset: QuerySet,
+    exception: Type[Exception] | None = None,
+    *args: Any,
+    **kwargs: Any,
 ) -> Any:
     """
-    Асинхронно получает единственный объект из заданного QuerySet,
-    соответствующий переданным параметрам.
+    Async gets single object from given QuerySet matching passed parameters.
 
-    :param queryset: QuerySet, из которого нужно получить объект.
-    :param exception: Класс исключения, которое будет выброшено, если объект не найден.
-                      Если None, возвращается None.
+    :param queryset: QuerySet to get object from.
+    :param exception: Exception class to raise if object not found.
+                      If None, returns None.
 
-    :return: Объект модели или None, если объект не найден и exception не задан.
+    :return: Model object or None if object not found and exception not specified.
 
     @behavior:
-        - Пытается асинхронно получить объект с помощью queryset.aget().
-        - Если объект не найден, выбрасывает исключение exception или возвращает None.
+        - Tries to async get object using queryset.aget().
+        - If object not found, raises exception or returns None.
 
     @usage:
         result = await agetorn(MyCustomException, id=1)
@@ -82,45 +78,47 @@ async def agetorn(
 
 async def arelated(obj: Model, field: str) -> Any:
     """
-    Асинхронно получает связанный объект из модели по указанному имени связанного поля.
+    Async gets related object from model by specified related field name.
 
-    :param obj: Экземпляр модели, у которого нужно получить связанный объект.
-    :param field: Название связанного поля, из которого нужно получить объект.
+    :param obj: Model instance to get related object from.
+    :param field: Name of related field to get object from.
 
-    :return: Связанный объект или None, если поле не существует.
+    :return: Related object or None if field doesn't exist.
 
     @usage: result = await arelated(my_model_instance, "related_field_name")
     """
     try:
         value = getattr(obj, field)
-        if value is None:
-            raise ValueError(f"Field '{field}' does not exist for object '{obj.__class__.__name__}'")
         return value
-    except ValueError as e:
-        raise e
+    except AttributeError:
+        raise ValueError(
+            f"Field '{field}' does not exist for object '{obj.__class__.__name__}'"
+        )
     except SynchronousOnlyOperation:
         return await sync_to_async(getattr)(obj, field)
 
 
 async def aset(related_manager, data, *args, **kwargs) -> None:
     """
-    Установить связанные объекты для поля ManyToMany асинхронно.
+    Set related objects for ManyToMany field asynchronously.
 
-    Аргументы:
-        related_manager: Менеджер связанных объектов (например, order.products)
-        data: Список или queryset объектов для установки
+    Arguments:
+        related_manager: Related objects manager (e.g., order.products)
+        data: List or queryset of objects to set
     """
     await sync_to_async(related_manager.set)(data, *args, **kwargs)
 
 
-async def aadd(objects: Manager | QuerySet, data: Any, *args: Any, **kwargs: Any) -> None:
+async def aadd(
+    objects: Manager | QuerySet, data: Any, *args: Any, **kwargs: Any
+) -> None:
     """
-    Асинхронно добавляет объект или данные в ManyToMany поле через метод add().
+    Async adds object or data to ManyToMany field via add() method.
 
-    :param objects: Менеджер модели или поле, в которое нужно добавить данные.
-    :param data: Данные или объект, который нужно добавить.
-    :param args: Дополнительные аргументы для метода add().
-    :param kwargs: Дополнительные именованные аргументы для метода add().
+    :param objects: Model manager or field to add data to.
+    :param data: Data or object to add.
+    :param args: Additional arguments for add() method.
+    :param kwargs: Additional named arguments for add() method.
 
     :return: None
 
@@ -131,11 +129,11 @@ async def aadd(objects: Manager | QuerySet, data: Any, *args: Any, **kwargs: Any
 
 async def aall(objects: Manager | QuerySet) -> list:
     """
-    Асинхронно возвращает все объекты, управляемые менеджером.
+    Async returns all objects managed by manager.
 
-    :param objects: Менеджер модели, откуда нужно получить все объекты.
+    :param objects: Model manager to get all objects from.
 
-    :return: Список всех объектов из менеджера.
+    :return: List of all objects from manager.
 
     @usage: result = await aall(MyModel.objects)
     """
@@ -144,13 +142,13 @@ async def aall(objects: Manager | QuerySet) -> list:
 
 async def afilter(queryset: QuerySet, *args: Any, **kwargs: Any) -> list:
     """
-    Асинхронно фильтрует объекты из QuerySet по заданным параметрам.
+    Async filters objects from QuerySet by given parameters.
 
-    :param queryset: QuerySet, по которому будет произведена фильтрация.
-    :param args: Дополнительные позиционные аргументы для фильтрации.
-    :param kwargs: Именованные аргументы для фильтрации.
+    :param queryset: QuerySet to filter.
+    :param args: Additional positional arguments for filtering.
+    :param kwargs: Named arguments for filtering.
 
-    :return: Список объектов, соответствующих фильтру.
+    :return: List of objects matching filter.
 
     @usage: result = await afilter(MyModel.objects, field=value)
     """
@@ -158,9 +156,9 @@ async def afilter(queryset: QuerySet, *args: Any, **kwargs: Any) -> list:
 
 
 def auser_passes_test(
-        test_func: Any,
-        login_url: str = None,
-        redirect_field_name: str = REDIRECT_FIELD_NAME,
+    test_func: Any,
+    login_url: str = None,
+    redirect_field_name: str = REDIRECT_FIELD_NAME,
 ):
     """
     Asynchronous decorator for views that checks if the user passes the test,
@@ -179,9 +177,11 @@ def auser_passes_test(
             login_scheme, login_netloc = urlparse(resolved_login_url)[:2]
             current_scheme, current_netloc = urlparse(path)[:2]
             if (not login_scheme or login_scheme == current_scheme) and (
-                    not login_netloc or login_netloc == current_netloc
-            ): path = request.get_full_path()
+                not login_netloc or login_netloc == current_netloc
+            ):
+                path = request.get_full_path()
             from django.contrib.auth.views import redirect_to_login
+
             return redirect_to_login(path, resolved_login_url, redirect_field_name)
 
         return _wrapped_view
@@ -191,15 +191,17 @@ def auser_passes_test(
 
 async def set_image_by_url(model_obj: Model, field_name: str, image_url: str) -> None:
     """
-    Загружает изображение с заданного URL и устанавливает его в указанное поле модели без
-    предварительного сохранения файла на диск.
+    Downloads image from given URL and sets it to specified model field without
+    preliminary saving file to disk.
 
-    :param model_obj: Экземпляр модели, в который нужно установить изображение.
-    :param field_name: Название поля, в которое нужно сохранить изображение.
-    :param image_url: URL изображения, которое нужно загрузить.
+    :param model_obj: Model instance to set image to.
+    :param field_name: Field name to save image to.
+    :param image_url: Image URL to download.
     :return: None
     """
     image_file: ContentFile = await download_file_to_temp(image_url)
-    # Используем setattr, чтобы установить файл в поле модели
-    await sync_to_async(getattr(model_obj, field_name).save)(image_file.name, image_file)
+    # Use setattr to set file to model field
+    await sync_to_async(getattr(model_obj, field_name).save)(
+        image_file.name, image_file
+    )
     await model_obj.asave()

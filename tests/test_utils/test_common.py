@@ -23,4 +23,3 @@ def test_traceback_str():
     except Exception as e:
         tb = traceback_str(e)
     assert "ZeroDivisionError" in tb
-

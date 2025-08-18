@@ -1,0 +1,30 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=827846 to learn about workspace recommendations.
+  // Extension identifier format: ${publisher}.${name}. Example: vscode.csharp
+
+  // Рекомендуемые расширения для данного рабочего пространства
+  "recommendations": [
+    // Python / Django
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.black-formatter", // Black
+    "ms-python.isort", // isort
+    "batisteo.vscode-django", // Django templates/snippets
+
+    // Frontend (React / TS)
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "stylelint.vscode-stylelint",
+
+    // Docker / DevOps
+    "ms-azuretools.vscode-docker",
+
+    // Удобства
+    "eamodio.gitlens",
+    "editorconfig.editorconfig",
+    "pkief.material-icon-theme",
+    "zhuangtongfa.material-theme" // One Dark Pro
+  ],
+  // Не рекомендовать следующие расширения (если потребуется)
+  "unwantedRecommendations": []
+}

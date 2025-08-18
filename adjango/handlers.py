@@ -13,15 +13,17 @@ from adjango.utils.common import traceback_str
 class IHandlerControllerException(ABC):
     @staticmethod
     @abstractmethod
-    def handle(fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args, **kwargs) -> None:
+    def handle(
+        fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args, **kwargs
+    ) -> None:
         """
-        Пример функции обработки исключений.
+        Example exception handling function.
 
-        :param fn_name: Имя функции, в которой произошло исключение.
-        :param request: Объект запроса (WSGIRequest или ASGIRequest).
-        :param e: Исключение, которое нужно обработать.
-        :param args: Позиционные аргументы, переданные в функцию.
-        :param kwargs: Именованные аргументы, переданные в функцию.
+        :param fn_name: Name of function where exception occurred.
+        :param request: Request object (WSGIRequest or ASGIRequest).
+        :param e: Exception to handle.
+        :param args: Positional arguments passed to function.
+        :param kwargs: Named arguments passed to function.
 
         :return: None
 
@@ -33,19 +35,21 @@ class IHandlerControllerException(ABC):
 
 class HCE(IHandlerControllerException):
     """
-    Пример реализации обработчика исключений контроллеров.
+    Example implementation of controller exception handler.
     """
 
     @staticmethod
-    def handle(fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args, **kwargs) -> None:
+    def handle(
+        fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args, **kwargs
+    ) -> None:
         """
-        Пример функции обработки исключений.
+        Example exception handling function.
 
-        :param fn_name: Имя функции, в которой произошло исключение.
-        :param request: Объект запроса (WSGIRequest или ASGIRequest).
-        :param e: Исключение, которое нужно обработать.
-        :param args: Позиционные аргументы, переданные в функцию.
-        :param kwargs: Именованные аргументы, переданные в функцию.
+        :param fn_name: Name of function where exception occurred.
+        :param request: Request object (WSGIRequest or ASGIRequest).
+        :param e: Exception to handle.
+        :param args: Positional arguments passed to function.
+        :param kwargs: Named arguments passed to function.
 
         :return: None
 
@@ -56,22 +60,27 @@ class HCE(IHandlerControllerException):
         from django.conf import settings
         from adjango.tasks import send_emails_task
 
-        log = logging.getLogger('global')
-        error_text = (f'ERROR in {fn_name}:\n'
-                      f'{traceback_str(e)}\n'
-                      f'{request.POST=}\n'
-                      f'{request.GET=}\n'
-                      f'{request.FILES=}\n'
-                      f'{request.COOKIES=}\n'
-                      f'{request.user=}\n'
-                      f'{args=}\n'
-                      f'{kwargs=}')
+        log = logging.getLogger("global")
+        error_text = (
+            f"ERROR in {fn_name}:\n"
+            f"{traceback_str(e)}\n"
+            f"{request.POST=}\n"
+            f"{request.GET=}\n"
+            f"{request.FILES=}\n"
+            f"{request.COOKIES=}\n"
+            f"{request.user=}\n"
+            f"{args=}\n"
+            f"{kwargs=}"
+        )
         log.error(error_text)
         if not settings.DEBUG:
             Tasker.put(
                 send_emails_task,
-                subject='SERVER ERROR',
-                emails=('admin@example.com', 'admin2@example.com',),
-                template='admin/exception_report.html',
-                context={'error': error_text},
+                subject="SERVER ERROR",
+                emails=(
+                    "admin@example.com",
+                    "admin2@example.com",
+                ),
+                template="admin/exception_report.html",
+                context={"error": error_text},
             )

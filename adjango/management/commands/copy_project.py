@@ -82,12 +82,34 @@ from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    help = 'Copies project objects (files, directories) based on a configuration with additional options.'
+    help = "Copies project objects (files, directories) based on a configuration with additional options."
 
     KNOWN_EXTENSIONS = [
-        '.py', '.js', '.jsx', '.tsx', '.ts', '.html', '.css', '.h', '.cpp', '.ui', '.pro',
-        '.yml', '.md', '.txt', '.cfg', '.gitignore', '.po', '.conf', '.json', '.gradle',
-        '.properties', '.bat', '.java', '.toml', '.env',
+        ".py",
+        ".js",
+        ".jsx",
+        ".tsx",
+        ".ts",
+        ".html",
+        ".css",
+        ".h",
+        ".cpp",
+        ".ui",
+        ".pro",
+        ".yml",
+        ".md",
+        ".txt",
+        ".cfg",
+        ".gitignore",
+        ".po",
+        ".conf",
+        ".json",
+        ".gradle",
+        ".properties",
+        ".bat",
+        ".java",
+        ".toml",
+        ".env",
     ]
 
     def __init__(self, stdout=None, stderr=None, no_color=False, force_color=False):
@@ -95,39 +117,54 @@ class Command(BaseCommand):
         self.collected_sources = None
 
     def add_arguments(self, parser):
-        parser.add_argument('conf_name', nargs='?', default='base', type=str,
-                            help='Configuration name from the config file (default: base)')
         parser.add_argument(
-            '--output',
+            "conf_name",
+            nargs="?",
+            default="base",
             type=str,
-            help='Path to the output file. If not specified, the result is copied to the clipboard.',
-            default=None
+            help="Configuration name from the config file (default: base)",
+        )
+        parser.add_argument(
+            "--output",
+            type=str,
+            help="Path to the output file. If not specified, the result is copied to the clipboard.",
+            default=None,
         )
 
     def handle(self, *args, **options):
-        conf_name = options['conf_name']
-        output_file = options['output']
+        conf_name = options["conf_name"]
+        output_file = options["output"]
 
         copy_conf_path = settings.COPY_PROJECT_CONFIGURATIONS
         if not os.path.exists(copy_conf_path):
-            self.stderr.write(self._color_text(f'Configuration file not found: {copy_conf_path}', 'red'))
+            self.stderr.write(
+                self._color_text(
+                    f"Configuration file not found: {copy_conf_path}", "red"
+                )
+            )
             sys.exit(1)
 
         # Dynamically import the configuration module
         import importlib.util
-        spec = importlib.util.spec_from_file_location('copy_conf', str(copy_conf_path))
+
+        spec = importlib.util.spec_from_file_location("copy_conf", str(copy_conf_path))
         copy_conf = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(copy_conf)
 
-        if not hasattr(copy_conf, 'configurations'):
+        if not hasattr(copy_conf, "configurations"):
             self.stderr.write(
-                self._color_text('The configuration file does not contain the \'configurations\' variable', 'red')
+                self._color_text(
+                    "The configuration file does not contain the 'configurations' variable",
+                    "red",
+                )
             )
             sys.exit(1)
 
         configurations = copy_conf.configurations
         if conf_name not in configurations:
-            self.stderr.write(self._color_text(f'Configuration \'{conf_name}\' not found', 'red'))
+            self.stderr.write(
+                self._color_text(f"Configuration '{conf_name}' not found", "red")
+            )
             sys.exit(1)
 
         # Extract the selected configuration
@@ -137,29 +174,35 @@ class Command(BaseCommand):
         self.collected_sources = []
 
         # Determine start directory (defaulting to settings.BASE_DIR)
-        start_dir = config.get('__start_dir__', settings.BASE_DIR)
+        start_dir = config.get("__start_dir__", settings.BASE_DIR)
 
         # Extract base options
         base_options = {
-            'exclude': config.get('__exclude__', []),
-            'add_paths': config.get('__add_paths__', False),
-            'start_dir': start_dir
+            "exclude": config.get("__exclude__", []),
+            "add_paths": config.get("__add_paths__", False),
+            "start_dir": start_dir,
         }
 
         # Process the configuration
-        self.process_config('', config, base_options)
+        self.process_config("", config, base_options)
 
         # Join the collected sources with two newlines
-        final_text = '\n\n'.join(self.collected_sources)
+        final_text = "\n\n".join(self.collected_sources)
 
         # Write to file or copy to clipboard
         if output_file:
             try:
-                with open(output_file, 'w', encoding='utf-8') as f:
+                with open(output_file, "w", encoding="utf-8") as f:
                     f.write(final_text)
-                self.stdout.write(self._color_text(f'Result saved to file: {output_file}', 'green'))
+                self.stdout.write(
+                    self._color_text(f"Result saved to file: {output_file}", "green")
+                )
             except Exception as e:
-                self.stderr.write(self._color_text(f'Error writing to file {output_file}: {str(e)}', 'red'))
+                self.stderr.write(
+                    self._color_text(
+                        f"Error writing to file {output_file}: {str(e)}", "red"
+                    )
+                )
         else:
             try:
                 import pyperclip
@@ -167,10 +210,15 @@ class Command(BaseCommand):
                 pyperclip = None
             if pyperclip:
                 pyperclip.copy(final_text)
-                self.stdout.write(self._color_text('Result copied to clipboard', 'green'))
+                self.stdout.write(
+                    self._color_text("Result copied to clipboard", "green")
+                )
             else:
                 self.stderr.write(
-                    self._color_text('pyperclip module is not installed. Could not copy to clipboard.', 'red')
+                    self._color_text(
+                        "pyperclip module is not installed. Could not copy to clipboard.",
+                        "red",
+                    )
                 )
 
     def process_config(self, prefix, conf_item, opts):
@@ -182,71 +230,81 @@ class Command(BaseCommand):
         if isinstance(conf_item, dict):
             # Merge local exclude, add_paths, and start_dir if redefined
             local_options = opts.copy()
-            for special in ['__exclude__', '__add_paths__', '__start_dir__']:
+            for special in ["__exclude__", "__add_paths__", "__start_dir__"]:
                 if special in conf_item:
-                    if special == '__exclude__':
-                        local_options['exclude'] = conf_item[special]
-                    elif special == '__add_paths__':
-                        local_options['add_paths'] = conf_item[special]
-                    elif special == '__start_dir__':
-                        local_options['start_dir'] = conf_item[special]
+                    if special == "__exclude__":
+                        local_options["exclude"] = conf_item[special]
+                    elif special == "__add_paths__":
+                        local_options["add_paths"] = conf_item[special]
+                    elif special == "__start_dir__":
+                        local_options["start_dir"] = conf_item[special]
 
             # For each key-value pair that doesn't start with '__', recurse deeper
             for key, value in conf_item.items():
-                if key.startswith('__'):
+                if key.startswith("__"):
                     continue
-                new_prefix = f'{prefix}.{key}' if prefix else key
+                new_prefix = f"{prefix}.{key}" if prefix else key
                 self.process_config(new_prefix, value, local_options)
 
         elif isinstance(conf_item, str):
-            if conf_item == '__copy__':
-                # Мы хотим скопировать все файлы или папку по префиксу
+            if conf_item == "__copy__":
+                # We want to copy all files or folder by prefix
                 try:
-                    paths_to_copy = self.resolve_path(prefix, opts['start_dir'])
+                    paths_to_copy = self.resolve_path(prefix, opts["start_dir"])
                     for path_to_copy in paths_to_copy:
                         self.copy_path(path_to_copy, opts)
-                    self.stdout.write(self._color_text(f'Copied: {prefix}', 'green'))
+                    self.stdout.write(self._color_text(f"Copied: {prefix}", "green"))
                 except FileNotFoundError as er:
-                    self.stderr.write(self._color_text(f'Not found: {prefix} ({str(er)})', 'red'))
+                    self.stderr.write(
+                        self._color_text(f"Not found: {prefix} ({str(er)})", "red")
+                    )
                 except Exception as er:
-                    self.stderr.write(self._color_text(f'Error copying {prefix}: {str(er)}', 'red'))
+                    self.stderr.write(
+                        self._color_text(f"Error copying {prefix}: {str(er)}", "red")
+                    )
             else:
-                self.stderr.write(self._color_text(f'Unknown directive \'{conf_item}\' for {prefix}', 'red'))
+                self.stderr.write(
+                    self._color_text(
+                        f"Unknown directive '{conf_item}' for {prefix}", "red"
+                    )
+                )
         else:
-            self.stderr.write(self._color_text(f'Invalid configuration for {prefix}', 'red'))
+            self.stderr.write(
+                self._color_text(f"Invalid configuration for {prefix}", "red")
+            )
 
     def resolve_path(self, dotted_path, start_dir):
         """
-        Преобразует точечный путь в файловую систему.
-        Если существует папка с таким именем — она добавляется.
-        Плюс, если есть файлы с известными расширениями ('.h', '.cpp' и т.д.) и тем же базовым именем,
-        они также добавляются. Если не найдено ничего, возбуждается FileNotFoundError.
+        Converts dotted path to file system.
+        If a folder with such name exists - it is added.
+        Plus, if there are files with known extensions ('.h', '.cpp' etc.) and the same base name,
+        they are also added. If nothing is found, FileNotFoundError is raised.
         """
-        parts = dotted_path.split('.')
+        parts = dotted_path.split(".")
         base_path = os.path.join(start_dir, *parts)
 
         found_paths = []
-        # Если есть директория с таким именем, добавляем её
+        # If there is a directory with such name, add it
         if os.path.isdir(base_path):
             found_paths.append(base_path)
 
-        # Ищем все файлы с известными расширениями
+        # Look for all files with known extensions
         for ext in self.KNOWN_EXTENSIONS:
             test_path = base_path + ext
             if os.path.isfile(test_path):
                 found_paths.append(test_path)
 
-        # Если совсем ничего нет — ошибка
+        # If nothing is found at all - error
         if not found_paths:
             raise FileNotFoundError(
-                f'Path does not exist: {base_path} (including all known extensions)'
+                f"Path does not exist: {base_path} (including all known extensions)"
             )
 
         return found_paths
 
     def copy_path(self, path_to_copy, opts):
         """
-        Копирует контент файла или всей директории, добавляя при необходимости путь-комментарий.
+        Copies content of file or entire directory, adding path comment if necessary.
         """
         if os.path.isdir(path_to_copy):
             self.copy_directory(path_to_copy, opts)
@@ -255,69 +313,68 @@ class Command(BaseCommand):
 
     def copy_directory(self, directory_path, opts):
         """
-        Рекурсивно копирует файлы из заданной директории, пропуская те, что содержат подстроки из opts['exclude'].
+        Recursively copies files from given directory, skipping those containing substrings from opts['exclude'].
         """
         for root, dirs, files in os.walk(directory_path):
-            # Исключаем директории
+            # Exclude directories
             dirs[:] = [
-                d for d in dirs
-                if not any(excl in d for excl in opts.get('exclude', []))
+                d
+                for d in dirs
+                if not any(excl in d for excl in opts.get("exclude", []))
             ]
             for file in files:
-                if any(excl in file for excl in opts.get('exclude', [])):
+                if any(excl in file for excl in opts.get("exclude", [])):
                     continue
                 file_full = os.path.join(root, file)
                 self.copy_file(file_full, opts)
 
     def copy_file(self, file_path, opts):
         """
-        Считывает файл, при необходимости добавляет комментарий с путем и кладет результат в collected_sources.
+        Reads file, adds path comment if necessary and puts result in collected_sources.
         """
-        with open(file_path, encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
-        if opts.get('add_paths'):
-            content = self.add_path_comment(content, file_path, opts['start_dir'])
+        if opts.get("add_paths"):
+            content = self.add_path_comment(content, file_path, opts["start_dir"])
         self.collected_sources.append(content)
 
     @staticmethod
     def add_path_comment(source, file_path, start_dir):
         """
-        Добавляет комментарий с относительным путем (от start_dir) в начало файла.
-        Если первая строка уже содержит подобный комментарий (с '/') — удаляем её.
-        Формат комментария выбирается по расширению файла.
+        Adds comment with relative path (from start_dir) to the beginning of file.
+        If first line already contains similar comment (with '/') - remove it.
+        Comment format is chosen by file extension.
         """
-        rel_path = os.path.relpath(file_path, start_dir).replace('\\', '/')
+        rel_path = os.path.relpath(file_path, start_dir).replace("\\", "/")
 
         ext = os.path.splitext(file_path)[1].lower()
-        if ext == '.py':
-            new_comment = f'# {rel_path}\n'
-        elif ext in ('.js', '.jsx', '.ts', '.tsx'):
-            new_comment = f'// {rel_path}\n'
-        elif ext == '.html':
-            new_comment = f'<!-- {rel_path} -->\n'
-        elif ext == '.css':
-            new_comment = f'/* {rel_path} */\n'
+        if ext == ".py":
+            new_comment = f"# {rel_path}\n"
+        elif ext in (".js", ".jsx", ".ts", ".tsx"):
+            new_comment = f"// {rel_path}\n"
+        elif ext == ".html":
+            new_comment = f"<!-- {rel_path} -->\n"
+        elif ext == ".css":
+            new_comment = f"/* {rel_path} */\n"
         else:
             # Default comment style
-            new_comment = f'# {rel_path}\n'
+            new_comment = f"# {rel_path}\n"
 
         lines = source.splitlines()
         if lines:
             first_line = lines[0].strip()
-            # Если первая строка — это комментарий с прямым слешем
-            if (first_line.startswith(('#', '//', '/*', '<!--', '/'))
-                    and '/' in first_line):
+            # If first line is a comment with forward slash
+            if (
+                first_line.startswith(("#", "//", "/*", "<!--", "/"))
+                and "/" in first_line
+            ):
                 lines = lines[1:]
-                source = '\n'.join(lines)
+                source = "\n".join(lines)
 
         return new_comment + source
 
     @staticmethod
     def _color_text(text, color):
-        colors = {
-            'red': '\033[31m',
-            'green': '\033[32m',
-            'reset': '\033[0m'
-        }
+        colors = {"red": "\033[31m", "green": "\033[32m", "reset": "\033[0m"}
         return f'{colors.get(color, "")}{text}{colors["reset"]}'
