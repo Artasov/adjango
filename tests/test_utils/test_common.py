@@ -1,7 +1,5 @@
 import sys
 
-import pytest
-
 from adjango.utils.common import is_celery, traceback_str
 
 

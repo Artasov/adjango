@@ -1,16 +1,16 @@
 # aserializers.py
-from typing import TypedDict, List
+from typing import List, Optional, TypedDict
 
 try:
-    from rest_framework.serializers import (
-        ListSerializer as DRFListSerializer,
-        LIST_SERIALIZER_KWARGS_REMOVE,
-        LIST_SERIALIZER_KWARGS,
-    )
-    from rest_framework.serializers import ModelSerializer as DRFModelSerializer
-    from rest_framework.serializers import Serializer as DRFSerializer
     from rest_framework import status
     from rest_framework.exceptions import APIException
+    from rest_framework.serializers import (
+        LIST_SERIALIZER_KWARGS,
+        LIST_SERIALIZER_KWARGS_REMOVE,
+    )
+    from rest_framework.serializers import ListSerializer as DRFListSerializer
+    from rest_framework.serializers import ModelSerializer as DRFModelSerializer
+    from rest_framework.serializers import Serializer as DRFSerializer
     from rest_framework.status import HTTP_400_BAD_REQUEST
 except ImportError:
     pass
@@ -39,19 +39,19 @@ class DetailExceptionDict(TypedDict):
 class DetailAPIException(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
 
-    def __init__(
-        self, detail: DetailExceptionDict, code: str = None, status_code: str = None
-    ):
+    def __init__(self, detail: DetailExceptionDict, code: Optional[str] = None, status_code: Optional[str] = None):
         if status_code is not None:
             self.status_code = status_code
-        super().__init__(detail=detail, code=code or "error")
+        super().__init__(detail=detail, code=code)
+        if code is not None:
+            self.default_code = code
 
 
 class SerializerErrors(DetailAPIException):
     def __init__(
         self,
         serializer_errors: dict,
-        code: str = None,
+        code: Optional[str] = None,
         status_code: str = HTTP_400_BAD_REQUEST,
         message: str = _("Correct the mistakes."),
     ):
@@ -67,8 +67,10 @@ class AListSerializer(DRFListSerializer):
     async def adata(self):
         items_data = []
         for item in self.instance:
+            # Создаём сериализатор для элемента списка
             serializer = self.child.__class__(item, context=self.context)
-            data = await serializer.adata
+            # Используем sync_to_async для получения данных, чтобы избежать повторного ожидания одной и той же корутины
+            data = await sync_to_async(lambda: serializer.data)()
             items_data.append(data)
         return items_data
 
@@ -123,19 +125,32 @@ class AModelSerializer(DRFModelSerializer):
 
     @classmethod
     def many_init(cls, *args, **kwargs):
+        # Подготовка аргументов для ListSerializer и дочернего сериализатора
         list_kwargs = {}
+
+        # Параметры, которые должны уйти в ListSerializer (например, allow_empty)
+        list_serializer_kwargs = {key: value for key, value in kwargs.items() if key in LIST_SERIALIZER_KWARGS}
+
+        # Параметры, которые должны быть удалены из kwargs (например, many)
         for key in LIST_SERIALIZER_KWARGS_REMOVE:
-            value = kwargs.pop(key, None)
-            if value is not None:
-                list_kwargs[key] = value
-        list_kwargs["child"] = cls(*args, **kwargs)
-        list_kwargs.update(
-            {
-                key: value
-                for key, value in kwargs.items()
-                if key in LIST_SERIALIZER_KWARGS
-            }
-        )
+            kwargs.pop(key, None)
+
+        # Извлекаем данные, которые должны быть переданы в ListSerializer, а не в child
+        data = kwargs.pop("data", None)
+
+        # Аргументы для child без list-specific параметров и без data
+        child_kwargs = {key: value for key, value in kwargs.items() if key not in LIST_SERIALIZER_KWARGS}
+
+        # Создаём child
+        list_kwargs["child"] = cls(*args, **child_kwargs)
+
+        # Добавляем обратно list-specific параметры
+        list_kwargs.update(list_serializer_kwargs)
+
+        # Передаём данные в ListSerializer
+        if data is not None:
+            list_kwargs["data"] = data
+
         meta = getattr(cls, "Meta", None)
         list_serializer_class = getattr(meta, "list_serializer_class", AListSerializer)
         return list_serializer_class(*args, **list_kwargs)

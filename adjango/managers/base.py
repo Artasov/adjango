@@ -8,7 +8,7 @@ from django.db.models import Manager
 from adjango.querysets.base import AQuerySet
 
 
-class AManager(Manager.from_queryset(AQuerySet)):
+class AManager(Manager.from_queryset(AQuerySet)):  # type: ignore
     pass
 
 

@@ -223,7 +223,7 @@ class EventProfile(
     class IHandlerControllerException(ABC):
         @staticmethod
         @abstractmethod
-        def handle(fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args, **kwargs) -> None:
+        def handle(fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args, **karts) -> None:
             """
             An example of an exception handling function.
     
@@ -372,7 +372,7 @@ ADjango ships with extra management commands to speed up project scaffolding.
 
   After running the command you will have the following structure:
 
-  ```
+  ```sh
   apps/
       blog/
           controllers/base.py

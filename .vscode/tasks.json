@@ -25,7 +25,13 @@
     {
       "label": "2🧪 Run Pytest",
       "type": "shell",
-      "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe -m pytest tests\\ -v",
+      "command": "${workspaceFolder}/.venv/Scripts/python.exe",
+      "args": [
+        "-m",
+        "pytest",
+        "tests/",
+        "-v"
+      ],
       "group": "test",
       "options": {
         "cwd": "${workspaceFolder}",
@@ -33,6 +39,7 @@
           "PYTEST": "1"
         }
       },
+      "dependsOn": "Create Reports Directory",
       "presentation": {
         "echo": true,
         "reveal": "always",
@@ -124,6 +131,73 @@
         "panel": "new",
         "showReuseMessage": false,
         "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "7🔍 Flake8 Check",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/Scripts/python.exe -m flake8 adjango tests --show-source --statistics",
+      "group": "test",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "PYTHONUNBUFFERED": "1"
+        }
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "8🔬 MyPy Check",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/Scripts/python.exe -m mypy adjango --ignore-missing-imports",
+      "group": "test",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "PYTHONUNBUFFERED": "1"
+        }
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "9🔥 Full Code Check",
+      "type": "shell",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "\"${workspaceFolder}\\.venv\\Scripts\\python.exe\" -m flake8 adjango tests --show-source --statistics & echo. & echo ===== MyPy Analysis ===== & \"${workspaceFolder}\\.venv\\Scripts\\python.exe\" -m mypy adjango --ignore-missing-imports"
+      ],
+      "group": "test",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "PYTHONUNBUFFERED": "1"
+        }
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": false,
+        "clear": true
       },
       "problemMatcher": []
     }

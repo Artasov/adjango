@@ -6,7 +6,7 @@ import json
 import logging
 from functools import wraps
 from time import time
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 from asgiref.sync import sync_to_async
 from django.conf import settings
@@ -40,17 +40,11 @@ def aforce_data(fn: Callable[..., Any]) -> Callable[..., Any]:
     """
 
     @wraps(fn)
-    async def _wrapped_view(
-        request: ASGIRequest, *args: Any, **kwargs: Any
-    ) -> HttpResponse:
+    async def _wrapped_view(request: ASGIRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         if not hasattr(request, "data"):
             request.data = {}
-        request.data.update(
-            request.POST.dict() if isinstance(request.POST, QueryDict) else request.POST
-        )
-        request.data.update(
-            request.GET.dict() if isinstance(request.GET, QueryDict) else request.GET
-        )
+        request.data.update(request.POST.dict() if isinstance(request.POST, QueryDict) else request.POST)
+        request.data.update(request.GET.dict() if isinstance(request.GET, QueryDict) else request.GET)
         try:
             json_data = json.loads(request.body.decode("utf-8"))
             if isinstance(json_data, dict):
@@ -80,8 +74,8 @@ def aatomic(fn: Callable[..., Any]) -> Callable[..., Any]:
 
 def acontroller(
     name: str | None = None,
-    logger: str = None,
-    log_name: bool = None,
+    logger: Optional[str] = None,
+    log_name: Optional[bool] = None,
     log_time: bool = False,
 ) -> Callable[..., Any]:
     """
@@ -113,7 +107,7 @@ def acontroller(
                 start_time = time()
             if settings.DEBUG:
                 result = await fn(request, *args, **kwargs)
-                if log_time:
+                if log_time and start_time is not None:
                     end_time = time()
                     elapsed_time = end_time - start_time
                     log.info(f"Execution time {fn_name}: {elapsed_time:.2f} seconds")
@@ -121,17 +115,13 @@ def acontroller(
             else:
                 try:
                     result = await fn(request, *args, **kwargs)
-                    if log_time:
+                    if log_time and start_time is not None:
                         end_time = time()
                         elapsed_time = end_time - start_time
-                        log.info(
-                            f"Execution time {fn_name}: {elapsed_time:.2f} seconds"
-                        )
+                        log.info(f"Execution time {fn_name}: {elapsed_time:.2f} seconds")
                     return result
                 except Exception as e:
-                    log.critical(
-                        f"ERROR in {fn_name}: {traceback_str(e)}", exc_info=True
-                    )
+                    log.critical(f"ERROR in {fn_name}: {traceback_str(e)}", exc_info=True)
 
                     raise e
 
@@ -157,9 +147,7 @@ def aallowed_only(
     """
 
     def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
-        async def wrapped_view(
-            request: ASGIRequest, *args: Any, **kwargs: Any
-        ) -> HttpResponse:
+        async def wrapped_view(request: ASGIRequest, *args: Any, **kwargs: Any) -> HttpResponse:
             if request.method in allowed_methods:
                 if asyncio.iscoroutinefunction(fn):
                     return await fn(request, *args, **kwargs)
@@ -183,8 +171,8 @@ def alogin_required(
     redirecting to the login page if necessary.
     """
     actual_decorator = auser_passes_test(
-        sync_to_async(lambda u: u.is_authenticated),
-        login_url=login_url,
+        sync_to_async(lambda u: u.is_authenticated),  # type: ignore
+        login_url=login_url,  # type: ignore
         redirect_field_name=redirect_field_name,
     )
     if function:

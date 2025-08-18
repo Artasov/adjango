@@ -1,7 +1,3 @@
-from datetime import datetime
-from types import SimpleNamespace
-from unittest.mock import AsyncMock, Mock, patch
-
 import pytest
 from django.http import HttpResponse
 from django.test import RequestFactory

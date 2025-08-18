@@ -1,6 +1,7 @@
 # utils/celery/tasker.py
 import json
 from datetime import datetime
+from typing import Any, Optional
 
 from django_celery_beat.models import CrontabSchedule, IntervalSchedule, PeriodicTask
 from kombu.exceptions import OperationalError
@@ -17,11 +18,11 @@ class Tasker:
 
     @staticmethod
     def put(
-        task: callable,
-        eta: datetime = None,
-        countdown: int = None,
-        expires: datetime = None,
-        queue: str = None,
+        task: Any,
+        eta: Optional[datetime] = None,
+        countdown: Optional[int] = None,
+        expires: Optional[datetime] = None,
+        queue: Optional[str] = None,
         **kwargs,
     ) -> str:
         """
@@ -39,13 +40,9 @@ class Tasker:
             if not eta and not countdown:
                 result = task.apply_async(kwargs=kwargs, queue=queue, expires=expires)
             elif eta:
-                result = task.apply_async(
-                    kwargs=kwargs, eta=eta, queue=queue, expires=expires
-                )
+                result = task.apply_async(kwargs=kwargs, eta=eta, queue=queue, expires=expires)
             else:
-                result = task.apply_async(
-                    kwargs=kwargs, countdown=countdown, queue=queue, expires=expires
-                )
+                result = task.apply_async(kwargs=kwargs, countdown=countdown, queue=queue, expires=expires)
         except OperationalError:
             # If the broker is unavailable, execute task locally instead of failing.
             result = task.apply(kwargs=kwargs)
@@ -65,11 +62,11 @@ class Tasker:
 
     @staticmethod
     def beat(
-        task: callable,
+        task: Any,
         name: str,
-        schedule_time: datetime = None,
-        interval: int = None,
-        crontab: dict = None,
+        schedule_time: Optional[datetime] = None,
+        interval: Optional[int] = None,
+        crontab: Optional[dict] = None,
         **kwargs,
     ) -> None:
         """
@@ -84,14 +81,14 @@ class Tasker:
         """
         if interval:
             # Schedule task with periodic interval
-            schedule, _ = IntervalSchedule.objects.get_or_create(
-                every=interval, period=IntervalSchedule.SECONDS
-            )
+            schedule, _ = IntervalSchedule.objects.get_or_create(every=interval, period=IntervalSchedule.SECONDS)
         elif crontab:
             # Schedule task with Crontab schedule
             schedule, _ = CrontabSchedule.objects.get_or_create(**crontab)
         else:
             # Schedule one-time task
+            if schedule_time is None:
+                raise ValueError("schedule_time is required when interval and crontab are not provided")
             schedule, _ = CrontabSchedule.objects.get_or_create(
                 minute=schedule_time.minute,
                 hour=schedule_time.hour,
@@ -110,11 +107,11 @@ class Tasker:
 
     @staticmethod
     async def abeat(
-        task: callable,
+        task: Any,
         name: str,
-        schedule_time: datetime = None,
-        interval: int = None,
-        crontab: dict = None,
+        schedule_time: Optional[datetime] = None,
+        interval: Optional[int] = None,
+        crontab: Optional[dict] = None,
         **kwargs,
     ) -> None:
         """
@@ -129,14 +126,14 @@ class Tasker:
         """
         if interval:
             # Schedule task with periodic interval
-            schedule, _ = await IntervalSchedule.objects.aget_or_create(
-                every=interval, period=IntervalSchedule.SECONDS
-            )
+            schedule, _ = await IntervalSchedule.objects.aget_or_create(every=interval, period=IntervalSchedule.SECONDS)
         elif crontab:
             # Schedule task with Crontab schedule
             schedule, _ = await CrontabSchedule.objects.aget_or_create(**crontab)
         else:
             # Schedule one-time task
+            if schedule_time is None:
+                raise ValueError("schedule_time is required when interval and crontab are not provided")
             schedule, _ = await CrontabSchedule.objects.aget_or_create(
                 minute=schedule_time.minute,
                 hour=schedule_time.hour,

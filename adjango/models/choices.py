@@ -18,5 +18,5 @@ class ATextChoices(TextChoices):
         try:
             # Try to get member by its value and return its label
             return cls(value).label
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, TypeError):
             return None

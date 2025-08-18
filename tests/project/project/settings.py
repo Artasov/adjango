@@ -1,9 +1,7 @@
 # project/settings.py
 from __future__ import annotations
 
-from os.path import join
 from pathlib import Path
-from typing import Any
 
 
 def _dummy_handler(fn_name, request, e, *args, **kwargs):

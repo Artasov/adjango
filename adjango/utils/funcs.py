@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import Any, Type
+from typing import Any, Optional, Type
 from urllib.parse import urlparse
 
 from asgiref.sync import sync_to_async
@@ -91,9 +91,7 @@ async def arelated(obj: Model, field: str) -> Any:
         value = getattr(obj, field)
         return value
     except AttributeError:
-        raise ValueError(
-            f"Field '{field}' does not exist for object '{obj.__class__.__name__}'"
-        )
+        raise ValueError(f"Field '{field}' does not exist for object '{obj.__class__.__name__}'")
     except SynchronousOnlyOperation:
         return await sync_to_async(getattr)(obj, field)
 
@@ -109,9 +107,7 @@ async def aset(related_manager, data, *args, **kwargs) -> None:
     await sync_to_async(related_manager.set)(data, *args, **kwargs)
 
 
-async def aadd(
-    objects: Manager | QuerySet, data: Any, *args: Any, **kwargs: Any
-) -> None:
+async def aadd(objects: Manager | QuerySet, data: Any, *args: Any, **kwargs: Any) -> None:
     """
     Async adds object or data to ManyToMany field via add() method.
 
@@ -157,7 +153,7 @@ async def afilter(queryset: QuerySet, *args: Any, **kwargs: Any) -> list:
 
 def auser_passes_test(
     test_func: Any,
-    login_url: str = None,
+    login_url: Optional[str] = None,
     redirect_field_name: str = REDIRECT_FIELD_NAME,
 ):
     """
@@ -201,7 +197,5 @@ async def set_image_by_url(model_obj: Model, field_name: str, image_url: str) ->
     """
     image_file: ContentFile = await download_file_to_temp(image_url)
     # Use setattr to set file to model field
-    await sync_to_async(getattr(model_obj, field_name).save)(
-        image_file.name, image_file
-    )
+    await sync_to_async(getattr(model_obj, field_name).save)(image_file.name, image_file)
     await model_obj.asave()

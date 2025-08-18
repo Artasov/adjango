@@ -1,0 +1,41 @@
+# .coveragerc - настройки для pytest-cov
+
+[run]
+source = adjango, tests
+omit = 
+    */migrations/*
+    */venv/*
+    */.venv/*
+    */env/*
+    */site-packages/*
+    manage.py
+    */settings.py
+    */wsgi.py
+    */asgi.py
+    */__pycache__/*
+    */node_modules/*
+    */adjango.egg-info/*
+    setup.py
+    tests/project/*
+
+[report]
+# Регионы которые игнорируются при подсчёте покрытия
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if self.debug:
+    if settings.DEBUG
+    raise AssertionError
+    raise NotImplementedError
+    if 0:
+    if __name__ == .__main__.:
+    class .*\bProtocol\):
+    @(abc\.)?abstractmethod
+
+show_missing = True
+skip_covered = False
+precision = 2
+
+[html]
+directory = reports/coverage_html
+title = AdjANGO Code Coverage Report
