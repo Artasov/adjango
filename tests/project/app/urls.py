@@ -43,7 +43,7 @@ async def view_test_arelated(request):
 
     orders = await Order.objects.prefetch_related("products").aall()
     for o in orders:
-        for p in o.products.all():
+        for p in o.products.all(): # p: ant а должно быть p: Product
             print(p.id)
 
 

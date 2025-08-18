@@ -21,7 +21,6 @@ class UserService(ABaseService):
 
 
 class User(AAbstractUser):
-    objects: ClassVar[AUserManager["User"]] = AUserManager()
     phone = CharField(max_length=20, unique=True)
 
     def __str__(self) -> str:
@@ -38,7 +37,6 @@ class ProductService(ABaseService):
 
 
 class Product(APolymorphicModel):
-    objects: ClassVar[APolymorphicManager["Product"]] = APolymorphicManager()
     name = CharField(max_length=100)
     price = DecimalField(max_digits=10, decimal_places=2)
 
