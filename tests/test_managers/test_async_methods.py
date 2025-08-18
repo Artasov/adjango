@@ -15,6 +15,7 @@ async def test_related_manager_async_methods_and_polymorphic_manager():
     await order.products.aset([product])
     related = await order.products.aall()
     assert related == [product]
+    assert all(isinstance(p, Product) for p in related)
 
     await order.products.aset([])
     await order.products.aadd(product)

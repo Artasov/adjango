@@ -28,9 +28,21 @@ class AManyToManyDescriptor(ManyToManyDescriptor, Generic[_RM]):
         # Get the original related_manager_cls
         original_manager_cls = super().related_manager_cls
 
-        # Define a new manager class that extends the original and adds the 'aall' method
-        class AManyRelatedManager(original_manager_cls, AManager[_RM]):
-            async def aall(self) -> list[_RM]:
+        # Determine the related model for proper typing of the manager.
+        # Fallback to generic ``Model`` if it cannot be resolved (shouldn't happen
+        # in normal Django usage but keeps the typing safe).
+        related_model = self._related_model
+        if related_model is None:
+            from django.db.models import Model as _Model  # local import to avoid cycles
+
+            related_model = _Model
+
+        # Define a new manager class that extends the original and adds the
+        # typed ``aall`` method.  Using ``related_model`` in the annotations
+        # allows IDEs and type checkers to infer the concrete model type instead
+        # of the generic ``_RM`` placeholder.
+        class AManyRelatedManager(original_manager_cls, AManager[related_model]):  # type: ignore[type-arg]
+            async def aall(self) -> list[related_model]:  # type: ignore[valid-type]
                 """Возвращает все связанные объекты."""
                 from asgiref.sync import sync_to_async
 
