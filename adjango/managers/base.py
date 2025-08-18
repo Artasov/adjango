@@ -61,6 +61,9 @@ class AManager(Manager.from_queryset(AQuerySet), Generic[_M]):  # type: ignore
         await self.get_queryset().aadd(data, *args, **kwargs)
 
     # Typed queryset-returning methods to preserve chaining types
+    def all(self) -> AQuerySet[_M]:  # type: ignore[override]
+        return cast(AQuerySet[_M], super().all())
+
     def filter(self, *args: Any, **kwargs: Any) -> AQuerySet[_M]:  # type: ignore[override]
         return cast(AQuerySet[_M], super().filter(*args, **kwargs))
 
