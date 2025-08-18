@@ -5,7 +5,6 @@ from django.http import HttpResponse
 from django.urls import path
 
 from adjango.utils.celery.tasker import Tasker
-
 from .models import Order, Product
 from .tasks import test_task
 
@@ -36,14 +35,14 @@ async def view_test_arelated(request):
     await order.products.aset([product])
     # Get order without related objects
     orders_ = await Order.objects.afilter(user=request.user)
-    order = await Order.objects.aget(user=request.user)
     # Asynchronously get related objects.
     order.user = await order.arelated("user")
-    products = await order.products.aall()  # products: list[_RM] а должен быть list[Product]
-
+    order = await Order.objects.aget(user=request.user)
+    products = await order.products.aall()  # products: list[_RM] а должен быть list[Product], обрати внимание что это полиморфная AModel
+    products_qs = order.products.all()  # products_qs: Any = order.products.all() а должно быть явно не Any
     orders = await Order.objects.prefetch_related("products").aall()
     for o in orders:
-        for p in o.products.all(): # p: ant а должно быть p: Product
+        for p in o.products.all():  # p: ant а должно быть p: Product
             print(p.id)
 
 
