@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, TypeVar, cast
+from typing import TYPE_CHECKING, Any, ClassVar, TypeVar, cast
 
 from django.contrib.auth.models import AbstractUser
 from django.db.models import Model
@@ -44,7 +44,11 @@ class AModel(Model):
 class AAbstractUser(AbstractUser, AModel):
     """Enhanced abstract user model with service integration."""
 
-    objects: AUserManager[Self]  # type: ignore
+    # Provide a default asynchronous manager so that subclasses immediately gain
+    # access to methods like ``acreate_user``.  Without this assignment the
+    # parent ``AbstractUser`` manager (``UserManager``) would be used instead,
+    # which lacks async helpers and caused ``AttributeError`` in tests.
+    objects: ClassVar[AUserManager[Self]] = AUserManager()
 
     class Meta:
         abstract = True

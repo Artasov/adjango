@@ -1,7 +1,7 @@
 # fields.py
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 from django.db.models import ManyToManyField
 
@@ -14,15 +14,22 @@ if TYPE_CHECKING:
 _RM = TypeVar("_RM", bound="Model")
 
 
-class AManyToManyField(ManyToManyField):
+class AManyToManyField(ManyToManyField, Generic[_RM]):
     if TYPE_CHECKING:
+        # When accessing the descriptor on a model instance, the related manager
+        # should be aware of the concrete model type it manages.  Declaring the
+        # descriptor as returning ``AManager[_RM]`` allows static type checkers to
+        # properly infer the type of objects returned by methods like ``aall`` or
+        # ``all``.  Without inheriting from ``Generic`` and annotating this
+        # method, usages such as ``await order.products.aall()`` would resolve to
+        # ``list[_RM]`` instead of ``list[Product]``.
         def __get__(self, instance: "Model | None", owner: type | None = None) -> AManager[_RM]: ...
-    def __class_getitem__(cls, item):
-        """Поддержка для Generic типизации AManyToManyField[Model]."""
-        # Сохраняем информацию о типе для дальнейшего использования
-        field_instance = cls.__new__(cls)
-        field_instance._generic_type = item
-        return field_instance
+
+    # ``ManyToManyField`` does not support generics out of the box.  By
+    # subclassing ``Generic`` we enable expressions like
+    # ``products: AManyToManyField[Product]`` in models, and type checkers will
+    # propagate ``Product`` to the returned manager.  No runtime behaviour is
+    # affected, so ``__class_getitem__`` is unnecessary.
 
     def contribute_to_class(self, cls, name, **kwargs):
         super().contribute_to_class(cls, name, **kwargs)
