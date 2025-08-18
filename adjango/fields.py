@@ -9,11 +9,14 @@ from adjango.descriptors import AManyToManyDescriptor
 
 if TYPE_CHECKING:
     from django.db.models import Model
+    from adjango.managers.base import AManager
 
 _RM = TypeVar("_RM", bound="Model")
 
 
 class AManyToManyField(ManyToManyField):
+    if TYPE_CHECKING:
+        def __get__(self, instance: "Model | None", owner: type | None = None) -> AManager[_RM]: ...
     def __class_getitem__(cls, item):
         """Поддержка для Generic типизации AManyToManyField[Model]."""
         # Сохраняем информацию о типе для дальнейшего использования
