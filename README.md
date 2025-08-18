@@ -7,15 +7,21 @@ which offers various useful `managers`, `services`, `serializers`, `decorators`,
 for `asynchronous` programming, a task scheduler for Celery, working
 with `transactions` and much more.
 
-- [Installation](#installation-%EF%B8%8F)
-- [Settings](#settings-%EF%B8%8F)
-- [Overview](#overview)
-    - [Manager & Services](#manager--services-%EF%B8%8F)
-    - [Utils](#utils-)
-    - [Mixins](#Mixins-)
-    - [Decorators](#decorators-)
-    - [Serializers](#serializers-)
+- [🚀 ADjango](#-adjango)
+  - [Installation 🛠️](#installation-️)
+  - [Settings ⚙️](#settings-️)
+  - [Overview](#overview)
+    - [Manager \& Services 🛎️](#manager--services-️)
+    - [Utils 🔧](#utils-)
+    - [Mixins 🎨](#mixins-)
+    - [Decorators 🎀](#decorators-)
+    - [Serializers 🔧](#serializers-)
     - [Management](#management)
+    - [Celery 🔥](#celery-)
+      - [Management Commands](#management-commands)
+      - [@task Decorator](#task-decorator)
+      - [Tasker - Task Scheduler](#tasker---task-scheduler)
+      - [Email Sending via Celery](#email-sending-via-celery)
     - [Other](#other)
 
 ## Installation 🛠️
@@ -26,14 +32,17 @@ pip install adjango
 
 ## Settings ⚙️
 
-* ### Add the application to the project.
+- ### Add the application to the project
+
     ```python
     INSTALLED_APPS = [
         # ...
         'adjango',
     ]
     ```
-* ### In `settings.py` set the params
+
+- ### In `settings.py` set the params
+
     ```python
     # settings.py
   
@@ -51,6 +60,7 @@ pip install adjango
     ADJANGO_CONTROLLERS_LOGGING = True # only for usage @a/controller decorators
     ADJANGO_EMAIL_LOGGER_NAME = 'email' # for send_emails_task logging
     ```
+
     ```python
     MIDDLEWARE = [
         ...
@@ -160,6 +170,7 @@ for o in orders:
   ```
 
 ### Mixins 🎨
+
 ```python
 from adjango.models.mixins import (
     ACreatedAtMixin, ACreatedAtIndexedMixin, ACreatedAtEditableMixin,
@@ -175,23 +186,23 @@ class EventProfile(
     event = ForeignKey('events.Event', CASCADE, 'members', verbose_name=_('Event'))
 ```
 
-
 ### Decorators 🎀
 
-* `aforce_data`
+- `aforce_data`
 
   The `aforce_data` decorator combines data from the `GET`, `POST` and `JSON` body
   request in `request.data`. This makes it easy to access all request data in one place.
 
-* `atomic`
+- `atomic`
 
   An asynchronous decorator that wraps
   function into a transactional context. If an exception occurs, all changes are rolled back.
 
-* `acontroller/controller`
+- `acontroller/controller`
 
   An asynchronous decorator that wraps
   function into a transactional context. If an exception occurs, all changes are rolled back.
+
     ```python
     from adjango.adecorators import acontroller
 
@@ -203,33 +214,37 @@ class EventProfile(
     async def my_view_one_more(request):
         pass
     ```
-    * These decorators automatically catch uncaught exceptions and log if the logger is configured
+
+  - These decorators automatically catch uncaught exceptions and log if the logger is configured
       `ADJANGO_CONTROLLERS_LOGGER_NAME` `ADJANGO_CONTROLLERS_LOGGING`.
-    * You can also implement the interface:
-        ```python
-        class IHandlerControllerException(ABC):
-            @staticmethod
-            @abstractmethod
-            def handle(fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args, **kwargs) -> None:
-                """
-                An example of an exception handling function.
-        
-                :param fn_name: The name of the function where the exception occurred.
-                :param request: The request object (WSGIRequest or ASGIRequest).
-                :param e: The exception to be handled.
-                :param args: Positional arguments passed to the function.
-                :param kwargs: Named arguments passed to the function.
-        
-                :return: None
-                """
-                pass
-        ```
-      and use `handle` to get an uncaught exception:
-        ```python
-        # settings.py
-        from adjango.handlers import HCE # use my example if u need
-        ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION = HCE.handle
-        ```
+  - You can also implement the interface:
+
+    ```python
+    class IHandlerControllerException(ABC):
+        @staticmethod
+        @abstractmethod
+        def handle(fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args, **kwargs) -> None:
+            """
+            An example of an exception handling function.
+    
+            :param fn_name: The name of the function where the exception occurred.
+            :param request: The request object (WSGIRequest or ASGIRequest).
+            :param e: The exception to be handled.
+            :param args: Positional arguments passed to the function.
+            :param kwargs: Named arguments passed to the function.
+    
+            :return: None
+            """
+            pass
+    ```
+
+    and use `handle` to get an uncaught exception:
+
+    ```python
+    # settings.py
+    from adjango.handlers import HCE # use my example if u need
+    ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION = HCE.handle
+    ```
 
 ### Serializers 🔧
 
@@ -336,24 +351,27 @@ class UserService(ABaseService['User']):
 
 ### Management
 
-* `copy_project`
+- `copy_project`
   Documentation in the _py_ module itself - **[copy_project](adjango/management/commands/copy_project.py)**
-
 
 ADjango ships with extra management commands to speed up project scaffolding.
 
-* `astartproject` — clones the [adjango-template](https://github.com/Artasov/adjango-template)
+- `astartproject` — clones the [adjango-template](https://github.com/Artasov/adjango-template)
   into the given directory and strips its Git history.
+
   ```bash
   django-admin astartproject myproject
   ```
 
-* `astartup` — creates an app skeleton inside `apps/` and registers it in
+- `astartup` — creates an app skeleton inside `apps/` and registers it in
   `INSTALLED_APPS`.
+
   ```bash
   python manage.py astartup blog
   ```
+
   After running the command you will have the following structure:
+
   ```
   apps/
       blog/
@@ -364,95 +382,157 @@ ADjango ships with extra management commands to speed up project scaffolding.
           tests/base.py
   ```
 
-* `newentities` — generates empty exception, model, service, serializer and
+- `newentities` — generates empty exception, model, service, serializer and
   test stubs for the specified models in the target app.
+
   ```bash
   python manage.py newentities order apps.commerce Order,Product,Price
   ```
+
   Or create a single model:
+
   ```bash
   python manage.py newentities order apps.commerce Order
   ```
 
+### Celery 🔥
+
+ADjango provides convenient tools for working with Celery: management commands, decorators, and task scheduler.
+
+For Celery configuration in Django, refer to the [official Celery documentation](https://docs.celeryproject.org/en/stable/django/first-steps-with-django.html).
+
+#### Management Commands
+
+- `celeryworker` — starts Celery Worker with default settings
+
+  ```bash
+  python manage.py celeryworker
+  python manage.py celeryworker --pool=solo --loglevel=info -E
+  python manage.py celeryworker --concurrency=4 --queues=high_priority,default
+  ```
+
+- `celerybeat` — starts Celery Beat scheduler for periodic tasks
+
+  ```bash
+  python manage.py celerybeat
+  python manage.py celerybeat --loglevel=debug
+  ```
+
+- `celerypurge` — clears Celery queues from unfinished tasks
+
+  ```bash
+  python manage.py celerypurge               # clear all queues
+  python manage.py celerypurge --queue=high  # clear specific queue
+  ```
+
+#### @task Decorator
+
+The `@task` decorator automatically logs Celery task execution, including errors:
+
+```python
+from celery import shared_task
+from adjango.decorators import task
+
+@shared_task
+@task(logger="global")
+def my_background_task(param1: str, param2: int) -> bool:
+    """
+    Task with automatic execution logging.
+    """
+    # your code here
+    return True
+```
+
+**What the decorator provides:**
+
+- ✅ Automatic logging of task start and completion
+- ✅ Logging of task parameters
+- ✅ Detailed error logging with stack trace
+- ✅ Flexible logger configuration for different tasks
+
+#### Tasker - Task Scheduler
+
+The `Tasker` class provides convenient methods for scheduling and managing Celery tasks:
+
+```python
+from adjango.utils.celery.tasker import Tasker
+
+# Immediate execution
+task_id = Tasker.put(task=my_task, param1='value')
+
+# Delayed execution (in 60 seconds)
+task_id = Tasker.put(task=my_task, countdown=60, param1='value')
+
+# Execution at specific time
+from datetime import datetime
+task_id = Tasker.put(
+    task=my_task, 
+    eta=datetime(2024, 12, 31, 23, 59),
+    param1='value'
+)
+
+# One-time task via Celery Beat
+Tasker.beat(
+    task=my_task,
+    name='one_time_task',
+    schedule_time=datetime(2024, 10, 10, 14, 30),
+    param1='value'
+)
+
+# Periodic task via Celery Beat
+Tasker.beat(
+    task=my_task,
+    name='hourly_cleanup',
+    interval=3600,  # every hour
+    param1='value'
+)
+```
+
+#### Email Sending via Celery
+
+ADjango includes a ready-to-use task for sending emails with templates:
+
+```python
+from adjango.tasks import send_emails_task
+from adjango.utils.mail import send_emails
+
+# Synchronous sending
+send_emails(
+    subject='Welcome!',
+    emails=('user@example.com',),
+    template='emails/welcome.html',
+    context={'user': 'John Doe'}
+)
+
+# Asynchronous sending via Celery
+send_emails_task.delay(
+    subject='Hello!',
+    emails=('user@example.com',),
+    template='emails/hello.html',
+    context={'message': 'Welcome to our service!'}
+)
+
+# Via Tasker with delayed execution
+Tasker.put(
+    task=send_emails_task,
+    subject='Reminder',
+    emails=('user@example.com',),
+    template='emails/reminder.html',
+    context={'deadline': '2024-12-31'},
+    countdown=3600  # send in an hour
+)
+```
+
 ### Other
 
-* `AsyncAtomicContextManager`🧘
+- `AsyncAtomicContextManager`🧘
 
   An asynchronous context manager for working with transactions, which ensures the atomicity of operations.
+
     ```python
     from adjango.utils.base import AsyncAtomicContextManager
     
     async def some_function():
         async with AsyncAtomicContextManager():
             ...  
-    ```
-
-* `Tasker`📋
-
-  The Tasker class provides methods for scheduling tasks in `Celery` and `Celery Beat`.
-    ```python
-    from adjango.utils.tasks import Tasker
-    
-    task_id = Tasker.put(
-        task=my_celery_task,
-        param1='value1',
-        param2='value2',
-        countdown=60 # The task will be completed in 60 seconds
-    )
-    ```
-    ```python
-    from adjango.utils.tasks import Tasker
-    from datetime import datetime
-    
-    # One-time task via Celery Beat
-    Tasker.beat(
-        task=my_celery_task,
-        name='one_time_task',
-        schedule_time=datetime(2024, 10, 10, 14, 30), # Start the task on October 10, 2024 at 14:30
-        param1='value1',
-        param2='value2'
-    )
-    
-    # Periodic task via Celery Beat (every hour)
-    Tasker.beat(
-        task=my_celery_task,
-        name='hourly_task',
-        interval=3600, # The task runs every hour
-        param1='value1',
-        param2='value2'
-    )
-    ```
-
-* `send_emails`
-
-  Allows you to send emails using templates and context rendering.
-    ```python
-    from adjango.utils.mail import send_emails
-    
-    send_emails(
-        subject='Welcome!',
-        emails=('user1@example.com', 'user2@example.com'),
-        template='emails/welcome.html',
-        context={'user': 'John Doe'}
-    )
-    ```
-    ```python
-    from adjango.tasks import send_emails_task
-    from adjango.utils.tasks import Tasker
-  
-    send_emails_task.delay(
-        subject='Hello!',
-        emails=('user@example.com',),
-        template='emails/hello.html',
-        context={'message': 'Welcome to our service!'}
-    )
-    # or
-    Tasker.put(
-        task=send_emails_task,
-        subject='Hello!',
-        emails=('user@example.com',),
-        template='emails/hello.html',
-        context={'message': 'Welcome to our service!'},
-        countdown=60 # The task will be completed in 5 seconds
-    )
     ```

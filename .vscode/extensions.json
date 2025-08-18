@@ -1,30 +1,55 @@
 {
-  // See https://go.microsoft.com/fwlink/?LinkId=827846 to learn about workspace recommendations.
-  // Extension identifier format: ${publisher}.${name}. Example: vscode.csharp
-
-  // Рекомендуемые расширения для данного рабочего пространства
   "recommendations": [
-    // Python / Django
-    "ms-python.python",
-    "ms-python.vscode-pylance",
-    "ms-python.black-formatter", // Black
-    "ms-python.isort", // isort
-    "batisteo.vscode-django", // Django templates/snippets
-
-    // Frontend (React / TS)
+    "anysphere.cursorpyright",
+    "anysphere.remote-containers",
+    "batisteo.vscode-django",
+    "bradlc.vscode-tailwindcss",
+    "cardinal90.multi-cursor-case-preserve",
+    "catppuccin.catppuccin-vsc",
+    "christian-kohler.npm-intellisense",
+    "christian-kohler.path-intellisense",
+    "cnshenj.vscode-task-manager",
+    "csstools.postcss",
+    "davidanson.vscode-markdownlint",
     "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
-    "stylelint.vscode-stylelint",
-
-    // Docker / DevOps
-    "ms-azuretools.vscode-docker",
-
-    // Удобства
     "eamodio.gitlens",
     "editorconfig.editorconfig",
+    "esbenp.prettier-vscode",
+    "firefox-devtools.vscode-firefox-debug",
+    "formulahendry.auto-close-tag",
+    "formulahendry.auto-rename-tag",
+    "github.vscode-pull-request-github",
+    "gruntfuggly.todo-tree",
+    "jock.svg",
+    "k--kato.intellij-idea-keybindings",
+    "lokalise.i18n-ally",
+    "ms-azuretools.vscode-containers",
+    "ms-azuretools.vscode-docker",
+    "ms-ceintl.vscode-language-pack-ru",
+    "ms-edgedevtools.vscode-edge-devtools",
+    "ms-kubernetes-tools.vscode-kubernetes-tools",
+    "ms-playwright.playwright",
+    "ms-python.autopep8",
+    "ms-python.black-formatter",
+    "ms-python.debugpy",
+    "ms-python.isort",
+    "ms-python.python",
+    "ms-vscode.theme-materialkit",
+    "ms-vscode-remote.remote-containers",
+    "ms-vsliveshare.vsliveshare",
+    "pflannery.vscode-versionlens",
     "pkief.material-icon-theme",
-    "zhuangtongfa.material-theme" // One Dark Pro
-  ],
-  // Не рекомендовать следующие расширения (если потребуется)
-  "unwantedRecommendations": []
+    "postman.postman-for-vscode",
+    "prisma.prisma",
+    "prisma.prisma-insider",
+    "redhat.vscode-yaml",
+    "streetsidesoftware.code-spell-checker",
+    "streetsidesoftware.code-spell-checker-russian",
+    "stylelint.vscode-stylelint",
+    "syler.sass-indented",
+    "tamasfe.even-better-toml",
+    "wayou.vscode-todo-highlight",
+    "yzhang.markdown-all-in-one",
+    "zhuangtongfa.material-theme"
+  ]
 }
