@@ -1,7 +1,7 @@
 # managers/base.py
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generic, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Generic, Iterable, TypeVar, cast
 
 from asgiref.sync import sync_to_async
 from django.contrib.auth.models import UserManager
@@ -51,6 +51,27 @@ class AManager(Manager.from_queryset(AQuerySet), Generic[_M]):  # type: ignore
 
     async def aexists(self) -> bool:
         return await self.get_queryset().aexists()
+
+    async def aset(self, data: Iterable[_M], *args: Any, **kwargs: Any) -> None:
+        """Асинхронная версия set() для ManyToMany полей."""
+        await self.get_queryset().aset(data, *args, **kwargs)
+
+    async def aadd(self, data: _M, *args: Any, **kwargs: Any) -> None:
+        """Асинхронная версия add() для ManyToMany полей."""
+        await self.get_queryset().aadd(data, *args, **kwargs)
+
+    # Typed queryset-returning methods to preserve chaining types
+    def filter(self, *args: Any, **kwargs: Any) -> AQuerySet[_M]:  # type: ignore[override]
+        return cast(AQuerySet[_M], super().filter(*args, **kwargs))
+
+    def exclude(self, *args: Any, **kwargs: Any) -> AQuerySet[_M]:  # type: ignore[override]
+        return cast(AQuerySet[_M], super().exclude(*args, **kwargs))
+
+    def prefetch_related(self, *lookups: Any) -> AQuerySet[_M]:  # type: ignore[override]
+        return cast(AQuerySet[_M], super().prefetch_related(*lookups))
+
+    def select_related(self, *fields: Any) -> AQuerySet[_M]:  # type: ignore[override]
+        return cast(AQuerySet[_M], super().select_related(*fields))
 
 
 class AUserManager(UserManager, AManager[_M]):
