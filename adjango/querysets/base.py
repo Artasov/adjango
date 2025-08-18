@@ -1,7 +1,7 @@
 # querysets/base.py
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generic, Type, TypeVar, Union
+from typing import TYPE_CHECKING, Generic, Type, TypeVar, cast
 
 from asgiref.sync import sync_to_async
 from django.db.models import QuerySet
@@ -74,18 +74,18 @@ class AQuerySet(QuerySet[_M], Generic[_M]):
         """Асинхронный exists - проверяет существование объектов."""
         return await sync_to_async(self.exists)()
 
-    def filter(self, *args, **kwargs) -> Union["AQuerySet[_M]", "QuerySet"]:
+    def filter(self, *args, **kwargs) -> "AQuerySet[_M]":
         """Переопределяем filter чтобы он возвращал правильный тип QuerySet."""
-        return super().filter(*args, **kwargs)
+        return cast("AQuerySet[_M]", super().filter(*args, **kwargs))
 
-    def exclude(self, *args, **kwargs) -> Union["AQuerySet[_M]", "QuerySet"]:
+    def exclude(self, *args, **kwargs) -> "AQuerySet[_M]":
         """Переопределяем exclude чтобы он возвращал правильный тип QuerySet."""
-        return super().exclude(*args, **kwargs)
+        return cast("AQuerySet[_M]", super().exclude(*args, **kwargs))
 
-    def prefetch_related(self, *lookups) -> Union["AQuerySet[_M]", "QuerySet"]:
+    def prefetch_related(self, *lookups) -> "AQuerySet[_M]":
         """Переопределяем prefetch_related чтобы он возвращал правильный тип QuerySet."""
-        return super().prefetch_related(*lookups)
+        return cast("AQuerySet[_M]", super().prefetch_related(*lookups))
 
-    def select_related(self, *fields) -> Union["AQuerySet[_M]", "QuerySet"]:
+    def select_related(self, *fields) -> "AQuerySet[_M]":
         """Переопределяем select_related чтобы он возвращал правильный тип QuerySet."""
-        return super().select_related(*fields)
+        return cast("AQuerySet[_M]", super().select_related(*fields))
