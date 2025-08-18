@@ -1,10 +1,26 @@
 # fields.py
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, TypeVar
+
 from django.db.models import ManyToManyField
 
 from adjango.descriptors import AManyToManyDescriptor
 
+if TYPE_CHECKING:
+    from django.db.models import Model
+
+_RM = TypeVar("_RM", bound="Model")
+
 
 class AManyToManyField(ManyToManyField):
+    def __class_getitem__(cls, item):
+        """Поддержка для Generic типизации AManyToManyField[Model]."""
+        # Сохраняем информацию о типе для дальнейшего использования
+        field_instance = cls.__new__(cls)
+        field_instance._generic_type = item
+        return field_instance
+
     def contribute_to_class(self, cls, name, **kwargs):
         super().contribute_to_class(cls, name, **kwargs)
         # Replace the descriptor with our custom one

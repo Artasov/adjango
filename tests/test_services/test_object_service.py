@@ -1,7 +1,7 @@
 import pytest
 
+from adjango.models.base import AModel
 from adjango.services.base import ABaseService
-from adjango.services.object.base import ABaseModelObjectService
 
 
 class DummyService(ABaseService):
@@ -9,8 +9,13 @@ class DummyService(ABaseService):
         super().__init__(obj)
 
 
-class DummyModel(ABaseModelObjectService[DummyService]):
-    service_class = DummyService
+class DummyModel(AModel):
+    class Meta:
+        app_label = "test_services"
+
+    @property
+    def service(self) -> DummyService:
+        return DummyService(self)
 
 
 @pytest.mark.asyncio
@@ -28,8 +33,9 @@ def test_service_property():
 
 
 def test_service_property_not_implemented():
-    class NoServiceModel(ABaseModelObjectService):
-        pass
+    class NoServiceModel(AModel):
+        class Meta:
+            app_label = "test_services"
 
     with pytest.raises(NotImplementedError):
         NoServiceModel().service

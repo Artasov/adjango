@@ -185,8 +185,9 @@ if TYPE_CHECKING:
     from {app_label}.models import {model}
 
 
-class {model}Service(ABaseService['{model}']):
+class {model}Service(ABaseService):
     def __init__(self, {model_snake}: '{model}') -> None:
+        super().__init__({model_snake})
         self.{model_snake} = {model_snake}
 """
 
@@ -205,9 +206,7 @@ from django.utils.translation import gettext_lazy as _
 {service_import}
 
 
-class {model}(AModel[{model}Service]):
-    service_class = {model}Service
-
+class {model}(AModel):
     # TODO: add fields
 
     class Meta:
@@ -215,6 +214,10 @@ class {model}(AModel[{model}Service]):
         verbose_name_plural = _('{model}s')
 
     def __str__(self): return f'{{self.__class__.__name__}} #{{self.id}}'
+
+    @property
+    def service(self) -> {model}Service:
+        return {model}Service(self)
 """
 
     def _render_serializer_stub(self, app_label: str, module: str, models: List[str]) -> str:

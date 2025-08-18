@@ -33,14 +33,13 @@ async def view_test_arelated(request):
     order, _ = await Order.objects.aget_or_create(user=request.user)
 
     pprint(order.user)
-    order: Order
     await order.products.aset([product])
     # Get order without related objects
-    order: Order = await Order.objects.aget(user=request.user)
+    order = await Order.objects.afilter(user=request.user)  # order : Any
     # Asynchronously get related objects.
-    order.user = await order.arelated("user")
-    products = await order.products.aall()
-    orders = await Order.objects.prefetch_related("products").aall()
+    order.user = await order.arelated("user")  # user : Any
+    products = await order.products.aall()  # products : Any
+    orders = await Order.objects.prefetch_related("products").aall()  # orders : Any
     for o in orders:
         for p in o.products.all():
             print(p.id)
