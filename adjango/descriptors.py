@@ -1,7 +1,7 @@
 # descriptors.py
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
 from django.db.models.fields.related_descriptors import ManyToManyDescriptor
 
@@ -42,6 +42,13 @@ class AManyToManyDescriptor(ManyToManyDescriptor, Generic[_RM]):
         # allows IDEs and type checkers to infer the concrete model type instead
         # of the generic ``_RM`` placeholder.
         class AManyRelatedManager(original_manager_cls, AManager[related_model]):  # type: ignore[type-arg]
+            def all(self) -> "AQuerySet[related_model]":  # type: ignore[override]
+                from adjango.querysets.base import AQuerySet
+
+                # ``ManyRelatedManager`` returns a plain ``QuerySet``.  Casting
+                # to ``AQuerySet`` preserves the async methods and typing.
+                return cast(AQuerySet[related_model], super().all())
+
             async def aall(self) -> list[related_model]:  # type: ignore[valid-type]
                 """Возвращает все связанные объекты."""
                 from asgiref.sync import sync_to_async
