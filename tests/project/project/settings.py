@@ -33,15 +33,15 @@ INSTALLED_APPS = [
 
 # Celery
 REDIS_BROKER_URL = "redis://localhost:6379/0"
-timezone = "Europe/Moscow"
-broker_url = REDIS_BROKER_URL
+CELERY_TIMEZONE = "Europe/Moscow"
+CELERY_BROKER_URL = REDIS_BROKER_URL
 CELERY_BROKER_TRANSPORT_OPTIONS = {"visibility_timeout": 86400 * 30}
-result_backend = REDIS_BROKER_URL
-accept_content = ["application/json"]
-task_serializer = "json"
-result_serializer = "json"
-task_default_queue = "default"
-broker_connection_retry_on_startup = True
+CELERY_RESULT_BACKEND = REDIS_BROKER_URL
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_DEFAULT_QUEUE = "default"
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_TASK_ALWAYS_EAGER = False
 CELERY_TASK_EAGER_PROPAGATES = True

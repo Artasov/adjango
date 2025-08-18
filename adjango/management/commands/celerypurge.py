@@ -26,17 +26,6 @@ class Command(BaseCommand):
             # If queue is not specified, purge all queues
             purge_all = queue_name is None
 
-            confirmation = input(
-                self.style.WARNING(
-                    "Do you really want to purge ALL Celery queues? "
-                    "This will delete all pending tasks! (y/N): "
-                )
-            )
-
-            if confirmation.lower() not in ["y", "yes"]:
-                self.stdout.write(self.style.WARNING("Operation cancelled."))
-                return
-
             # Perform purge operation
             with app.connection() as connection:
                 if purge_all:
@@ -48,10 +37,7 @@ class Command(BaseCommand):
                         # Add additional queues from settings if available
                         if hasattr(settings, "CELERY_TASK_ROUTES"):
                             for route_config in settings.CELERY_TASK_ROUTES.values():
-                                if (
-                                    isinstance(route_config, dict)
-                                    and "queue" in route_config
-                                ):
+                                if isinstance(route_config, dict) and "queue" in route_config:
                                     queue = route_config["queue"]
                                     if queue not in queues_to_purge:
                                         queues_to_purge.append(queue)
@@ -62,28 +48,16 @@ class Command(BaseCommand):
                                 purged = connection.default_channel.queue_purge(queue)
                                 if purged is not None and purged > 0:
                                     total_purged += purged
-                                    self.stdout.write(
-                                        self.style.SUCCESS(
-                                            f'Queue "{queue}": deleted {purged} tasks'
-                                        )
-                                    )
+                                    self.stdout.write(self.style.SUCCESS(f'Queue "{queue}": deleted {purged} tasks'))
                             except Exception as e:
                                 # Queue may not exist - this is normal
                                 if "NOT_FOUND" not in str(e):
-                                    self.stdout.write(
-                                        self.style.WARNING(
-                                            f'Error purging queue "{queue}": {e}'
-                                        )
-                                    )
+                                    self.stdout.write(self.style.WARNING(f'Error purging queue "{queue}": {e}'))
 
-                        self.stdout.write(
-                            self.style.SUCCESS(f"Total deleted tasks: {total_purged}")
-                        )
+                        self.stdout.write(self.style.SUCCESS(f"Total deleted tasks: {total_purged}"))
 
                     except Exception as e:
-                        self.stderr.write(
-                            self.style.ERROR(f"Error purging all queues: {e}")
-                        )
+                        self.stderr.write(self.style.ERROR(f"Error purging all queues: {e}"))
                         sys.exit(1)
 
                 else:
@@ -92,20 +66,12 @@ class Command(BaseCommand):
                         purged = connection.default_channel.queue_purge(queue_name)
                         if purged is not None:
                             self.stdout.write(
-                                self.style.SUCCESS(
-                                    f'Queue "{queue_name}" purged. Deleted tasks: {purged}'
-                                )
+                                self.style.SUCCESS(f'Queue "{queue_name}" purged. Deleted tasks: {purged}')
                             )
                         else:
-                            self.stdout.write(
-                                self.style.WARNING(
-                                    f'Queue "{queue_name}" is empty or does not exist'
-                                )
-                            )
+                            self.stdout.write(self.style.WARNING(f'Queue "{queue_name}" is empty or does not exist'))
                     except Exception as e:
-                        self.stderr.write(
-                            self.style.ERROR(f'Error purging queue "{queue_name}": {e}')
-                        )
+                        self.stderr.write(self.style.ERROR(f'Error purging queue "{queue_name}": {e}'))
                         sys.exit(1)
 
         except Exception as e:
