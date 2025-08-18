@@ -15,6 +15,9 @@ _RM = TypeVar("_RM", bound="Model")
 
 
 class AManyToManyDescriptor(ManyToManyDescriptor, Generic[_RM]):
+    if TYPE_CHECKING:
+        def __get__(self, instance: "Model | None", owner: type | None = None) -> AManager[_RM]: ...
+
     def __init__(self, rel, reverse=False):
         super().__init__(rel, reverse)
         self._related_model = None
