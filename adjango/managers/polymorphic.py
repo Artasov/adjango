@@ -41,12 +41,8 @@ try:
         async def aget_or_create(self, defaults=None, **kwargs: Any) -> tuple[_M, bool]:
             return await self.get_queryset().aget_or_create(defaults=defaults, **kwargs)
 
-        async def aupdate_or_create(
-            self, defaults=None, **kwargs: Any
-        ) -> tuple[_M, bool]:
-            return await self.get_queryset().aupdate_or_create(
-                defaults=defaults, **kwargs
-            )
+        async def aupdate_or_create(self, defaults=None, **kwargs: Any) -> tuple[_M, bool]:
+            return await self.get_queryset().aupdate_or_create(defaults=defaults, **kwargs)
 
         async def acount(self) -> int:
             return await self.get_queryset().acount()
@@ -59,6 +55,14 @@ try:
 
         async def aadd(self, data: _M, *args: Any, **kwargs: Any) -> None:
             await self.get_queryset().aadd(data, *args, **kwargs)
+
+        def getorn(self, exception=None, *args: Any, **kwargs: Any) -> _M | None:
+            """Get object or return None if not found."""
+            return self.get_queryset().getorn(exception, *args, **kwargs)
+
+        async def agetorn(self, exception=None, *args: Any, **kwargs: Any) -> _M | None:
+            """Async get object or return None if not found."""
+            return await self.get_queryset().agetorn(exception, *args, **kwargs)
 
         def filter(self, *args: Any, **kwargs: Any) -> APolymorphicQuerySet[_M]:  # type: ignore[override]
             return cast(APolymorphicQuerySet[_M], super().filter(*args, **kwargs))
