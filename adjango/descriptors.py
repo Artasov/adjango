@@ -30,8 +30,12 @@ class AManyRelatedManager(AManager[_RM], Generic[_RM]):
 
 
 class AManyToManyDescriptor(ManyToManyDescriptor, Generic[_RM]):
-    if TYPE_CHECKING:
-        def __get__(self, instance: "Model | None", owner: type | None = None) -> AManyRelatedManager[_RM]: ...
+    def __get__(
+        self, instance: "Model | None", owner: type | None = None
+    ) -> AManyRelatedManager[_RM]:  # type: ignore[override]
+        # ``ManyToManyDescriptor`` returns a dynamically created manager.  Casting
+        # here preserves the concrete related model type for static analysers.
+        return cast(AManyRelatedManager[_RM], super().__get__(instance, owner))
 
     def __init__(self, rel, reverse=False):
         super().__init__(rel, reverse)

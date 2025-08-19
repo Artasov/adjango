@@ -34,5 +34,9 @@ class AManyToManyField(ManyToManyField, Generic[_RM]):
 
     def contribute_to_class(self, cls, name, **kwargs):
         super().contribute_to_class(cls, name, **kwargs)
-        # Replace the descriptor with our custom one
-        setattr(cls, self.name, AManyToManyDescriptor(self.remote_field, reverse=False))
+        # Replace the descriptor with our custom typed version so that the
+        # related manager exposes the concrete model type instead of ``_RM``.
+        descriptor: AManyToManyDescriptor[_RM] = AManyToManyDescriptor(
+            self.remote_field, reverse=False
+        )
+        setattr(cls, self.name, descriptor)
