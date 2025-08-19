@@ -1,7 +1,7 @@
 # managers/base.py
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Generic, Iterable, TypeVar, cast
+from typing import Any, Generic, Iterable, TypeVar
 
 from asgiref.sync import sync_to_async
 from django.contrib.auth.models import UserManager
@@ -11,27 +11,13 @@ from adjango.querysets.base import AQuerySet
 
 _M = TypeVar("_M", bound=Model)
 
-if TYPE_CHECKING:
-
-    class _ManagerBase(Generic[_M]):
-        model: type[_M]
-        _db: str | None
-        _hints: dict[str, Any]
-
-        def all(self) -> AQuerySet[_M]: ...
-        def filter(self, *args: Any, **kwargs: Any) -> AQuerySet[_M]: ...
-        def exclude(self, *args: Any, **kwargs: Any) -> AQuerySet[_M]: ...
-        def prefetch_related(self, *lookups: Any) -> AQuerySet[_M]: ...
-        def select_related(self, *fields: Any) -> AQuerySet[_M]: ...
-
-else:
-    from django.db.models import Manager as _ManagerBase
+from django.db.models import Manager as _ManagerBase
 
 
 class AManager(_ManagerBase, Generic[_M]):
     """Asynchronous manager."""
 
-    def get_queryset(self) -> AQuerySet[_M]:
+    def get_queryset(self) -> Union[AQuerySet[_M], QuerySet[_M]]:
         return AQuerySet(self.model, using=self._db, hints=self._hints)
 
     async def aall(self) -> list[_M]:
@@ -70,20 +56,20 @@ class AManager(_ManagerBase, Generic[_M]):
     async def aadd(self, data: _M, *args: Any, **kwargs: Any) -> None:
         await self.get_queryset().aadd(data, *args, **kwargs)
 
-    def all(self) -> AQuerySet[_M]:
-        return cast(AQuerySet[_M], super().all())
+    def all(self) -> Union[AQuerySet[_M], QuerySet[_M]]:
+        return super().all()
 
-    def filter(self, *args: Any, **kwargs: Any) -> AQuerySet[_M]:
-        return cast(AQuerySet[_M], super().filter(*args, **kwargs))
+    def filter(self, *args: Any, **kwargs: Any) -> Union[AQuerySet[_M], QuerySet[_M]]:
+        return super().filter(*args, **kwargs)
 
-    def exclude(self, *args: Any, **kwargs: Any) -> AQuerySet[_M]:
-        return cast(AQuerySet[_M], super().exclude(*args, **kwargs))
+    def exclude(self, *args: Any, **kwargs: Any) -> Union[AQuerySet[_M], QuerySet[_M]]:
+        return super().exclude(*args, **kwargs)
 
-    def prefetch_related(self, *lookups: Any) -> AQuerySet[_M]:
-        return cast(AQuerySet[_M], super().prefetch_related(*lookups))
+    def prefetch_related(self, *lookups: Any) -> Union[AQuerySet[_M], QuerySet[_M]]:
+        return super().prefetch_related(*lookups)
 
-    def select_related(self, *fields: Any) -> AQuerySet[_M]:
-        return cast(AQuerySet[_M], super().select_related(*fields))
+    def select_related(self, *fields: Any) -> Union[AQuerySet[_M], QuerySet[_M]]:
+        return super().select_related(*fields)
 
 
 class AUserManager(UserManager, AManager[_M]):

@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Generic, Iterator, Type, TypeVar, cast
 
 from asgiref.sync import sync_to_async
-from django.db.models import Model, QuerySet
+from django.db.models import QuerySet
 
 from adjango.utils.funcs import aadd, agetorn, aset, getorn
 
@@ -16,12 +16,12 @@ class AQuerySet(QuerySet[_M], Generic[_M]):
         return await self._aall_from_queryset(self)
 
     def getorn(
-        self, exception: Type[Exception] | None = None, *args, **kwargs
+            self, exception: Type[Exception] | None = None, *args, **kwargs
     ) -> _M | None:
         return getorn(self, exception, *args, **kwargs)
 
     async def agetorn(
-        self, exception: Type[Exception] | None = None, *args, **kwargs
+            self, exception: Type[Exception] | None = None, *args, **kwargs
     ) -> _M | None:
         return await agetorn(self, exception, *args, **kwargs)
 
@@ -29,7 +29,8 @@ class AQuerySet(QuerySet[_M], Generic[_M]):
         filtered_qs = self.filter(*args, **kwargs)
         return await self._aall_from_queryset(filtered_qs)
 
-    async def _aall_from_queryset(self, queryset) -> list[_M]:
+    @staticmethod
+    async def _aall_from_queryset(queryset) -> list[_M]:
         return await sync_to_async(list)(queryset)
 
     async def aset(self, data, *args, **kwargs) -> None:
@@ -65,14 +66,14 @@ class AQuerySet(QuerySet[_M], Generic[_M]):
     def __iter__(self) -> Iterator[_M]:
         return cast("Iterator[_M]", super().__iter__())
 
-    def filter(self, *args, **kwargs) -> "AQuerySet[_M]":
-        return cast("AQuerySet[_M]", super().filter(*args, **kwargs))
+    def filter(self, *args, **kwargs) -> Union[AQuerySet[_M], QuerySet[_M]]:
+        return super().filter(*args, **kwargs)
 
-    def exclude(self, *args, **kwargs) -> "AQuerySet[_M]":
-        return cast("AQuerySet[_M]", super().exclude(*args, **kwargs))
+    def exclude(self, *args, **kwargs) -> Union[AQuerySet[_M], QuerySet[_M]]:
+        return super().exclude(*args, **kwargs)
 
-    def prefetch_related(self, *lookups) -> "AQuerySet[_M]":
-        return cast("AQuerySet[_M]", super().prefetch_related(*lookups))
+    def prefetch_related(self, *lookups) -> Union[AQuerySet[_M], QuerySet[_M]]:
+        return super().prefetch_related(*lookups)
 
-    def select_related(self, *fields) -> "AQuerySet[_M]":
-        return cast("AQuerySet[_M]", super().select_related(*fields))
+    def select_related(self, *fields) -> Union[AQuerySet[_M], QuerySet[_M]]:
+        return super().select_related(*fields)
