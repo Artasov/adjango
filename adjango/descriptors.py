@@ -9,14 +9,33 @@ from adjango.managers.base import AManager
 
 if TYPE_CHECKING:
     from django.db.models import Model
+    from adjango.querysets.base import AQuerySet
 
 # Type variable for related model
 _RM = TypeVar("_RM", bound="Model")
 
 
+class AManyRelatedManager(AManager[_RM], Generic[_RM]):
+    """Typed base manager for many-to-many relations.
+
+    This class exists purely for static type checking.  The actual manager
+    returned at runtime will subclass Django's dynamically generated
+    ``ManyRelatedManager`` *and* this base class, giving access to the real
+    implementation while preserving the generic ``_RM`` type information.
+    """
+
+    def all(self) -> "AQuerySet[_RM]": ...  # pragma: no cover - typing only
+
+    async def aall(self) -> list[_RM]: ...  # pragma: no cover - typing only
+
+
 class AManyToManyDescriptor(ManyToManyDescriptor, Generic[_RM]):
-    if TYPE_CHECKING:
-        def __get__(self, instance: "Model | None", owner: type | None = None) -> AManager[_RM]: ...
+    def __get__(
+        self, instance: "Model | None", owner: type | None = None
+    ) -> AManyRelatedManager[_RM]:  # type: ignore[override]
+        # ``ManyToManyDescriptor`` returns a dynamically created manager.  Casting
+        # here preserves the concrete related model type for static analysers.
+        return cast(AManyRelatedManager[_RM], super().__get__(instance, owner))
 
     def __init__(self, rel, reverse=False):
         super().__init__(rel, reverse)
@@ -44,7 +63,9 @@ class AManyToManyDescriptor(ManyToManyDescriptor, Generic[_RM]):
         # typed ``aall`` method.  Using ``related_model`` in the annotations
         # allows IDEs and type checkers to infer the concrete model type instead
         # of the generic ``_RM`` placeholder.
-        class AManyRelatedManager(original_manager_cls, AManager[related_model]):  # type: ignore[type-arg]
+        class _AManyRelatedManager(
+            original_manager_cls, AManyRelatedManager[related_model]  # type: ignore[type-arg]
+        ):
             def all(self) -> "AQuerySet[related_model]":  # type: ignore[override]
                 from adjango.querysets.base import AQuerySet
 
@@ -58,7 +79,7 @@ class AManyToManyDescriptor(ManyToManyDescriptor, Generic[_RM]):
 
                 return await sync_to_async(list)(self.get_queryset())
 
-        return AManyRelatedManager
+        return _AManyRelatedManager
 
     def __set_name__(self, owner, name):
         """Вызывается когда дескриптор присваивается к атрибуту класса."""

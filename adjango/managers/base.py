@@ -5,22 +5,33 @@ from typing import TYPE_CHECKING, Any, Generic, Iterable, TypeVar, cast
 
 from asgiref.sync import sync_to_async
 from django.contrib.auth.models import UserManager
-from django.db.models import Manager
+from django.db.models import Model
 
 from adjango.querysets.base import AQuerySet
 
-if TYPE_CHECKING:
-    from django.db.models import Model
-
 # Type variable for generic Manager
-_M = TypeVar("_M", bound="Model")
+_M = TypeVar("_M", bound=Model)
+
+if TYPE_CHECKING:
+    class _ManagerBase(Generic[_M]):
+        model: type[_M]
+        _db: str | None
+        _hints: dict[str, Any]
+
+        def all(self) -> AQuerySet[_M]: ...
+        def filter(self, *args: Any, **kwargs: Any) -> AQuerySet[_M]: ...
+        def exclude(self, *args: Any, **kwargs: Any) -> AQuerySet[_M]: ...
+        def prefetch_related(self, *lookups: Any) -> AQuerySet[_M]: ...
+        def select_related(self, *fields: Any) -> AQuerySet[_M]: ...
+else:
+    from django.db.models import Manager as _ManagerBase
 
 
-class AManager(Manager.from_queryset(AQuerySet), Generic[_M]):  # type: ignore
+class AManager(_ManagerBase, Generic[_M]):
     """Асинхронный менеджер с типизированными методами."""
 
     def get_queryset(self) -> AQuerySet[_M]:  # type: ignore[override]
-        return cast(AQuerySet[_M], super().get_queryset())
+        return AQuerySet(self.model, using=self._db, hints=self._hints)
 
     async def aall(self) -> list[_M]:
         return await self.get_queryset().aall()

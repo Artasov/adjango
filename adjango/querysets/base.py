@@ -1,7 +1,7 @@
 # querysets/base.py
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generic, Type, TypeVar, cast
+from typing import TYPE_CHECKING, Generic, Iterator, Type, TypeVar, cast
 
 from asgiref.sync import sync_to_async
 from django.db.models import QuerySet
@@ -73,6 +73,10 @@ class AQuerySet(QuerySet[_M], Generic[_M]):
     async def aexists(self) -> bool:
         """Асинхронный exists - проверяет существование объектов."""
         return await sync_to_async(self.exists)()
+
+    def __iter__(self) -> Iterator[_M]:
+        """Iterate over the queryset yielding typed model instances."""
+        return cast("Iterator[_M]", super().__iter__())
 
     def filter(self, *args, **kwargs) -> "AQuerySet[_M]":
         """Переопределяем filter чтобы он возвращал правильный тип QuerySet."""
