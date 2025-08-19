@@ -13,8 +13,12 @@ try:
         help = "Starts Celery Worker"
 
         def add_arguments(self, parser):
-            parser.add_argument("--pool", default="solo", help="Pool implementation (default: solo)")
-            parser.add_argument("--loglevel", default="INFO", help="Logging level (default: INFO)")
+            parser.add_argument(
+                "--pool", default="solo", help="Pool implementation (default: solo)"
+            )
+            parser.add_argument(
+                "--loglevel", default="INFO", help="Logging level (default: INFO)"
+            )
             parser.add_argument(
                 "--concurrency",
                 type=int,
@@ -49,15 +53,23 @@ try:
                 }
 
                 if options["queues"]:
-                    worker_kwargs["queues"] = [q.strip() for q in options["queues"].split(",")]
-                    self.stdout.write(f"Processing queues: {', '.join(worker_kwargs['queues'])}")
+                    worker_kwargs["queues"] = [
+                        q.strip() for q in options["queues"].split(",")
+                    ]
+                    self.stdout.write(
+                        f"Processing queues: {', '.join(worker_kwargs['queues'])}"
+                    )
 
                 worker = current_app.Worker(**worker_kwargs)
                 worker.start()
             except KeyboardInterrupt:
-                self.stdout.write(self.style.WARNING("Received stop signal. Shutting down..."))
+                self.stdout.write(
+                    self.style.WARNING("Received stop signal. Shutting down...")
+                )
             except Exception as e:
-                self.stderr.write(self.style.ERROR(f"Error starting Celery Worker: {e}"))
+                self.stderr.write(
+                    self.style.ERROR(f"Error starting Celery Worker: {e}")
+                )
 
 except ImportError:
     pass

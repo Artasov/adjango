@@ -41,8 +41,12 @@ try:
         async def aget_or_create(self, defaults=None, **kwargs: Any) -> tuple[_M, bool]:
             return await self.get_queryset().aget_or_create(defaults=defaults, **kwargs)
 
-        async def aupdate_or_create(self, defaults=None, **kwargs: Any) -> tuple[_M, bool]:
-            return await self.get_queryset().aupdate_or_create(defaults=defaults, **kwargs)
+        async def aupdate_or_create(
+            self, defaults=None, **kwargs: Any
+        ) -> tuple[_M, bool]:
+            return await self.get_queryset().aupdate_or_create(
+                defaults=defaults, **kwargs
+            )
 
         async def acount(self) -> int:
             return await self.get_queryset().acount()

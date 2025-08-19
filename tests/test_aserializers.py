@@ -27,11 +27,14 @@ from adjango.aserializers import (
 
 @pytest.mark.skipif(not DRF_AVAILABLE, reason="Django REST Framework not available")
 class TestFieldErrorsFunction:
-    """Тесты для функции serializer_errors_to_field_errors"""
+    """Tests for serializer_errors_to_field_errors function"""
 
     def test_serializer_errors_to_field_errors_basic(self):
-        """Тест базовой функциональности"""
-        serializer_errors = {"field1": ["Error message 1"], "field2": ["Error message 2", "Error message 3"]}
+        """Test basic functionality"""
+        serializer_errors = {
+            "field1": ["Error message 1"],
+            "field2": ["Error message 2", "Error message 3"],
+        }
 
         result = serializer_errors_to_field_errors(serializer_errors)
 
@@ -41,28 +44,31 @@ class TestFieldErrorsFunction:
         assert result[2] == FieldError(field="field2", message="Error message 3")
 
     def test_serializer_errors_to_field_errors_empty(self):
-        """Тест с пустыми ошибками"""
+        """Test with empty errors"""
         result = serializer_errors_to_field_errors({})
         assert result == []
 
     def test_serializer_errors_to_field_errors_single_field(self):
-        """Тест с одним полем"""
+        """Test with single field"""
         serializer_errors = {"username": ["This field is required"]}
 
         result = serializer_errors_to_field_errors(serializer_errors)
 
         assert len(result) == 1
-        assert result[0] == FieldError(field="username", message="This field is required")
+        assert result[0] == FieldError(
+            field="username", message="This field is required"
+        )
 
 
 @pytest.mark.skipif(not DRF_AVAILABLE, reason="Django REST Framework not available")
 class TestDetailAPIException:
-    """Тесты для DetailAPIException"""
+    """Tests for DetailAPIException"""
 
     def test_detail_api_exception_basic(self):
-        """Тест базового создания исключения"""
+        """Test basic exception creation"""
         detail = DetailExceptionDict(
-            message="Test error", fields_errors=[FieldError(field="test", message="Test field error")]
+            message="Test error",
+            fields_errors=[FieldError(field="test", message="Test field error")],
         )
 
         exception = DetailAPIException(detail=detail)
@@ -71,30 +77,32 @@ class TestDetailAPIException:
         assert exception.detail == detail
 
     def test_detail_api_exception_custom_status(self):
-        """Тест с кастомным статус кодом"""
+        """Test with custom status code"""
         detail = DetailExceptionDict(message="Test error", fields_errors=[])
 
-        exception = DetailAPIException(detail=detail, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        exception = DetailAPIException(
+            detail=detail, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
         assert exception.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
     def test_detail_api_exception_custom_code(self):
-        """Тест с кастомным кодом ошибки"""
+        """Test with custom error code"""
         detail = DetailExceptionDict(message="Test error", fields_errors=[])
 
         exception = DetailAPIException(detail=detail, code="custom_error")
 
-        # Проверяем что код установлен (проверяем через атрибут, если доступен)
+        # Check that code is set (check via attribute if available)
         if hasattr(exception, "default_code"):
             assert exception.default_code == "custom_error"
 
 
 @pytest.mark.skipif(not DRF_AVAILABLE, reason="Django REST Framework not available")
 class TestSerializerErrors:
-    """Тесты для SerializerErrors"""
+    """Tests for SerializerErrors"""
 
     def test_serializer_errors_basic(self):
-        """Тест базового создания SerializerErrors"""
+        """Test basic SerializerErrors creation"""
         serializer_errors = {"field1": ["Error 1"], "field2": ["Error 2"]}
 
         exception = SerializerErrors(serializer_errors)
@@ -106,7 +114,7 @@ class TestSerializerErrors:
         assert len(exception.detail["fields_errors"]) == 2
 
     def test_serializer_errors_custom_message(self):
-        """Тест с кастомным сообщением"""
+        """Test with custom message"""
         serializer_errors = {"field1": ["Error 1"]}
         custom_message = "Custom error message"
 
@@ -115,38 +123,40 @@ class TestSerializerErrors:
         assert exception.detail["message"] == custom_message
 
     def test_serializer_errors_custom_status_code(self):
-        """Тест с кастомным статус кодом"""
+        """Test with custom status code"""
         serializer_errors = {"field1": ["Error 1"]}
 
-        exception = SerializerErrors(serializer_errors, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        exception = SerializerErrors(
+            serializer_errors, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY
+        )
 
         assert exception.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
 @pytest.mark.skipif(not DRF_AVAILABLE, reason="Django REST Framework not available")
 class TestAListSerializer:
-    """Тесты для AListSerializer"""
+    """Tests for AListSerializer"""
 
     @pytest.mark.asyncio
     async def test_adata_property(self):
-        """Тест async свойства data"""
+        """Test async data property"""
         from unittest.mock import PropertyMock
 
-        # Создаем мок дочернего сериализатора
+        # Create mock child serializer
         child_serializer_class = MagicMock()
         child_instance = MagicMock()
 
-        # Создаем AsyncMock для свойства adata, который возвращает корутину
+        # Create AsyncMock for adata property that returns coroutine
         async def mock_adata():
             return {"id": 1, "name": "Test"}
 
         type(child_instance).adata = PropertyMock(return_value=mock_adata())
         child_serializer_class.return_value = child_instance
 
-        # Создаем мок данных
+        # Create mock data
         mock_data = [MagicMock(), MagicMock()]
 
-        # Создаем AListSerializer с child
+        # Create AListSerializer with child
         child_mock = MagicMock()
         child_mock.__class__ = child_serializer_class
         serializer = AListSerializer(child=child_mock, context={})
@@ -160,11 +170,11 @@ class TestAListSerializer:
 
 @pytest.mark.skipif(not DRF_AVAILABLE, reason="Django REST Framework not available")
 class TestASerializer:
-    """Тесты для ASerializer"""
+    """Tests for ASerializer"""
 
     @pytest.mark.asyncio
     async def test_asave(self):
-        """Тест async метода save"""
+        """Test async save method"""
         serializer = ASerializer()
 
         with patch("adjango.aserializers.sync_to_async") as mock_sync_to_async:
@@ -179,7 +189,7 @@ class TestASerializer:
 
     @pytest.mark.asyncio
     async def test_ais_valid_success(self):
-        """Тест успешной валидации"""
+        """Test successful validation"""
         serializer = ASerializer()
 
         with patch("adjango.aserializers.sync_to_async") as mock_sync_to_async:
@@ -193,10 +203,10 @@ class TestASerializer:
 
     @pytest.mark.asyncio
     async def test_ais_valid_with_raise_exception(self):
-        """Тест валидации с raise_exception=True"""
+        """Test validation with raise_exception=True"""
         serializer = ASerializer()
 
-        # Устанавливаем ошибки напрямую в _errors
+        # Set errors directly in _errors
         serializer._errors = {"field1": ["Error message"]}
 
         with patch("adjango.aserializers.sync_to_async") as mock_sync_to_async:
@@ -208,7 +218,7 @@ class TestASerializer:
 
     @pytest.mark.asyncio
     async def test_adata_property(self):
-        """Тест async свойства data"""
+        """Test async data property"""
         serializer = ASerializer()
 
         with patch("adjango.aserializers.sync_to_async") as mock_sync_to_async:
@@ -222,7 +232,7 @@ class TestASerializer:
 
     @pytest.mark.asyncio
     async def test_avalid_data_property(self):
-        """Тест async свойства validated_data"""
+        """Test async validated_data property"""
         serializer = ASerializer()
 
         with patch("adjango.aserializers.sync_to_async") as mock_sync_to_async:
@@ -235,7 +245,7 @@ class TestASerializer:
             mock_sync_to_async.assert_called_once()
 
     def test_many_init(self):
-        """Тест many_init метода"""
+        """Test many_init method"""
         result = ASerializer.many_init(data=[{"test": 1}, {"test": 2}])
 
         assert isinstance(result, AListSerializer)
@@ -244,11 +254,11 @@ class TestASerializer:
 
 @pytest.mark.skipif(not DRF_AVAILABLE, reason="Django REST Framework not available")
 class TestAModelSerializer:
-    """Тесты для AModelSerializer"""
+    """Tests for AModelSerializer"""
 
     @pytest.mark.asyncio
     async def test_asave(self):
-        """Тест async метода save"""
+        """Test async save method"""
         serializer = AModelSerializer()
 
         with patch("adjango.aserializers.sync_to_async") as mock_sync_to_async:
@@ -261,7 +271,7 @@ class TestAModelSerializer:
 
     @pytest.mark.asyncio
     async def test_ais_valid_success(self):
-        """Тест успешной async валидации"""
+        """Test successful async validation"""
         serializer = AModelSerializer()
 
         with patch("adjango.aserializers.sync_to_async") as mock_sync_to_async:
@@ -274,10 +284,10 @@ class TestAModelSerializer:
 
     @pytest.mark.asyncio
     async def test_ais_valid_with_exception(self):
-        """Тест async валидации с исключением"""
+        """Test async validation with exception"""
         serializer = AModelSerializer()
 
-        # Устанавливаем ошибки напрямую в _errors
+        # Set errors directly in _errors
         serializer._errors = {"field1": ["Model error"]}
 
         with patch("adjango.aserializers.sync_to_async") as mock_sync_to_async:
@@ -288,18 +298,20 @@ class TestAModelSerializer:
                 await serializer.ais_valid(raise_exception=True)
 
     def test_is_valid_sync_with_exception(self):
-        """Тест sync валидации с исключением"""
+        """Test sync validation with exception"""
         serializer = AModelSerializer()
 
-        # Устанавливаем ошибки напрямую в _errors
+        # Set errors directly in _errors
         serializer._errors = {"field1": ["Sync model error"]}
 
-        with patch.object(AModelSerializer.__bases__[0], "is_valid", return_value=False):
+        with patch.object(
+            AModelSerializer.__bases__[0], "is_valid", return_value=False
+        ):
             with pytest.raises(SerializerErrors):
                 serializer.is_valid(raise_exception=True)
 
     def test_is_valid_sync_success(self):
-        """Тест успешной sync валидации"""
+        """Test successful sync validation"""
         serializer = AModelSerializer()
 
         with patch.object(AModelSerializer.__bases__[0], "is_valid", return_value=True):
@@ -308,7 +320,7 @@ class TestAModelSerializer:
 
     @pytest.mark.asyncio
     async def test_adata_property(self):
-        """Тест async свойства data"""
+        """Test async data property"""
         serializer = AModelSerializer()
 
         with patch("adjango.aserializers.sync_to_async") as mock_sync_to_async:
@@ -321,7 +333,7 @@ class TestAModelSerializer:
 
     @pytest.mark.asyncio
     async def test_avalid_data_property(self):
-        """Тест async свойства validated_data"""
+        """Test async validated_data property"""
         serializer = AModelSerializer()
 
         with patch("adjango.aserializers.sync_to_async") as mock_sync_to_async:
@@ -335,7 +347,7 @@ class TestAModelSerializer:
     @patch("adjango.aserializers.LIST_SERIALIZER_KWARGS", ["allow_empty"])
     @patch("adjango.aserializers.LIST_SERIALIZER_KWARGS_REMOVE", ["many"])
     def test_many_init_with_custom_list_serializer(self):
-        """Тест many_init с кастомным list serializer"""
+        """Test many_init with custom list serializer"""
 
         class CustomListSerializer(AListSerializer):
             pass
@@ -346,12 +358,14 @@ class TestAModelSerializer:
                 fields = "__all__"
                 list_serializer_class = CustomListSerializer
 
-        result = TestModelSerializer.many_init(data=[{"test": 1}], many=True, allow_empty=False)
+        result = TestModelSerializer.many_init(
+            data=[{"test": 1}], many=True, allow_empty=False
+        )
 
         assert isinstance(result, CustomListSerializer)
 
     def test_many_init_default(self):
-        """Тест many_init с дефолтными настройками"""
+        """Test many_init with default settings"""
         result = AModelSerializer.many_init(data=[{"test": 1}])
 
         assert isinstance(result, AListSerializer)
@@ -359,16 +373,16 @@ class TestAModelSerializer:
 
 @pytest.mark.skipif(DRF_AVAILABLE, reason="Skip when DRF is available")
 class TestWithoutDRF:
-    """Тесты когда Django REST Framework недоступен"""
+    """Tests when Django REST Framework is unavailable"""
 
     def test_import_without_drf(self):
-        """Тест импорта модуля без DRF"""
-        # Основные функции должны быть доступны даже без DRF
+        """Test module import without DRF"""
+        # Main functions should be available even without DRF
         from adjango.aserializers import FieldError, serializer_errors_to_field_errors
 
         assert FieldError is not None
         assert serializer_errors_to_field_errors is not None
 
-        # Тест базовой функциональности без DRF
+        # Test basic functionality without DRF
         result = serializer_errors_to_field_errors({"field": ["error"]})
         assert len(result) == 1

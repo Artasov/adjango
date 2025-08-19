@@ -1,5 +1,9 @@
 # exceptions/base.py
-from typing import Optional, Type
+from __future__ import annotations
+
+import re
+from enum import Enum
+from typing import Any, Optional, Type
 
 from django.utils.translation import gettext_lazy as _
 
@@ -16,157 +20,170 @@ try:
         HTTP_503_SERVICE_UNAVAILABLE,
     )
 except ImportError:
-    pass
+
+    class APIException(Exception):
+        status_code = 500
+        default_detail = _("Server Error")
+        default_code = "error"
+
+        def __init__(self, detail=None, code=None):
+            super().__init__(detail or self.default_detail)
+            self.detail = detail or self.default_detail
+            self.default_code = code or self.default_code
+            self.status_code = getattr(self, "status_code", 500)
+
+    HTTP_400_BAD_REQUEST = 400
+    HTTP_403_FORBIDDEN = 403
+    HTTP_404_NOT_FOUND = 404
+    HTTP_406_NOT_ACCEPTABLE = 406
+    HTTP_408_REQUEST_TIMEOUT = 408
+    HTTP_409_CONFLICT = 409
+    HTTP_500_INTERNAL_SERVER_ERROR = 500
+    HTTP_503_SERVICE_UNAVAILABLE = 503
 
 
-class BaseApiEx:
-    DoesNotExist: Type[APIException]
-    AlreadyExists: Type[APIException]
-    InvalidData: Type[APIException]
-    AccessDenied: Type[APIException]
-    BadRequest: Type[APIException]
-    Unauthorized: Type[APIException]
-    MethodNotAllowed: Type[APIException]
-    NotAcceptable: Type[APIException]
-    RequestTimeout: Type[APIException]
-    InternalServerError: Type[APIException]
-    # Additional exceptions will be merged here.
+__all__ = [
+    "ApiExceptionGenerator",
+    "ModelApiExcpetionGenerator",
+    "ModelApiExcpetionBaseVariants",
+]
 
 
-class ModelApiBaseException:
+def _slug_code(value: str) -> str:
+    s = value.strip().lower()
+    s = re.sub(r"\s+", "_", s)
+    s = re.sub(r"[^a-z0-9_]+", "_", s)
+    s = re.sub(r"_+", "_", s).strip("_")
+    return s or "error"
+
+
+def _model_verbose_name(model: Type[Any]) -> str:
+    try:
+        vn = getattr(getattr(model, "_meta", None), "verbose_name", None)
+        if vn:
+            return str(vn)
+    except Exception:
+        pass
+    return model.__name__
+
+
+class ApiExceptionGenerator(APIException):
     """
-    Mixin to provide models with a set of API exceptions.
-    Usage: MyModel.ApiEx.DoesNotExist (where MyModel is a subclass).
-    You can extend the set via a nested ApiEx class.
+    Usage:
+        raise ApiExceptionGenerator('Special error', 500)
+        raise ApiExceptionGenerator('Special error', 500, 'special_error')
+        raise ApiExceptionGenerator('Bad input', HTTP_400_BAD_REQUEST, extra={'field': 'email'})
     """
 
-    class _ApiExDescriptor:
-        def __init__(self, custom_ex: Optional[Type] = None):
-            self._custom_ex = custom_ex  # Store custom exceptions defined in the subclass
+    def __init__(
+        self,
+        message: str,
+        status: int,
+        code: Optional[str] = None,
+        extra: Optional[dict[str, Any]] = None,
+    ) -> None:
+        self.status_code = int(status)
+        code_str = code or _slug_code(message)
+        payload: dict[str, Any] = {"message": message}
+        if extra:
+            payload.update(extra)
+        # For DRF, pass `code` to have ErrorDetail carry it; also set default_code for parity.
+        self.default_code = code_str  # type: ignore[attr-defined]
+        super().__init__(detail=payload, code=code_str)
 
-        def __get__(self, instance, owner) -> Type[BaseApiEx]:
-            # 'owner' is the class (e.g., Client) through which the descriptor is accessed.
-            actual_owner = owner
 
-            class DoesNotExist(APIException):
-                status_code = HTTP_404_NOT_FOUND
-                default_detail = {"message": f"{actual_owner.__name__} " + _("does not exist")}
-                default_code = f"{actual_owner.__name__.lower()}_does_not_exist"
+class ModelApiExcpetionBaseVariants(Enum):
+    DoesNotExist = "does_not_exist"
+    AlreadyExists = "already_exists"
+    InvalidData = "invalid_data"
+    AccessDenied = "access_denied"
+    NotAcceptable = "not_acceptable"
+    Expired = "expired"
+    InternalServerError = "internal_server_error"
+    AlreadyUsed = "already_used"
+    NotUsed = "not_used"
+    NotAvailable = "not_available"
+    TemporarilyUnavailable = "temporarily_unavailable"
+    ConflictDetected = "conflict_detected"
+    LimitExceeded = "limit_exceeded"
+    DependencyMissing = "dependency_missing"
+    Deprecated = "deprecated"
 
-            class AlreadyExists(APIException):
-                status_code = HTTP_409_CONFLICT
-                default_detail = {"message": f"{actual_owner.__name__} " + _("already exists")}
-                default_code = f"{actual_owner.__name__.lower()}_already_exists"
 
-            class InvalidData(APIException):
-                status_code = HTTP_400_BAD_REQUEST
-                default_detail = {"message": _("Invalid data for") + f" {actual_owner.__name__}"}
-                default_code = f"{actual_owner.__name__.lower()}_invalid_data"
+_VARIANT_TO_STATUS: dict[ModelApiExcpetionBaseVariants, int] = {
+    ModelApiExcpetionBaseVariants.DoesNotExist: HTTP_404_NOT_FOUND,
+    ModelApiExcpetionBaseVariants.AlreadyExists: HTTP_409_CONFLICT,
+    ModelApiExcpetionBaseVariants.InvalidData: HTTP_400_BAD_REQUEST,
+    ModelApiExcpetionBaseVariants.AccessDenied: HTTP_403_FORBIDDEN,
+    ModelApiExcpetionBaseVariants.NotAcceptable: HTTP_406_NOT_ACCEPTABLE,
+    ModelApiExcpetionBaseVariants.Expired: HTTP_408_REQUEST_TIMEOUT,
+    ModelApiExcpetionBaseVariants.InternalServerError: HTTP_500_INTERNAL_SERVER_ERROR,
+    ModelApiExcpetionBaseVariants.AlreadyUsed: HTTP_409_CONFLICT,
+    ModelApiExcpetionBaseVariants.NotUsed: HTTP_400_BAD_REQUEST,
+    ModelApiExcpetionBaseVariants.NotAvailable: HTTP_503_SERVICE_UNAVAILABLE,
+    ModelApiExcpetionBaseVariants.TemporarilyUnavailable: HTTP_503_SERVICE_UNAVAILABLE,
+    ModelApiExcpetionBaseVariants.ConflictDetected: HTTP_409_CONFLICT,
+    ModelApiExcpetionBaseVariants.LimitExceeded: HTTP_400_BAD_REQUEST,
+    ModelApiExcpetionBaseVariants.DependencyMissing: HTTP_400_BAD_REQUEST,
+    ModelApiExcpetionBaseVariants.Deprecated: HTTP_400_BAD_REQUEST,
+}
 
-            class AccessDenied(APIException):
-                status_code = HTTP_403_FORBIDDEN
-                default_detail = {"message": _("Access denied for") + f" {actual_owner.__name__}"}
-                default_code = f"{actual_owner.__name__.lower()}_access_denied"
 
-            class NotAcceptable(APIException):
-                status_code = HTTP_406_NOT_ACCEPTABLE
-                default_detail = {"message": _("Not acceptable for") + f" {actual_owner.__name__}"}
-                default_code = f"{actual_owner.__name__.lower()}_not_acceptable"
+def _variant_message(model_name: str, variant: ModelApiExcpetionBaseVariants) -> str:
+    if variant is ModelApiExcpetionBaseVariants.DoesNotExist:
+        return f"{model_name} " + _("does not exist")
+    if variant is ModelApiExcpetionBaseVariants.AlreadyExists:
+        return f"{model_name} " + _("already exists")
+    if variant is ModelApiExcpetionBaseVariants.InvalidData:
+        return _("Invalid data for") + f" {model_name}"
+    if variant is ModelApiExcpetionBaseVariants.AccessDenied:
+        return _("Access denied for") + f" {model_name}"
+    if variant is ModelApiExcpetionBaseVariants.NotAcceptable:
+        return _("Not acceptable for") + f" {model_name}"
+    if variant is ModelApiExcpetionBaseVariants.Expired:
+        return f"{model_name} " + _("expired")
+    if variant is ModelApiExcpetionBaseVariants.InternalServerError:
+        return _("Internal server error in") + f" {model_name}"
+    if variant is ModelApiExcpetionBaseVariants.AlreadyUsed:
+        return f"{model_name} " + _("already used")
+    if variant is ModelApiExcpetionBaseVariants.NotUsed:
+        return f"{model_name} " + _("not used")
+    if variant is ModelApiExcpetionBaseVariants.NotAvailable:
+        return f"{model_name} " + _("not available")
+    if variant is ModelApiExcpetionBaseVariants.TemporarilyUnavailable:
+        return f"{model_name} " + _("temporarily unavailable")
+    if variant is ModelApiExcpetionBaseVariants.ConflictDetected:
+        return f"{model_name} " + _("conflict detected")
+    if variant is ModelApiExcpetionBaseVariants.LimitExceeded:
+        return f"{model_name} " + _("limit exceeded")
+    if variant is ModelApiExcpetionBaseVariants.DependencyMissing:
+        return f"{model_name} " + _("dependency missing")
+    if variant is ModelApiExcpetionBaseVariants.Deprecated:
+        return f"{model_name} " + _("deprecated")
+    return _("Error")
 
-            class Expired(APIException):
-                status_code = HTTP_408_REQUEST_TIMEOUT
-                default_detail = {"message": f"{actual_owner.__name__}" + _(" expired")}
-                default_code = f"{actual_owner.__name__.lower()}_expired"
 
-            class InternalServerError(APIException):
-                status_code = HTTP_500_INTERNAL_SERVER_ERROR
-                default_detail = {"message": _("Internal server error in") + f" {actual_owner.__name__}"}
-                default_code = f"{actual_owner.__name__.lower()}_internal_server_error"
+class ModelApiExcpetionGenerator(APIException):
+    """
+    Usage:
+        raise ModelApiExcpetionGenerator(model=Order, variant=ModelApiExcpetionBaseVariants.AlreadyExists)
+        raise ModelApiExcpetionGenerator(Order, ModelApiExcpetionBaseVariants.DoesNotExist, code="order_not_found", extra={"id": 123})
+    """
 
-            class AlreadyUsed(APIException):
-                status_code = HTTP_409_CONFLICT
-                default_detail = {"message": f"{actual_owner.__name__} " + _("already used")}
-                default_code = f"{actual_owner.__name__.lower()}_already_used"
-
-            class NotUsed(APIException):
-                status_code = HTTP_400_BAD_REQUEST
-                default_detail = {"message": f"{actual_owner.__name__} " + _("not used")}
-                default_code = f"{actual_owner.__name__.lower()}_not_used"
-
-            class NotAvailable(APIException):
-                status_code = HTTP_503_SERVICE_UNAVAILABLE
-                default_detail = {"message": f"{actual_owner.__name__} " + _("not available")}
-                default_code = f"{actual_owner.__name__.lower()}_not_available"
-
-            class TemporarilyUnavailable(APIException):
-                status_code = HTTP_503_SERVICE_UNAVAILABLE
-                default_detail = {"message": f"{actual_owner.__name__} " + _("temporarily unavailable")}
-                default_code = f"{actual_owner.__name__.lower()}_temporarily_unavailable"
-
-            class ConflictDetected(APIException):
-                status_code = HTTP_409_CONFLICT
-                default_detail = {"message": f"{actual_owner.__name__} " + _("conflict detected")}
-                default_code = f"{actual_owner.__name__.lower()}_conflict_detected"
-
-            class LimitExceeded(APIException):
-                status_code = HTTP_400_BAD_REQUEST
-                default_detail = {"message": f"{actual_owner.__name__} " + _("limit exceeded")}
-                default_code = f"{actual_owner.__name__.lower()}_limit_exceeded"
-
-            class Deprecated(APIException):
-                status_code = HTTP_400_BAD_REQUEST
-                default_detail = {"message": f"{actual_owner.__name__} " + _(" deprecated")}
-                default_code = f"{actual_owner.__name__.lower()}_deprecated"
-
-            class DependencyMissing(APIException):
-                status_code = HTTP_400_BAD_REQUEST
-                default_detail = {"message": f"{actual_owner.__name__} " + _("dependency missing")}
-                default_code = f"{actual_owner.__name__.lower()}_dependency_missing"
-
-            additional_exceptions = {
-                "AlreadyUsed": AlreadyUsed,
-                "NotUsed": NotUsed,
-                "NotAvailable": NotAvailable,
-                "TemporarilyUnavailable": TemporarilyUnavailable,
-                "ConflictDetected": ConflictDetected,
-                "LimitExceeded": LimitExceeded,
-                "DependencyMissing": DependencyMissing,
-                "Expired": Expired,
-            }
-
-            base_exceptions = {
-                "DoesNotExist": DoesNotExist,
-                "AlreadyExists": AlreadyExists,
-                "InvalidData": InvalidData,
-                "AccessDenied": AccessDenied,
-                "NotAcceptable": NotAcceptable,
-                "InternalServerError": InternalServerError,
-            }
-
-            merged_exceptions: dict[str, type] = {}
-            merged_exceptions.update(base_exceptions)
-            merged_exceptions.update(additional_exceptions)
-
-            # If custom exceptions are defined in subclass, merge them
-            custom_ex = getattr(owner, "_custom_api_ex", None)
-            if custom_ex is not None:
-                for key, value in vars(custom_ex).items():
-                    if not key.startswith("__") and isinstance(value, type) and issubclass(value, APIException):
-                        merged_exceptions[key] = value
-
-            return type("ApiEx", (BaseApiEx,), merged_exceptions)
-
-    ApiEx = _ApiExDescriptor()
-
-    def __init_subclass__(cls, **kwargs):
-        """
-        When a subclass is created, check if it defines a custom nested ApiEx.
-        If so, store it on a special attribute (_custom_api_ex) and replace ApiEx with our descriptor.
-        """
-        super().__init_subclass__(**kwargs)
-        custom = cls.__dict__.get("ApiEx", None)
-        # If a custom ApiEx is defined directly in the subclass body (not inherited),
-        # store it in _custom_api_ex.
-        if custom is not None and not isinstance(custom, ModelApiBaseException._ApiExDescriptor):
-            cls._custom_api_ex = custom
-        cls.ApiEx = ModelApiBaseException._ApiExDescriptor()
+    def __init__(
+        self,
+        model: Type[Any],
+        variant: ModelApiExcpetionBaseVariants,
+        code: Optional[str] = None,
+        extra: Optional[dict[str, Any]] = None,
+    ) -> None:
+        model_name = _model_verbose_name(model)
+        message = _variant_message(model_name, variant)
+        status = _VARIANT_TO_STATUS.get(variant, HTTP_500_INTERNAL_SERVER_ERROR)
+        self.status_code = int(status)
+        code_str = code or _slug_code(str(variant.value))
+        payload: dict[str, Any] = {"message": message}
+        if extra:
+            payload.update(extra)
+        self.default_code = code_str
+        super().__init__(detail=payload, code=code_str)

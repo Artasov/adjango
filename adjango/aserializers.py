@@ -39,7 +39,12 @@ class DetailExceptionDict(TypedDict):
 class DetailAPIException(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
 
-    def __init__(self, detail: DetailExceptionDict, code: Optional[str] = None, status_code: Optional[str] = None):
+    def __init__(
+        self,
+        detail: DetailExceptionDict,
+        code: Optional[str] = None,
+        status_code: Optional[str] = None,
+    ):
         if status_code is not None:
             self.status_code = status_code
         super().__init__(detail=detail, code=code)
@@ -67,9 +72,9 @@ class AListSerializer(DRFListSerializer):
     async def adata(self):
         items_data = []
         for item in self.instance:
-            # Создаём сериализатор для элемента списка
+            # Create serializer for list item
             serializer = self.child.__class__(item, context=self.context)
-            # Используем sync_to_async для получения данных, чтобы избежать повторного ожидания одной и той же корутины
+            # Use sync_to_async to get data and avoid awaiting the same coroutine multiple times
             data = await sync_to_async(lambda: serializer.data)()
             items_data.append(data)
         return items_data
@@ -125,29 +130,35 @@ class AModelSerializer(DRFModelSerializer):
 
     @classmethod
     def many_init(cls, *args, **kwargs):
-        # Подготовка аргументов для ListSerializer и дочернего сериализатора
+        # Prepare arguments for ListSerializer and child serializer
         list_kwargs = {}
 
-        # Параметры, которые должны уйти в ListSerializer (например, allow_empty)
-        list_serializer_kwargs = {key: value for key, value in kwargs.items() if key in LIST_SERIALIZER_KWARGS}
+        # Parameters that should go to ListSerializer (e.g., allow_empty)
+        list_serializer_kwargs = {
+            key: value for key, value in kwargs.items() if key in LIST_SERIALIZER_KWARGS
+        }
 
-        # Параметры, которые должны быть удалены из kwargs (например, many)
+        # Parameters that should be removed from kwargs (e.g., many)
         for key in LIST_SERIALIZER_KWARGS_REMOVE:
             kwargs.pop(key, None)
 
-        # Извлекаем данные, которые должны быть переданы в ListSerializer, а не в child
+        # Extract data that should be passed to ListSerializer, not to child
         data = kwargs.pop("data", None)
 
-        # Аргументы для child без list-specific параметров и без data
-        child_kwargs = {key: value for key, value in kwargs.items() if key not in LIST_SERIALIZER_KWARGS}
+        # Arguments for child without list-specific parameters and without data
+        child_kwargs = {
+            key: value
+            for key, value in kwargs.items()
+            if key not in LIST_SERIALIZER_KWARGS
+        }
 
-        # Создаём child
+        # Create child
         list_kwargs["child"] = cls(*args, **child_kwargs)
 
-        # Добавляем обратно list-specific параметры
+        # Add back list-specific parameters
         list_kwargs.update(list_serializer_kwargs)
 
-        # Передаём данные в ListSerializer
+        # Pass data to ListSerializer
         if data is not None:
             list_kwargs["data"] = data
 

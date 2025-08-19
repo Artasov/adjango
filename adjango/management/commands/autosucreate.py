@@ -11,8 +11,12 @@ class Command(BaseCommand):
     )
 
     def add_arguments(self, parser):
-        parser.add_argument("-u", "--username", type=str, help="Username", default="123")
-        parser.add_argument("-p", "--password", type=str, help="Password", default="123")
+        parser.add_argument(
+            "-u", "--username", type=str, help="Username", default="123"
+        )
+        parser.add_argument(
+            "-p", "--password", type=str, help="Password", default="123"
+        )
 
     def handle(self, *args, **options):
         username = options["username"]
@@ -20,7 +24,13 @@ class Command(BaseCommand):
         User = get_user_model()
 
         if User.objects.filter(is_staff=True).exists():
-            self.stdout.write(self.style.WARNING("The superuser already exists, skipping the auto-creation ..."))
+            self.stdout.write(
+                self.style.WARNING(
+                    "The superuser already exists, skipping the auto-creation ..."
+                )
+            )
         else:
             User.objects.create_superuser(username=username, password=password)
-            self.stdout.write(self.style.SUCCESS(f'Superuser "{username}" successfully created.'))
+            self.stdout.write(
+                self.style.SUCCESS(f'Superuser "{username}" successfully created.')
+            )

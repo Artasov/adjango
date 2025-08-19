@@ -93,12 +93,16 @@ async def arelated(obj: Model, field: str) -> Model:
         value = getattr(obj, field)
         return value
     except AttributeError:
-        raise ValueError(f"Field '{field}' does not exist for object '{obj.__class__.__name__}'")
+        raise ValueError(
+            f"Field '{field}' does not exist for object '{obj.__class__.__name__}'"
+        )
     except SynchronousOnlyOperation:
         return await sync_to_async(getattr)(obj, field)
 
 
-async def aset(related_manager: Manager[_M] | QuerySet[_M], data: Iterable[_M], *args, **kwargs) -> None:
+async def aset(
+    related_manager: Manager[_M] | QuerySet[_M], data: Iterable[_M], *args, **kwargs
+) -> None:
     """
     Set related objects for ManyToMany field asynchronously.
 
@@ -109,7 +113,9 @@ async def aset(related_manager: Manager[_M] | QuerySet[_M], data: Iterable[_M], 
     await sync_to_async(related_manager.set)(data, *args, **kwargs)
 
 
-async def aadd(objects: Manager[_M] | QuerySet[_M], data: _M, *args: Any, **kwargs: Any) -> None:
+async def aadd(
+    objects: Manager[_M] | QuerySet[_M], data: _M, *args: Any, **kwargs: Any
+) -> None:
     """
     Async adds object or data to ManyToMany field via add() method.
 
@@ -199,5 +205,7 @@ async def set_image_by_url(model_obj: Model, field_name: str, image_url: str) ->
     """
     image_file: ContentFile = await download_file_to_temp(image_url)
     # Use setattr to set file to model field
-    await sync_to_async(getattr(model_obj, field_name).save)(image_file.name, image_file)
+    await sync_to_async(getattr(model_obj, field_name).save)(
+        image_file.name, image_file
+    )
     await model_obj.asave()

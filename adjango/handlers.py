@@ -57,7 +57,9 @@ class HCE(IHandlerControllerException):
             _handling_function(fn_name, request, e)
         """
         import logging
+
         from django.conf import settings
+
         from adjango.tasks import send_emails_task
 
         log = logging.getLogger("global")

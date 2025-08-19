@@ -14,10 +14,10 @@ from adjango.decorators import admin_label, controller, force_data, task
 
 
 class TestAdminLabel:
-    """Тесты для декоратора admin_label"""
+    """Tests for декоратора admin_label"""
 
     def test_admin_label_decorator(self):
-        """Тест установки label для функции"""
+        """Test установки label для функции"""
 
         @admin_label("Custom Label")
         def test_function():
@@ -28,11 +28,11 @@ class TestAdminLabel:
 
 
 class TestTask:
-    """Тесты для декоратора task"""
+    """Tests for декоратора task"""
 
     @patch("adjango.decorators.logging.getLogger")
     def test_task_with_logger(self, mock_get_logger):
-        """Тест task декоратора с логированием"""
+        """Test task декоратора с логированием"""
         mock_logger = MagicMock()
         mock_get_logger.return_value = mock_logger
 
@@ -48,12 +48,14 @@ class TestTask:
         mock_logger.info.assert_any_call(
             "Start executing task: test_task\n('value1', 'value2')\n{'kwarg1': 'kwvalue1'}"
         )
-        mock_logger.info.assert_any_call("End executing task: test_task\n('value1', 'value2')\n{'kwarg1': 'kwvalue1'}")
+        mock_logger.info.assert_any_call(
+            "End executing task: test_task\n('value1', 'value2')\n{'kwarg1': 'kwvalue1'}"
+        )
 
     @patch("adjango.decorators.logging.getLogger")
     @patch("adjango.decorators.traceback_str")
     def test_task_with_exception(self, mock_traceback_str, mock_get_logger):
-        """Тест обработки исключений в task"""
+        """Test обработки исключений в task"""
         mock_logger = MagicMock()
         mock_get_logger.return_value = mock_logger
         mock_traceback_str.return_value = "Test traceback"
@@ -69,7 +71,7 @@ class TestTask:
         mock_logger.critical.assert_any_call("Test traceback")
 
     def test_task_without_logger(self):
-        """Тест task декоратора без логирования"""
+        """Test task декоратора без логирования"""
 
         @task()
         def test_task():
@@ -80,10 +82,10 @@ class TestTask:
 
 
 class TestForceData:
-    """Тесты для декоратора force_data"""
+    """Tests for декоратора force_data"""
 
     def test_force_data_basic(self):
-        """Тест базовой функциональности force_data"""
+        """Test базовой функциональности force_data"""
 
         @force_data
         def mock_view(request):
@@ -103,7 +105,7 @@ class TestForceData:
         assert request.data["json_key"] == "json_value"
 
     def test_force_data_invalid_json(self):
-        """Тест обработки невалидного JSON"""
+        """Test обработки невалидного JSON"""
 
         @force_data
         def mock_view(request):
@@ -122,7 +124,7 @@ class TestForceData:
         assert request.data["post_key"] == "post_value"
 
     def test_force_data_existing_data(self):
-        """Тест с уже существующим атрибутом data"""
+        """Test с уже существующим атрибутом data"""
 
         @force_data
         def mock_view(request):
@@ -142,11 +144,11 @@ class TestForceData:
 
 
 class TestController:
-    """Тесты для декоратора controller"""
+    """Tests for декоратора controller"""
 
     @patch("adjango.decorators.logging.getLogger")
     def test_controller_basic(self, mock_get_logger):
-        """Тест базовой функциональности controller"""
+        """Test базовой функциональности controller"""
         mock_logger = MagicMock()
         mock_get_logger.return_value = mock_logger
 
@@ -166,7 +168,7 @@ class TestController:
 
     @patch("adjango.decorators.logging.getLogger")
     def test_controller_with_logging(self, mock_get_logger):
-        """Тест логирования в controller"""
+        """Test логирования в controller"""
         mock_logger = MagicMock()
         mock_get_logger.return_value = mock_logger
 
@@ -187,7 +189,7 @@ class TestController:
 
     @patch("adjango.decorators.redirect")
     def test_controller_auth_required_not_authenticated(self, mock_redirect):
-        """Тест редиректа при отсутствии аутентификации"""
+        """Test редиректа при отсутствии аутентификации"""
         mock_redirect.return_value = HttpResponse(status=302)
 
         @controller(auth_required=True)
@@ -207,7 +209,7 @@ class TestController:
     @patch("adjango.decorators.logging.getLogger")
     @patch("adjango.decorators.traceback_str")
     def test_controller_exception_handling(self, mock_traceback_str, mock_get_logger):
-        """Тест обработки исключений в controller"""
+        """Test обработки исключений в controller"""
         mock_logger = MagicMock()
         mock_get_logger.return_value = mock_logger
         mock_traceback_str.return_value = "Test traceback"
@@ -229,7 +231,7 @@ class TestController:
 
     @patch("adjango.decorators.logging.getLogger")
     def test_controller_exception_handling_function(self, mock_get_logger):
-        """Тест кастомной функции обработки исключений"""
+        """Test кастомной функции обработки исключений"""
         mock_logger = MagicMock()
         mock_get_logger.return_value = mock_logger
 
@@ -245,14 +247,17 @@ class TestController:
         request.user.is_authenticated = True
 
         with patch.object(settings, "DEBUG", False):
-            with patch("adjango.decorators.ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION", mock_handling_function):
+            with patch(
+                "adjango.decorators.ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION",
+                mock_handling_function,
+            ):
                 with pytest.raises(ValueError):
                     mock_view(request)
 
         mock_handling_function.assert_called_once()
 
     def test_controller_auth_required_authenticated(self):
-        """Тест успешного прохождения аутентификации"""
+        """Test успешного прохождения аутентификации"""
 
         @controller(auth_required=True)
         def mock_view(request):

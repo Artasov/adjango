@@ -13,7 +13,9 @@ T = TypeVar("T", bound=AModelSerializer)
 def dynamic_serializer(
     base_serializer: Type[T],
     include_fields: Tuple[str, ...],
-    field_overrides: Optional[Dict[str, Union[Type[BaseSerializer], BaseSerializer]]] = None,
+    field_overrides: Optional[
+        Dict[str, Union[Type[BaseSerializer], BaseSerializer]]
+    ] = None,
 ) -> Type[T]:
     """
     Creates dynamic serializer based on base serializer,
@@ -33,7 +35,11 @@ def dynamic_serializer(
         resolved_model = getattr(base_meta, "model", None)
         try:
             # If base model is swappable AUTH_USER_MODEL, replace it with the actual user model
-            if resolved_model is not None and getattr(resolved_model._meta, "swappable", None) == "AUTH_USER_MODEL":
+            if (
+                resolved_model is not None
+                and getattr(resolved_model._meta, "swappable", None)
+                == "AUTH_USER_MODEL"
+            ):
                 from django.contrib.auth import get_user_model
 
                 resolved_model = get_user_model()

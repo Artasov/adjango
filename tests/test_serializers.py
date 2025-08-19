@@ -17,7 +17,7 @@ from adjango.aserializers import AModelSerializer
 from adjango.serializers import dynamic_serializer
 
 
-# Простая тестовая модель для избежания проблем с User
+# Simple test model to avoid issues with User
 class TestModel(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField()
@@ -28,12 +28,12 @@ class TestModel(models.Model):
 
 @pytest.mark.skipif(not DRF_AVAILABLE, reason="Django REST Framework not available")
 class TestDynamicSerializer:
-    """Тесты для функции dynamic_serializer"""
+    """Tests for dynamic_serializer function"""
 
     def test_dynamic_serializer_basic(self):
-        """Тест базовой функциональности dynamic_serializer"""
+        """Test basic dynamic_serializer functionality"""
 
-        # Создаем базовый сериализатор
+        # Create base serializer
         class BaseTestSerializer(AModelSerializer):
             field1 = CharField()
             field2 = IntegerField()
@@ -43,21 +43,21 @@ class TestDynamicSerializer:
                 model = User
                 fields = ("field1", "field2", "field3")
 
-        # Создаем динамический сериализатор с ограниченными полями
+        # Create dynamic serializer with limited fields
         DynamicTestSerializer = dynamic_serializer(
             base_serializer=BaseTestSerializer, include_fields=("field1", "field2")
         )
 
-        # Проверяем что новый сериализатор создан
+        # Check that new serializer is created
         assert DynamicTestSerializer is not None
         assert issubclass(DynamicTestSerializer, BaseTestSerializer)
 
-        # Проверяем Meta класс
+        # Check Meta class
         assert hasattr(DynamicTestSerializer, "Meta")
         assert DynamicTestSerializer.Meta.fields == ("field1", "field2")
 
     def test_dynamic_serializer_with_field_overrides_class(self):
-        """Тест dynamic_serializer с переопределением полей через класс"""
+        """Test dynamic_serializer with field overrides through class"""
 
         class BaseTestSerializer(AModelSerializer):
             class Meta:
@@ -67,21 +67,21 @@ class TestDynamicSerializer:
         class CustomFieldSerializer(BaseSerializer):
             pass
 
-        # Создаем динамический сериализатор с переопределением поля
+        # Create dynamic serializer with field override
         DynamicTestSerializer = dynamic_serializer(
             base_serializer=BaseTestSerializer,
             include_fields=("username", "email"),
             field_overrides={"username": CustomFieldSerializer},
         )
 
-        # Проверяем что поле переопределено
+        # Check that field is overridden
         instance = DynamicTestSerializer()
         assert "username" in instance.fields
         assert isinstance(instance.fields["username"], CustomFieldSerializer)
         assert instance.fields["username"].read_only is True
 
     def test_dynamic_serializer_with_field_overrides_instance(self):
-        """Тест dynamic_serializer с переопределением полей через экземпляр"""
+        """Test dynamic_serializer with field overrides through instance"""
 
         class BaseTestSerializer(AModelSerializer):
             class Meta:
@@ -93,21 +93,21 @@ class TestDynamicSerializer:
 
         custom_instance = CustomFieldSerializer(read_only=False)
 
-        # Создаем динамический сериализатор с переопределением поля
+        # Create dynamic serializer with field override
         DynamicTestSerializer = dynamic_serializer(
             base_serializer=BaseTestSerializer,
             include_fields=("username", "email"),
             field_overrides={"email": custom_instance},
         )
 
-        # Проверяем что поле переопределено
+        # Check that field is overridden
         instance = DynamicTestSerializer()
         assert "email" in instance.fields
         assert instance.fields["email"] is custom_instance
         assert instance.fields["email"].read_only is False
 
     def test_dynamic_serializer_invalid_field_override(self):
-        """Тест dynamic_serializer с невалидным переопределением поля"""
+        """Test dynamic_serializer with invalid field override"""
 
         class BaseTestSerializer(AModelSerializer):
             field1 = CharField()
@@ -116,7 +116,7 @@ class TestDynamicSerializer:
                 model = User
                 fields = ("field1",)
 
-        # Попытка переопределить поле невалидным значением
+        # Attempt to override field with invalid value
         with pytest.raises(ValueError, match="Invalid serializer for field 'field1'"):
             dynamic_serializer(
                 base_serializer=BaseTestSerializer,
@@ -125,7 +125,7 @@ class TestDynamicSerializer:
             )
 
     def test_dynamic_serializer_no_field_overrides(self):
-        """Тест dynamic_serializer без переопределения полей"""
+        """Test dynamic_serializer without field overrides"""
 
         class BaseTestSerializer(AModelSerializer):
             field1 = CharField()
@@ -136,21 +136,21 @@ class TestDynamicSerializer:
                 model = User
                 fields = ("field1", "field2", "field3")
 
-        # Создаем динамический сериализатор без переопределений
+        # Create dynamic serializer without overrides
         DynamicTestSerializer = dynamic_serializer(
             base_serializer=BaseTestSerializer, include_fields=("field1", "field3")
         )
 
-        # Проверяем что сериализатор создан корректно
+        # Check that serializer is created correctly
         assert DynamicTestSerializer is not None
         assert DynamicTestSerializer.Meta.fields == ("field1", "field3")
 
-        # Проверяем что можем создать экземпляр
+        # Check that we can create instance
         instance = DynamicTestSerializer()
         assert instance is not None
 
     def test_dynamic_serializer_empty_include_fields(self):
-        """Тест dynamic_serializer с пустым списком полей"""
+        """Test dynamic_serializer with empty field list"""
 
         class BaseTestSerializer(AModelSerializer):
             field1 = CharField()
@@ -159,13 +159,15 @@ class TestDynamicSerializer:
                 model = User
                 fields = ("field1",)
 
-        # Создаем динамический сериализатор с пустыми полями
-        DynamicTestSerializer = dynamic_serializer(base_serializer=BaseTestSerializer, include_fields=())
+        # Create dynamic serializer with empty fields
+        DynamicTestSerializer = dynamic_serializer(
+            base_serializer=BaseTestSerializer, include_fields=()
+        )
 
         assert DynamicTestSerializer.Meta.fields == ()
 
     def test_dynamic_serializer_inheritance(self):
-        """Тест наследования от базового сериализатора"""
+        """Test inheritance from base serializer"""
 
         class BaseTestSerializer(AModelSerializer):
             field1 = CharField()
@@ -177,16 +179,18 @@ class TestDynamicSerializer:
             def custom_method(self):
                 return "base_method"
 
-        # Создаем динамический сериализатор
-        DynamicTestSerializer = dynamic_serializer(base_serializer=BaseTestSerializer, include_fields=("field1",))
+        # Create dynamic serializer
+        DynamicTestSerializer = dynamic_serializer(
+            base_serializer=BaseTestSerializer, include_fields=("field1",)
+        )
 
-        # Проверяем наследование методов
+        # Check method inheritance
         instance = DynamicTestSerializer()
         assert hasattr(instance, "custom_method")
         assert instance.custom_method() == "base_method"
 
     def test_dynamic_serializer_meta_inheritance(self):
-        """Тест наследования Meta класса"""
+        """Test Meta class inheritance"""
 
         class BaseTestSerializer(AModelSerializer):
             field1 = CharField()
@@ -197,16 +201,18 @@ class TestDynamicSerializer:
                 read_only_fields = ("field1",)
                 extra_kwargs = {"field1": {"required": False}}
 
-        # Создаем динамический сериализатор
-        DynamicTestSerializer = dynamic_serializer(base_serializer=BaseTestSerializer, include_fields=("field1",))
+        # Create dynamic serializer
+        DynamicTestSerializer = dynamic_serializer(
+            base_serializer=BaseTestSerializer, include_fields=("field1",)
+        )
 
-        # Проверяем наследование атрибутов Meta
+        # Check Meta attributes inheritance
         assert hasattr(DynamicTestSerializer.Meta, "read_only_fields")
         assert hasattr(DynamicTestSerializer.Meta, "extra_kwargs")
         assert DynamicTestSerializer.Meta.read_only_fields == ("field1",)
 
     def test_dynamic_serializer_multiple_field_overrides(self):
-        """Тест dynamic_serializer с множественными переопределениями полей"""
+        """Test dynamic_serializer with multiple field overrides"""
 
         class BaseTestSerializer(AModelSerializer):
             class Meta:
@@ -221,22 +227,25 @@ class TestDynamicSerializer:
 
         custom_instance = CustomSerializer2()
 
-        # Создаем динамический сериализатор с множественными переопределениями
+        # Create dynamic serializer with multiple overrides
         DynamicTestSerializer = dynamic_serializer(
             base_serializer=BaseTestSerializer,
             include_fields=("username", "email", "first_name"),
-            field_overrides={"username": CustomSerializer1, "first_name": custom_instance},
+            field_overrides={
+                "username": CustomSerializer1,
+                "first_name": custom_instance,
+            },
         )
 
-        # Проверяем переопределения
+        # Check overrides
         instance = DynamicTestSerializer()
         assert isinstance(instance.fields["username"], CustomSerializer1)
         assert instance.fields["first_name"] is custom_instance
-        # email должно остаться оригинальным - это поле EmailField из User модели
+        # email should remain original - it's EmailField from User model
         assert "email" in instance.fields
 
     def test_dynamic_serializer_return_type(self):
-        """Тест типа возвращаемого значения"""
+        """Test return type"""
 
         class BaseTestSerializer(AModelSerializer):
             field1 = CharField()
@@ -245,16 +254,18 @@ class TestDynamicSerializer:
                 model = User
                 fields = ("field1",)
 
-        # Создаем динамический сериализатор
-        DynamicTestSerializer = dynamic_serializer(base_serializer=BaseTestSerializer, include_fields=("field1",))
+        # Create dynamic serializer
+        DynamicTestSerializer = dynamic_serializer(
+            base_serializer=BaseTestSerializer, include_fields=("field1",)
+        )
 
-        # Проверяем что возвращается класс
+        # Check that class is returned
         assert isinstance(DynamicTestSerializer, type)
         assert issubclass(DynamicTestSerializer, BaseTestSerializer)
         assert issubclass(DynamicTestSerializer, AModelSerializer)
 
     def test_dynamic_serializer_class_name(self):
-        """Тест имени созданного класса"""
+        """Test created class name"""
 
         class BaseTestSerializer(AModelSerializer):
             field1 = CharField()
@@ -263,20 +274,22 @@ class TestDynamicSerializer:
                 model = User
                 fields = ("field1",)
 
-        # Создаем динамический сериализатор
-        DynamicTestSerializer = dynamic_serializer(base_serializer=BaseTestSerializer, include_fields=("field1",))
+        # Create dynamic serializer
+        DynamicTestSerializer = dynamic_serializer(
+            base_serializer=BaseTestSerializer, include_fields=("field1",)
+        )
 
-        # Проверяем имя класса
+        # Check class name
         assert DynamicTestSerializer.__name__ == "DynamicSerializer"
 
 
 @pytest.mark.skipif(DRF_AVAILABLE, reason="Skip when DRF is available")
 class TestWithoutDRF:
-    """Тесты когда Django REST Framework недоступен"""
+    """Tests when Django REST Framework is unavailable"""
 
     def test_import_without_drf(self):
-        """Тест импорта модуля без DRF"""
-        # Модуль должен импортироваться даже без DRF
+        """Test module import without DRF"""
+        # Module should import even without DRF
         from adjango.serializers import dynamic_serializer
 
         assert dynamic_serializer is not None

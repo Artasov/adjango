@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Generic, TypeVar
 
 from django.db.models import ManyToManyField
 
-from adjango.descriptors import AManyToManyDescriptor, AManyRelatedManager
+from adjango.descriptors import AManyRelatedManager, AManyToManyDescriptor
 
 if TYPE_CHECKING:
     from django.db.models import Model

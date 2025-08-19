@@ -2,9 +2,8 @@ from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
-from kombu.exceptions import OperationalError
-
 import pytest
+from kombu.exceptions import OperationalError
 
 from adjango.utils.celery.tasker import Tasker
 

@@ -7,11 +7,11 @@ from adjango.tasks import send_emails_task
 
 
 class TestSendEmailsTask:
-    """Тесты для задачи send_emails_task"""
+    """Tests for задачи send_emails_task"""
 
     @patch("adjango.tasks.send_emails")
     def test_send_emails_task_basic(self, mock_send_emails):
-        """Тест базовой функциональности задачи"""
+        """Test базовой функциональности задачи"""
         subject = "Test Subject"
         emails = ["test1@example.com", "test2@example.com"]
         template = "test_template.html"
@@ -23,7 +23,7 @@ class TestSendEmailsTask:
 
     @patch("adjango.tasks.send_emails")
     def test_send_emails_task_with_tuple_emails(self, mock_send_emails):
-        """Тест задачи с tuple emails"""
+        """Test задачи с tuple emails"""
         subject = "Test Subject"
         emails = ("test1@example.com", "test2@example.com")
         template = "test_template.html"
@@ -35,7 +35,7 @@ class TestSendEmailsTask:
 
     @patch("adjango.tasks.send_emails")
     def test_send_emails_task_with_single_email(self, mock_send_emails):
-        """Тест задачи с одним email"""
+        """Test задачи с одним email"""
         subject = "Single Email Test"
         emails = ["single@example.com"]
         template = "single_template.html"
@@ -47,7 +47,7 @@ class TestSendEmailsTask:
 
     @patch("adjango.tasks.send_emails")
     def test_send_emails_task_empty_context(self, mock_send_emails):
-        """Тест задачи с пустым контекстом"""
+        """Test задачи с пустым контекстом"""
         subject = "Empty Context Test"
         emails = ["test@example.com"]
         template = "empty_template.html"
@@ -59,7 +59,7 @@ class TestSendEmailsTask:
 
     @patch("adjango.tasks.send_emails")
     def test_send_emails_task_exception_handling(self, mock_send_emails):
-        """Тест обработки исключений в задаче"""
+        """Test обработки исключений в задаче"""
         # Настраиваем мок для вызова исключения
         mock_send_emails.side_effect = Exception("Email sending failed")
 
@@ -75,14 +75,14 @@ class TestSendEmailsTask:
         mock_send_emails.assert_called_once_with(subject, emails, template, context)
 
     def test_send_emails_task_function_exists(self):
-        """Тест что функция задачи существует и имеет правильные атрибуты"""
+        """Test что функция задачи существует и имеет правильные атрибуты"""
         # Проверяем, что это Celery задача
         assert hasattr(send_emails_task, "delay")
         assert hasattr(send_emails_task, "apply_async")
         assert callable(send_emails_task)
 
     def test_send_emails_task_retry_configuration(self):
-        """Тест конфигурации retry для задачи"""
+        """Test конфигурации retry для задачи"""
         # Проверяем настройки retry
         task_meta = send_emails_task
 
@@ -101,7 +101,7 @@ class TestSendEmailsTask:
 
     @patch("adjango.tasks.send_emails")
     def test_send_emails_task_type_annotations(self, mock_send_emails):
-        """Тест типов аргументов задачи"""
+        """Test типов аргументов задачи"""
         # Проверяем, что функция принимает правильные типы
         subject = "Type Test"
         emails_list = ["test1@example.com", "test2@example.com"]
@@ -119,7 +119,7 @@ class TestSendEmailsTask:
 
     @patch("adjango.tasks.logging.getLogger")
     def test_logger_initialization(self, mock_get_logger):
-        """Тест инициализации логгера"""
+        """Test инициализации логгера"""
         # Перезагружаем модуль для проверки инициализации логгера
         import importlib
 
@@ -132,12 +132,16 @@ class TestSendEmailsTask:
 
     @patch("adjango.tasks.send_emails")
     def test_send_emails_task_complex_context(self, mock_send_emails):
-        """Тест задачи со сложным контекстом"""
+        """Test задачи со сложным контекстом"""
         subject = "Complex Context Test"
         emails = ["test@example.com"]
         template = "complex_template.html"
         context = {
-            "user": {"name": "John Doe", "email": "john@example.com", "preferences": ["email", "sms"]},
+            "user": {
+                "name": "John Doe",
+                "email": "john@example.com",
+                "preferences": ["email", "sms"],
+            },
             "data": [1, 2, 3, 4, 5],
             "metadata": {"timestamp": "2023-01-01T00:00:00Z", "version": "1.0"},
         }

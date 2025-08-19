@@ -29,8 +29,12 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument("module", help="Module name (e.g., order)")
-        parser.add_argument("app_label", help="App label in dotted path (e.g., apps.commerce)")
-        parser.add_argument("models_csv", help="Comma-separated model names (e.g., Order,Product,Price)")
+        parser.add_argument(
+            "app_label", help="App label in dotted path (e.g., apps.commerce)"
+        )
+        parser.add_argument(
+            "models_csv", help="Comma-separated model names (e.g., Order,Product,Price)"
+        )
 
     def handle(self, *args: Any, **options: Any) -> None:
         module: str = options["module"].strip()
@@ -141,7 +145,9 @@ class Command(BaseCommand):
             for model in model_names:
                 model_snake = camel_to_snake(model)
                 ((models_dir / module) / f"{model_snake}.py").write_text(
-                    self._render_model(app_label, module, model, model_snake, single=False),
+                    self._render_model(
+                        app_label, module, model, model_snake, single=False
+                    ),
                     encoding="utf-8",
                 )
 
@@ -162,18 +168,28 @@ class Command(BaseCommand):
                 )
 
             # Update models/<module>/__init__.py and root models/__init__.py
-            subpkg_init_imports = [(f"{module}.{camel_to_snake(m)}", m) for m in model_names]
-            self._update_models_init(models_dir, subpkg_module=module, imports=subpkg_init_imports)
+            subpkg_init_imports = [
+                (f"{module}.{camel_to_snake(m)}", m) for m in model_names
+            ]
+            self._update_models_init(
+                models_dir, subpkg_module=module, imports=subpkg_init_imports
+            )
             self._update_models_init(
                 models_dir,
                 imports=[(f"{module}.{camel_to_snake(m)}", m) for m in model_names],
             )
 
-        self.stdout.write(self.style.SUCCESS(f"Entities created for {app_label}:{module} → {', '.join(model_names)}"))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Entities created for {app_label}:{module} → {', '.join(model_names)}"
+            )
+        )
 
     # ---------- render helpers ----------
 
-    def _render_service(self, app_label: str, module: str, model: str, model_snake: str) -> str:
+    def _render_service(
+        self, app_label: str, module: str, model: str, model_snake: str
+    ) -> str:
         return f"""from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -191,7 +207,9 @@ class {model}Service(ABaseService):
         self.{model_snake} = {model_snake}
 """
 
-    def _render_model(self, app_label: str, module: str, model: str, model_snake: str, single: bool) -> str:
+    def _render_model(
+        self, app_label: str, module: str, model: str, model_snake: str, single: bool
+    ) -> str:
         # Path to service
         if single:
             service_import = f"from {app_label}.services.{module} import {model}Service"
@@ -220,7 +238,9 @@ class {model}(AModel):
         return {model}Service(self)
 """
 
-    def _render_serializer_stub(self, app_label: str, module: str, models: List[str]) -> str:
+    def _render_serializer_stub(
+        self, app_label: str, module: str, models: List[str]
+    ) -> str:
         # Simple stub
         lines = [
             "from adjango.aserializers import AModelSerializer",
@@ -279,7 +299,11 @@ class {model}(AModel):
                 # rough parser for existing __all__
                 m = re.search(r"__all__\s*=\s*\[([^\]]*)\]", line)
                 if m:
-                    names = [x.strip().strip("'\"") for x in m.group(1).split(",") if x.strip()]
+                    names = [
+                        x.strip().strip("'\"")
+                        for x in m.group(1).split(",")
+                        if x.strip()
+                    ]
                     existing_all.extend(names)
 
         # Add imports if they don't exist
@@ -290,7 +314,9 @@ class {model}(AModel):
             all_names.append(cls)
 
         # Update __all__
-        final_all = list(dict.fromkeys(existing_all + all_names))  # preserve order, dedupe
+        final_all = list(
+            dict.fromkeys(existing_all + all_names)
+        )  # preserve order, dedupe
         new_lines = [ln for ln in new_lines if not ln.startswith("__all__")]
         new_lines.append(f"__all__ = [{', '.join([repr(x) for x in final_all])}]")
         new_content = "\n".join(new_lines).rstrip() + "\n"

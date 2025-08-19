@@ -40,9 +40,13 @@ class Tasker:
             if not eta and not countdown:
                 result = task.apply_async(kwargs=kwargs, queue=queue, expires=expires)
             elif eta:
-                result = task.apply_async(kwargs=kwargs, eta=eta, queue=queue, expires=expires)
+                result = task.apply_async(
+                    kwargs=kwargs, eta=eta, queue=queue, expires=expires
+                )
             else:
-                result = task.apply_async(kwargs=kwargs, countdown=countdown, queue=queue, expires=expires)
+                result = task.apply_async(
+                    kwargs=kwargs, countdown=countdown, queue=queue, expires=expires
+                )
         except OperationalError:
             # If the broker is unavailable, execute task locally instead of failing.
             result = task.apply(kwargs=kwargs)
@@ -81,14 +85,18 @@ class Tasker:
         """
         if interval:
             # Schedule task with periodic interval
-            schedule, _ = IntervalSchedule.objects.get_or_create(every=interval, period=IntervalSchedule.SECONDS)
+            schedule, _ = IntervalSchedule.objects.get_or_create(
+                every=interval, period=IntervalSchedule.SECONDS
+            )
         elif crontab:
             # Schedule task with Crontab schedule
             schedule, _ = CrontabSchedule.objects.get_or_create(**crontab)
         else:
             # Schedule one-time task
             if schedule_time is None:
-                raise ValueError("schedule_time is required when interval and crontab are not provided")
+                raise ValueError(
+                    "schedule_time is required when interval and crontab are not provided"
+                )
             schedule, _ = CrontabSchedule.objects.get_or_create(
                 minute=schedule_time.minute,
                 hour=schedule_time.hour,
@@ -126,14 +134,18 @@ class Tasker:
         """
         if interval:
             # Schedule task with periodic interval
-            schedule, _ = await IntervalSchedule.objects.aget_or_create(every=interval, period=IntervalSchedule.SECONDS)
+            schedule, _ = await IntervalSchedule.objects.aget_or_create(
+                every=interval, period=IntervalSchedule.SECONDS
+            )
         elif crontab:
             # Schedule task with Crontab schedule
             schedule, _ = await CrontabSchedule.objects.aget_or_create(**crontab)
         else:
             # Schedule one-time task
             if schedule_time is None:
-                raise ValueError("schedule_time is required when interval and crontab are not provided")
+                raise ValueError(
+                    "schedule_time is required when interval and crontab are not provided"
+                )
             schedule, _ = await CrontabSchedule.objects.aget_or_create(
                 minute=schedule_time.minute,
                 hour=schedule_time.hour,

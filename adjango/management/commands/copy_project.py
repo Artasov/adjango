@@ -146,7 +146,11 @@ class Command(BaseCommand):
 
         copy_conf_path = settings.COPY_PROJECT_CONFIGURATIONS
         if not os.path.exists(copy_conf_path):
-            self.stderr.write(self._color_text(f"Configuration file not found: {copy_conf_path}", "red"))
+            self.stderr.write(
+                self._color_text(
+                    f"Configuration file not found: {copy_conf_path}", "red"
+                )
+            )
             sys.exit(1)
 
         # Dynamically import the configuration module
@@ -167,7 +171,9 @@ class Command(BaseCommand):
 
         configurations = copy_conf.configurations
         if conf_name not in configurations:
-            self.stderr.write(self._color_text(f"Configuration '{conf_name}' not found", "red"))
+            self.stderr.write(
+                self._color_text(f"Configuration '{conf_name}' not found", "red")
+            )
             sys.exit(1)
 
         # Extract the selected configuration
@@ -197,9 +203,15 @@ class Command(BaseCommand):
             try:
                 with open(output_file, "w", encoding="utf-8") as f:
                     f.write(final_text)
-                self.stdout.write(self._color_text(f"Result saved to file: {output_file}", "green"))
+                self.stdout.write(
+                    self._color_text(f"Result saved to file: {output_file}", "green")
+                )
             except Exception as e:
-                self.stderr.write(self._color_text(f"Error writing to file {output_file}: {str(e)}", "red"))
+                self.stderr.write(
+                    self._color_text(
+                        f"Error writing to file {output_file}: {str(e)}", "red"
+                    )
+                )
         else:
             try:
                 import pyperclip
@@ -207,7 +219,9 @@ class Command(BaseCommand):
                 pyperclip = None
             if pyperclip:
                 pyperclip.copy(final_text)
-                self.stdout.write(self._color_text("Result copied to clipboard", "green"))
+                self.stdout.write(
+                    self._color_text("Result copied to clipboard", "green")
+                )
             else:
                 self.stderr.write(
                     self._color_text(
@@ -250,13 +264,23 @@ class Command(BaseCommand):
                         self.copy_path(path_to_copy, opts)
                     self.stdout.write(self._color_text(f"Copied: {prefix}", "green"))
                 except FileNotFoundError as er:
-                    self.stderr.write(self._color_text(f"Not found: {prefix} ({str(er)})", "red"))
+                    self.stderr.write(
+                        self._color_text(f"Not found: {prefix} ({str(er)})", "red")
+                    )
                 except Exception as er:
-                    self.stderr.write(self._color_text(f"Error copying {prefix}: {str(er)}", "red"))
+                    self.stderr.write(
+                        self._color_text(f"Error copying {prefix}: {str(er)}", "red")
+                    )
             else:
-                self.stderr.write(self._color_text(f"Unknown directive '{conf_item}' for {prefix}", "red"))
+                self.stderr.write(
+                    self._color_text(
+                        f"Unknown directive '{conf_item}' for {prefix}", "red"
+                    )
+                )
         else:
-            self.stderr.write(self._color_text(f"Invalid configuration for {prefix}", "red"))
+            self.stderr.write(
+                self._color_text(f"Invalid configuration for {prefix}", "red")
+            )
 
     def resolve_path(self, dotted_path, start_dir):
         """
@@ -281,7 +305,9 @@ class Command(BaseCommand):
 
         # If nothing is found at all - error
         if not found_paths:
-            raise FileNotFoundError(f"Path does not exist: {base_path} (including all known extensions)")
+            raise FileNotFoundError(
+                f"Path does not exist: {base_path} (including all known extensions)"
+            )
 
         return found_paths
 
@@ -300,7 +326,11 @@ class Command(BaseCommand):
         """
         for root, dirs, files in os.walk(directory_path):
             # Exclude directories
-            dirs[:] = [d for d in dirs if not any(excl in d for excl in opts.get("exclude", []))]
+            dirs[:] = [
+                d
+                for d in dirs
+                if not any(excl in d for excl in opts.get("exclude", []))
+            ]
             for file in files:
                 if any(excl in file for excl in opts.get("exclude", [])):
                     continue
@@ -344,7 +374,10 @@ class Command(BaseCommand):
         if lines:
             first_line = lines[0].strip()
             # If first line is a comment with forward slash
-            if first_line.startswith(("#", "//", "/*", "<!--", "/")) and "/" in first_line:
+            if (
+                first_line.startswith(("#", "//", "/*", "<!--", "/"))
+                and "/" in first_line
+            ):
                 lines = lines[1:]
                 source = "\n".join(lines)
 

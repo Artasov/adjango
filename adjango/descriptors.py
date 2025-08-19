@@ -9,9 +9,9 @@ from adjango.managers.base import AManager
 
 if TYPE_CHECKING:
     from django.db.models import Model
+
     from adjango.querysets.base import AQuerySet
 
-# Type variable for related model
 _RM = TypeVar("_RM", bound="Model")
 
 
@@ -24,9 +24,9 @@ class AManyRelatedManager(AManager[_RM], Generic[_RM]):
     implementation while preserving the generic ``_RM`` type information.
     """
 
-    def all(self) -> "AQuerySet[_RM]": ...  # pragma: no cover - typing only
+    def all(self) -> "AQuerySet[_RM]": ...
 
-    async def aall(self) -> list[_RM]: ...  # pragma: no cover - typing only
+    async def aall(self) -> list[_RM]: ...
 
 
 class AManyToManyDescriptor(ManyToManyDescriptor, Generic[_RM]):
@@ -64,17 +64,15 @@ class AManyToManyDescriptor(ManyToManyDescriptor, Generic[_RM]):
         # allows IDEs and type checkers to infer the concrete model type instead
         # of the generic ``_RM`` placeholder.
         class _AManyRelatedManager(
-            original_manager_cls, AManyRelatedManager[related_model]  # type: ignore[type-arg]
+            original_manager_cls, AManyRelatedManager[related_model]
         ):
             def all(self) -> "AQuerySet[related_model]":  # type: ignore[override]
                 from adjango.querysets.base import AQuerySet
 
-                # ``ManyRelatedManager`` returns a plain ``QuerySet``.  Casting
-                # to ``AQuerySet`` preserves the async methods and typing.
                 return cast(AQuerySet[related_model], super().all())
 
-            async def aall(self) -> list[related_model]:  # type: ignore[valid-type]
-                """Возвращает все связанные объекты."""
+            async def aall(self) -> list[related_model]:
+                """Returns all related objects."""
                 from asgiref.sync import sync_to_async
 
                 return await sync_to_async(list)(self.get_queryset())
@@ -82,6 +80,6 @@ class AManyToManyDescriptor(ManyToManyDescriptor, Generic[_RM]):
         return _AManyRelatedManager
 
     def __set_name__(self, owner, name):
-        """Вызывается когда дескриптор присваивается к атрибуту класса."""
+        """Called when descriptor is assigned to a class attribute."""
         super().__set_name__(owner, name)
         self.name = name

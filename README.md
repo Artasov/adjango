@@ -1,11 +1,10 @@
 # 🚀 ADjango
 
+📊 **[Coverage Report](reports/coverage_html/index.html) (60%)**
+
 > Sometimes I use this in different projects, so I decided to put it on pypi
 
-`ADjango` is a convenient library for simplifying work with Django DRF and other,
-which offers various useful `managers`, `services`, `serializers`, `decorators`, utilities
-for `asynchronous` programming, a task scheduler for Celery, working
-with `transactions` and much more.
+`ADjango` is a comprehensive library that enhances Django development with Django REST Framework (DRF) and Celery integration. It provides essential tools including asynchronous `managers`, `services`, `serializers`, `decorators`, `exceptions` and more utilities for `async` programming, Celery task scheduling, `transaction` management, and much more to streamline your Django DRF Celery development workflow.
 
 - [🚀 ADjango](#-adjango)
   - [Installation 🛠️](#installation-️)
@@ -15,6 +14,7 @@ with `transactions` and much more.
     - [Utils 🔧](#utils-)
     - [Mixins 🎨](#mixins-)
     - [Decorators 🎀](#decorators-)
+    - [Exceptions 🚨](#exceptions-)
     - [Serializers 🔧](#serializers-)
     - [Management](#management)
     - [Celery 🔥](#celery-)
@@ -95,9 +95,8 @@ if TYPE_CHECKING:
   from apps.core.models import User
 
 
-class UserService(ABaseService['User']):
+class UserService(ABaseService):
   def __init__(self, user: 'User') -> None:
-    super().__init__(user)
     self.user = user
 
   def get_full_name(self) -> str:
@@ -105,9 +104,12 @@ class UserService(ABaseService['User']):
 
 
 # models/user.py (User redefinition)
-class User(AAbstractUser[UserService]):
-  service_class = UserService
-  objects = AManager()
+class User(AAbstractUser):
+  ...
+
+  @property
+  def service(self) -> UserService:
+    return UserService(self)
 
 
 # and u can use with nice type hints:
@@ -121,7 +123,6 @@ full_name = user.service.get_full_name()
 
 # models/commerce.py
 class Product(APolymorphicModel):
-  # APolymorphicManager() of course here already exists
   name = CharField(max_length=100)
 
 
@@ -148,7 +149,7 @@ await order.products.aadd(products[0])
 # We get the order again without associated objects
 order: Order = await Order.objects.aget(id=69)
 # Retrieve related objects asynchronously.
-order.user = await order.related('user')
+order.user = await order.arelated('user')
 products = await order.products.aall()
 # Works the same with intermediate processing/query filters
 orders = await Order.objects.prefetch_related('products').aall()
@@ -178,12 +179,12 @@ from adjango.models.mixins import (
     ACreatedUpdatedAtMixin, ACreatedUpdatedAtIndexedMixin
 )
 
-class EventProfile(
-    ACreatedUpdatedAtIndexedMixin[EventProfileService]
-):
-    service_class = EventProfileService
-    
+class EventProfile(ACreatedUpdatedAtIndexedMixin):
     event = ForeignKey('events.Event', CASCADE, 'members', verbose_name=_('Event'))
+    
+    @property
+    def service(self) -> EventProfileService:
+        return EventProfileService(self)
 ```
 
 ### Decorators 🎀
@@ -193,18 +194,17 @@ class EventProfile(
   The `aforce_data` decorator combines data from the `GET`, `POST` and `JSON` body
   request in `request.data`. This makes it easy to access all request data in one place.
 
-- `atomic`
+- `aatomic`
 
-  An asynchronous decorator that wraps
-  function into a transactional context. If an exception occurs, all changes are rolled back.
+  An asynchronous decorator that wraps function into a transactional context using `AsyncAtomicContextManager`. If an exception occurs, all database changes are rolled back.
 
 - `acontroller/controller`
 
-  An asynchronous decorator that wraps
-  function into a transactional context. If an exception occurs, all changes are rolled back.
+  Decorators that provide automatic logging and exception handling for views. The `acontroller` is for async views, `controller` is for sync views. They do NOT wrap functions in transactions (use `@aatomic` for that).
 
     ```python
     from adjango.adecorators import acontroller
+    from adjango.decorators import controller
 
     @acontroller(name='My View', logger='custom_logger', log_name=True, log_time=True)
     async def my_view(request):
@@ -213,17 +213,21 @@ class EventProfile(
     @acontroller('One More View')
     async def my_view_one_more(request):
         pass
+
+    @controller(name='Sync View', auth_required=True, log_time=True)
+    def my_sync_view(request):
+        pass
     ```
 
-  - These decorators automatically catch uncaught exceptions and log if the logger is configured
-      `ADJANGO_CONTROLLERS_LOGGER_NAME` `ADJANGO_CONTROLLERS_LOGGING`.
+  - These decorators automatically catch uncaught exceptions and log them if the logger is configured via `ADJANGO_CONTROLLERS_LOGGER_NAME` and `ADJANGO_CONTROLLERS_LOGGING`.
+  - The `controller` decorator also supports authentication checking with `auth_required` parameter.
   - You can also implement the interface:
 
     ```python
     class IHandlerControllerException(ABC):
         @staticmethod
         @abstractmethod
-        def handle(fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args, **karts) -> None:
+        def handle(fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args, **kwargs) -> None:
             """
             An example of an exception handling function.
     
@@ -245,6 +249,47 @@ class EventProfile(
     from adjango.handlers import HCE # use my example if u need
     ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION = HCE.handle
     ```
+
+### Exceptions 🚨
+
+`ADjango` provides convenient classes for generating API exceptions with proper HTTP statuses and structured error messages.
+
+```python
+from adjango.exceptions.base import (
+    ApiExceptionGenerator, 
+    ModelApiExcpetionGenerator, 
+    ModelApiExcpetionBaseVariants
+)
+
+# General API exceptions
+raise ApiExceptionGenerator('Специальная ошибка', 500)
+raise ApiExceptionGenerator('Специальная ошибка', 500, 'special_error')
+raise ApiExceptionGenerator(
+    'Неверные данные', 
+    400, 
+    extra={'field': 'email'}
+)
+
+# Model exceptions
+from apps.commerce.models import Order
+
+raise ModelApiExcpetionGenerator(
+    model=Order, 
+    variant=ModelApiExcpetionBaseVariants.DoesNotExist
+)
+raise ModelApiExcpetionGenerator(
+    Order, 
+    ModelApiExcpetionBaseVariants.AlreadyExists, 
+    code="order_exists", 
+    extra={"id": 123}
+)
+
+# Available exception variants for models:
+# DoesNotExist, AlreadyExists, InvalidData, AccessDenied,
+# NotAcceptable, Expired, InternalServerError, AlreadyUsed,
+# NotUsed, NotAvailable, TemporarilyUnavailable, 
+# ConflictDetected, LimitExceeded, DependencyMissing, Deprecated
+```
 
 ### Serializers 🔧
 
@@ -471,7 +516,10 @@ task_id = Tasker.put(
     param1='value'
 )
 
-# One-time task via Celery Beat
+# Cancel task by ID
+Tasker.cancel_task(task_id)
+
+# One-time task via Celery Beat (sync)
 Tasker.beat(
     task=my_task,
     name='one_time_task',
@@ -479,11 +527,27 @@ Tasker.beat(
     param1='value'
 )
 
-# Periodic task via Celery Beat
+# Periodic task via Celery Beat (sync)
 Tasker.beat(
     task=my_task,
     name='hourly_cleanup',
-    interval=3600,  # every hour
+    interval=3600,  # every hour in seconds
+    param1='value'
+)
+
+# Crontab schedule via Celery Beat (sync)
+Tasker.beat(
+    task=my_task,
+    name='daily_report',
+    crontab={'hour': 7, 'minute': 30},  # every day at 7:30 AM
+    param1='value'
+)
+
+# Async version of beat is also available
+await Tasker.abeat(
+    task=my_task,
+    name='async_task',
+    interval=1800,  # every 30 minutes
     param1='value'
 )
 ```

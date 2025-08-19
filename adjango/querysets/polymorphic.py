@@ -15,7 +15,7 @@ try:
 
     class APolymorphicQuerySet(AQuerySet[_M], PolymorphicQuerySet, Generic[_M]):
         async def aall(self) -> list[_M]:
-            """Возвращает все объекты из QuerySet."""
+            """Returns all objects from QuerySet."""
             return await self._aall_from_queryset(self)
 
         def getorn(self, exception=None, *args, **kwargs) -> _M | None:
@@ -25,7 +25,7 @@ try:
             return await agetorn(self, exception, *args, **kwargs)
 
         async def afilter(self, *args, **kwargs) -> list[_M]:
-            """Возвращает список объектов после фильтрации."""
+            """Returns list of objects after filtering."""
             filtered_qs = self.filter(*args, **kwargs)
             return await self._aall_from_queryset(filtered_qs)
 

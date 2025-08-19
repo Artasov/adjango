@@ -9,10 +9,10 @@ from django.db.models import Model
 
 from adjango.querysets.base import AQuerySet
 
-# Type variable for generic Manager
 _M = TypeVar("_M", bound=Model)
 
 if TYPE_CHECKING:
+
     class _ManagerBase(Generic[_M]):
         model: type[_M]
         _db: str | None
@@ -23,14 +23,15 @@ if TYPE_CHECKING:
         def exclude(self, *args: Any, **kwargs: Any) -> AQuerySet[_M]: ...
         def prefetch_related(self, *lookups: Any) -> AQuerySet[_M]: ...
         def select_related(self, *fields: Any) -> AQuerySet[_M]: ...
+
 else:
     from django.db.models import Manager as _ManagerBase
 
 
 class AManager(_ManagerBase, Generic[_M]):
-    """Асинхронный менеджер с типизированными методами."""
+    """Asynchronous manager."""
 
-    def get_queryset(self) -> AQuerySet[_M]:  # type: ignore[override]
+    def get_queryset(self) -> AQuerySet[_M]:
         return AQuerySet(self.model, using=self._db, hints=self._hints)
 
     async def aall(self) -> list[_M]:
@@ -64,27 +65,24 @@ class AManager(_ManagerBase, Generic[_M]):
         return await self.get_queryset().aexists()
 
     async def aset(self, data: Iterable[_M], *args: Any, **kwargs: Any) -> None:
-        """Асинхронная версия set() для ManyToMany полей."""
         await self.get_queryset().aset(data, *args, **kwargs)
 
     async def aadd(self, data: _M, *args: Any, **kwargs: Any) -> None:
-        """Асинхронная версия add() для ManyToMany полей."""
         await self.get_queryset().aadd(data, *args, **kwargs)
 
-    # Typed queryset-returning methods to preserve chaining types
-    def all(self) -> AQuerySet[_M]:  # type: ignore[override]
+    def all(self) -> AQuerySet[_M]:
         return cast(AQuerySet[_M], super().all())
 
-    def filter(self, *args: Any, **kwargs: Any) -> AQuerySet[_M]:  # type: ignore[override]
+    def filter(self, *args: Any, **kwargs: Any) -> AQuerySet[_M]:
         return cast(AQuerySet[_M], super().filter(*args, **kwargs))
 
-    def exclude(self, *args: Any, **kwargs: Any) -> AQuerySet[_M]:  # type: ignore[override]
+    def exclude(self, *args: Any, **kwargs: Any) -> AQuerySet[_M]:
         return cast(AQuerySet[_M], super().exclude(*args, **kwargs))
 
-    def prefetch_related(self, *lookups: Any) -> AQuerySet[_M]:  # type: ignore[override]
+    def prefetch_related(self, *lookups: Any) -> AQuerySet[_M]:
         return cast(AQuerySet[_M], super().prefetch_related(*lookups))
 
-    def select_related(self, *fields: Any) -> AQuerySet[_M]:  # type: ignore[override]
+    def select_related(self, *fields: Any) -> AQuerySet[_M]:
         return cast(AQuerySet[_M], super().select_related(*fields))
 
 
