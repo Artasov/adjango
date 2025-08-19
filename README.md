@@ -1,6 +1,6 @@
 # 🚀 ADjango
 
-📊 **Coverage Report (70%)**
+📊 **Coverage 70%**
 
 > Sometimes I use this in different projects, so I decided to put it on pypi
 
