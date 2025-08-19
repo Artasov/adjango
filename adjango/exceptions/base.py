@@ -32,6 +32,7 @@ except ImportError:
             self.default_code = code or self.default_code
             self.status_code = getattr(self, "status_code", 500)
 
+
     HTTP_400_BAD_REQUEST = 400
     HTTP_403_FORBIDDEN = 403
     HTTP_404_NOT_FOUND = 404
@@ -41,11 +42,10 @@ except ImportError:
     HTTP_500_INTERNAL_SERVER_ERROR = 500
     HTTP_503_SERVICE_UNAVAILABLE = 503
 
-
 __all__ = [
     "ApiExceptionGenerator",
-    "ModelApiExcpetionGenerator",
-    "ModelApiExcpetionBaseVariants",
+    "ModelApiExceptionGenerator",
+    "ModelApiExceptionBaseVariant",
 ]
 
 
@@ -76,11 +76,11 @@ class ApiExceptionGenerator(APIException):
     """
 
     def __init__(
-        self,
-        message: str,
-        status: int,
-        code: Optional[str] = None,
-        extra: Optional[dict[str, Any]] = None,
+            self,
+            message: str,
+            status: int,
+            code: Optional[str] = None,
+            extra: Optional[dict[str, Any]] = None,
     ) -> None:
         self.status_code = int(status)
         code_str = code or _slug_code(message)
@@ -92,7 +92,7 @@ class ApiExceptionGenerator(APIException):
         super().__init__(detail=payload, code=code_str)
 
 
-class ModelApiExcpetionBaseVariants(Enum):
+class ModelApiExceptionBaseVariant(Enum):
     DoesNotExist = "does_not_exist"
     AlreadyExists = "already_exists"
     InvalidData = "invalid_data"
@@ -110,72 +110,72 @@ class ModelApiExcpetionBaseVariants(Enum):
     Deprecated = "deprecated"
 
 
-_VARIANT_TO_STATUS: dict[ModelApiExcpetionBaseVariants, int] = {
-    ModelApiExcpetionBaseVariants.DoesNotExist: HTTP_404_NOT_FOUND,
-    ModelApiExcpetionBaseVariants.AlreadyExists: HTTP_409_CONFLICT,
-    ModelApiExcpetionBaseVariants.InvalidData: HTTP_400_BAD_REQUEST,
-    ModelApiExcpetionBaseVariants.AccessDenied: HTTP_403_FORBIDDEN,
-    ModelApiExcpetionBaseVariants.NotAcceptable: HTTP_406_NOT_ACCEPTABLE,
-    ModelApiExcpetionBaseVariants.Expired: HTTP_408_REQUEST_TIMEOUT,
-    ModelApiExcpetionBaseVariants.InternalServerError: HTTP_500_INTERNAL_SERVER_ERROR,
-    ModelApiExcpetionBaseVariants.AlreadyUsed: HTTP_409_CONFLICT,
-    ModelApiExcpetionBaseVariants.NotUsed: HTTP_400_BAD_REQUEST,
-    ModelApiExcpetionBaseVariants.NotAvailable: HTTP_503_SERVICE_UNAVAILABLE,
-    ModelApiExcpetionBaseVariants.TemporarilyUnavailable: HTTP_503_SERVICE_UNAVAILABLE,
-    ModelApiExcpetionBaseVariants.ConflictDetected: HTTP_409_CONFLICT,
-    ModelApiExcpetionBaseVariants.LimitExceeded: HTTP_400_BAD_REQUEST,
-    ModelApiExcpetionBaseVariants.DependencyMissing: HTTP_400_BAD_REQUEST,
-    ModelApiExcpetionBaseVariants.Deprecated: HTTP_400_BAD_REQUEST,
+_VARIANT_TO_STATUS: dict[ModelApiExceptionBaseVariant, int] = {
+    ModelApiExceptionBaseVariant.DoesNotExist: HTTP_404_NOT_FOUND,
+    ModelApiExceptionBaseVariant.AlreadyExists: HTTP_409_CONFLICT,
+    ModelApiExceptionBaseVariant.InvalidData: HTTP_400_BAD_REQUEST,
+    ModelApiExceptionBaseVariant.AccessDenied: HTTP_403_FORBIDDEN,
+    ModelApiExceptionBaseVariant.NotAcceptable: HTTP_406_NOT_ACCEPTABLE,
+    ModelApiExceptionBaseVariant.Expired: HTTP_408_REQUEST_TIMEOUT,
+    ModelApiExceptionBaseVariant.InternalServerError: HTTP_500_INTERNAL_SERVER_ERROR,
+    ModelApiExceptionBaseVariant.AlreadyUsed: HTTP_409_CONFLICT,
+    ModelApiExceptionBaseVariant.NotUsed: HTTP_400_BAD_REQUEST,
+    ModelApiExceptionBaseVariant.NotAvailable: HTTP_503_SERVICE_UNAVAILABLE,
+    ModelApiExceptionBaseVariant.TemporarilyUnavailable: HTTP_503_SERVICE_UNAVAILABLE,
+    ModelApiExceptionBaseVariant.ConflictDetected: HTTP_409_CONFLICT,
+    ModelApiExceptionBaseVariant.LimitExceeded: HTTP_400_BAD_REQUEST,
+    ModelApiExceptionBaseVariant.DependencyMissing: HTTP_400_BAD_REQUEST,
+    ModelApiExceptionBaseVariant.Deprecated: HTTP_400_BAD_REQUEST,
 }
 
 
-def _variant_message(model_name: str, variant: ModelApiExcpetionBaseVariants) -> str:
-    if variant is ModelApiExcpetionBaseVariants.DoesNotExist:
+def _variant_message(model_name: str, variant: ModelApiExceptionBaseVariant) -> str:
+    if variant is ModelApiExceptionBaseVariant.DoesNotExist:
         return f"{model_name} " + _("does not exist")
-    if variant is ModelApiExcpetionBaseVariants.AlreadyExists:
+    if variant is ModelApiExceptionBaseVariant.AlreadyExists:
         return f"{model_name} " + _("already exists")
-    if variant is ModelApiExcpetionBaseVariants.InvalidData:
+    if variant is ModelApiExceptionBaseVariant.InvalidData:
         return _("Invalid data for") + f" {model_name}"
-    if variant is ModelApiExcpetionBaseVariants.AccessDenied:
+    if variant is ModelApiExceptionBaseVariant.AccessDenied:
         return _("Access denied for") + f" {model_name}"
-    if variant is ModelApiExcpetionBaseVariants.NotAcceptable:
+    if variant is ModelApiExceptionBaseVariant.NotAcceptable:
         return _("Not acceptable for") + f" {model_name}"
-    if variant is ModelApiExcpetionBaseVariants.Expired:
+    if variant is ModelApiExceptionBaseVariant.Expired:
         return f"{model_name} " + _("expired")
-    if variant is ModelApiExcpetionBaseVariants.InternalServerError:
+    if variant is ModelApiExceptionBaseVariant.InternalServerError:
         return _("Internal server error in") + f" {model_name}"
-    if variant is ModelApiExcpetionBaseVariants.AlreadyUsed:
+    if variant is ModelApiExceptionBaseVariant.AlreadyUsed:
         return f"{model_name} " + _("already used")
-    if variant is ModelApiExcpetionBaseVariants.NotUsed:
+    if variant is ModelApiExceptionBaseVariant.NotUsed:
         return f"{model_name} " + _("not used")
-    if variant is ModelApiExcpetionBaseVariants.NotAvailable:
+    if variant is ModelApiExceptionBaseVariant.NotAvailable:
         return f"{model_name} " + _("not available")
-    if variant is ModelApiExcpetionBaseVariants.TemporarilyUnavailable:
+    if variant is ModelApiExceptionBaseVariant.TemporarilyUnavailable:
         return f"{model_name} " + _("temporarily unavailable")
-    if variant is ModelApiExcpetionBaseVariants.ConflictDetected:
+    if variant is ModelApiExceptionBaseVariant.ConflictDetected:
         return f"{model_name} " + _("conflict detected")
-    if variant is ModelApiExcpetionBaseVariants.LimitExceeded:
+    if variant is ModelApiExceptionBaseVariant.LimitExceeded:
         return f"{model_name} " + _("limit exceeded")
-    if variant is ModelApiExcpetionBaseVariants.DependencyMissing:
+    if variant is ModelApiExceptionBaseVariant.DependencyMissing:
         return f"{model_name} " + _("dependency missing")
-    if variant is ModelApiExcpetionBaseVariants.Deprecated:
+    if variant is ModelApiExceptionBaseVariant.Deprecated:
         return f"{model_name} " + _("deprecated")
     return _("Error")
 
 
-class ModelApiExcpetionGenerator(APIException):
+class ModelApiExceptionGenerator(APIException):
     """
     Usage:
-        raise ModelApiExcpetionGenerator(model=Order, variant=ModelApiExcpetionBaseVariants.AlreadyExists)
-        raise ModelApiExcpetionGenerator(Order, ModelApiExcpetionBaseVariants.DoesNotExist, code="order_not_found", extra={"id": 123})
+        raise ModelApiExceptionGenerator(model=Order, variant=ModelApiExceptionBaseVariant.AlreadyExists)
+        raise ModelApiExceptionGenerator(Order, ModelApiExceptionBaseVariant.DoesNotExist, code="order_not_found", extra={"id": 123})
     """
 
     def __init__(
-        self,
-        model: Type[Any],
-        variant: ModelApiExcpetionBaseVariants,
-        code: Optional[str] = None,
-        extra: Optional[dict[str, Any]] = None,
+            self,
+            model: Type[Any],
+            variant: ModelApiExceptionBaseVariant,
+            code: Optional[str] = None,
+            extra: Optional[dict[str, Any]] = None,
     ) -> None:
         model_name = _model_verbose_name(model)
         message = _variant_message(model_name, variant)

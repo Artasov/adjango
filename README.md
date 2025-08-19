@@ -1,6 +1,6 @@
 # 🚀 ADjango
 
-📊 **[Coverage Report](reports/coverage_html/index.html) (60%)**
+📊 **[Coverage Report](reports/coverage_html/index.html) (70%)**
 
 > Sometimes I use this in different projects, so I decided to put it on pypi
 
@@ -256,32 +256,28 @@ class EventProfile(ACreatedUpdatedAtIndexedMixin):
 
 ```python
 from adjango.exceptions.base import (
-    ApiExceptionGenerator, 
-    ModelApiExcpetionGenerator, 
-    ModelApiExcpetionBaseVariants
+  ApiExceptionGenerator,
+  ModelApiExceptionGenerator,
+  ModelApiExceptionBaseVariant as MAEBV
 )
 
 # General API exceptions
 raise ApiExceptionGenerator('Специальная ошибка', 500)
 raise ApiExceptionGenerator('Специальная ошибка', 500, 'special_error')
 raise ApiExceptionGenerator(
-    'Неверные данные', 
-    400, 
-    extra={'field': 'email'}
+  'Неверные данные',
+  400,
+  extra={'field': 'email'}
 )
 
 # Model exceptions
 from apps.commerce.models import Order
 
-raise ModelApiExcpetionGenerator(
-    model=Order, 
-    variant=ModelApiExcpetionBaseVariants.DoesNotExist
-)
-raise ModelApiExcpetionGenerator(
-    Order, 
-    ModelApiExcpetionBaseVariants.AlreadyExists, 
-    code="order_exists", 
-    extra={"id": 123}
+raise ModelApiExceptionGenerator(Order, MAEBV.DoesNotExist)
+raise ModelApiExceptionGenerator(
+  Order MAEBV.AlreadyExists,
+  code="order_exists",
+  extra={"id": 123}
 )
 
 # Available exception variants for models:

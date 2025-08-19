@@ -31,7 +31,6 @@ class AModel(Model):
         return await arelated(self, field)
 
     @property
-    @abstractmethod
     def service(self) -> "ABaseService":
         """Return service instance for this model. Must be implemented in subclasses."""
         raise NotImplementedError(
