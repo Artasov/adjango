@@ -38,11 +38,11 @@ async def view_test_arelated(request):
     # Asynchronously get related objects.
     order.user = await order.arelated("user")
     order = await Order.objects.aget(user=request.user)
-    products = await order.products.aall()  # products: list[_RM] а должен быть list[Product], обрати внимание что это полиморфная AModel
-    products_qs = order.products.all()  # products_qs: Any = order.products.all() а должно быть явно не Any
+    products = await order.products.aall()
+    products_qs = order.products.all()
     orders = await Order.objects.prefetch_related("products").aall()
     for o in orders:
-        for p in o.products.all():  # p: ant а должно быть p: Product
+        for p in o.products.all():
             print(p.id)
 
 
