@@ -1,24 +1,29 @@
 # managers/polymorphic.py
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Generic, Iterable, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Generic, Iterable, TypeVar, Union
 
 if TYPE_CHECKING:
-    from django.db.models import Model
+    pass
 
 try:
     from polymorphic.managers import PolymorphicManager
-
+    from django.db.models import Model
     from adjango.querysets.polymorphic import APolymorphicQuerySet
+    from polymorphic.query import PolymorphicQuerySet
 
     # Type variable for generic polymorphic manager
-    _M = TypeVar("_M", bound="Model")
+    _M = TypeVar("_M", bound=Model)
 
-    class APolymorphicManager(PolymorphicManager.from_queryset(APolymorphicQuerySet), Generic[_M]):  # type: ignore
+
+    class APolymorphicManager(PolymorphicManager, Generic[_M]):
         """Enhanced polymorphic manager with proper type hints."""
 
-        def get_queryset(self) -> APolymorphicQuerySet[_M]:  # type: ignore[override]
-            return cast(APolymorphicQuerySet[_M], super().get_queryset())
+        def get_queryset(self) -> Union[APolymorphicQuerySet[_M], PolymorphicQuerySet[_M]]:
+            qs = APolymorphicQuerySet(self.model, using=self._db, hints=self._hints)
+            if self.model._meta.proxy:
+                qs = qs.instance_of(self.model)
+            return qs
 
         async def aall(self) -> list[_M]:
             return await self.get_queryset().aall()
@@ -64,17 +69,20 @@ try:
             """Async get object or return None if not found."""
             return await self.get_queryset().agetorn(exception, *args, **kwargs)
 
-        def filter(self, *args: Any, **kwargs: Any) -> APolymorphicQuerySet[_M]:  # type: ignore[override]
-            return cast(APolymorphicQuerySet[_M], super().filter(*args, **kwargs))
+        def all(self) -> Union[APolymorphicQuerySet[_M], PolymorphicQuerySet[_M]]:
+            return super().all()
 
-        def exclude(self, *args: Any, **kwargs: Any) -> APolymorphicQuerySet[_M]:  # type: ignore[override]
-            return cast(APolymorphicQuerySet[_M], super().exclude(*args, **kwargs))
+        def filter(self, *args: Any, **kwargs: Any) -> Union[APolymorphicQuerySet[_M], PolymorphicQuerySet[_M]]:
+            return super().filter(*args, **kwargs)
 
-        def prefetch_related(self, *lookups: Any) -> APolymorphicQuerySet[_M]:  # type: ignore[override]
-            return cast(APolymorphicQuerySet[_M], super().prefetch_related(*lookups))
+        def exclude(self, *args: Any, **kwargs: Any) -> Union[APolymorphicQuerySet[_M], PolymorphicQuerySet[_M]]:
+            return super().exclude(*args, **kwargs)
 
-        def select_related(self, *fields: Any) -> APolymorphicQuerySet[_M]:  # type: ignore[override]
-            return cast(APolymorphicQuerySet[_M], super().select_related(*fields))
+        def prefetch_related(self, *lookups: Any) -> Union[APolymorphicQuerySet[_M], PolymorphicQuerySet[_M]]:
+            return super().prefetch_related(*lookups)
+
+        def select_related(self, *fields: Any) -> Union[APolymorphicQuerySet[_M], PolymorphicQuerySet[_M]]:
+            return super().select_related(*fields)
 
 except ImportError:
     pass

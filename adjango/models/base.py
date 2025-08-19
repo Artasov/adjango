@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 class AModel(Model):
     """Base model class with enhanced functionality."""
 
-    objects: AManager[Self]
+    objects: AManager[Self] = AManager()
 
     class Meta:
         abstract = True

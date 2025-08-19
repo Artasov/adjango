@@ -11,10 +11,10 @@ from adjango.querysets.base import AQuerySet
 
 _M = TypeVar("_M", bound=Model)
 
-from django.db.models import Manager as _ManagerBase
+from django.db.models import Manager
 
 
-class AManager(_ManagerBase, Generic[_M]):
+class AManager(Manager, Generic[_M]):
     """Asynchronous manager."""
 
     def get_queryset(self) -> Union[AQuerySet[_M], QuerySet[_M]]:

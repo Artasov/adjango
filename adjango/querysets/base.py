@@ -1,7 +1,7 @@
 # querysets/base.py
 from __future__ import annotations
 
-from typing import Generic, Iterator, Type, TypeVar, cast
+from typing import Generic, Iterator, Type, TypeVar, cast, Union
 
 from asgiref.sync import sync_to_async
 from django.db.models import QuerySet

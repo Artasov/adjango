@@ -1,8 +1,7 @@
 # models/polymorphic.py
 from __future__ import annotations
 
-from abc import abstractmethod
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING
 
 from typing_extensions import Self
 
@@ -16,15 +15,16 @@ try:
     from adjango.managers.polymorphic import APolymorphicManager
     from adjango.models.base import AModel
 
+
     class APolymorphicModel(PolymorphicModel, AModel):
         """Enhanced polymorphic model with service integration."""
 
-        objects: APolymorphicManager[Self]  # type: ignore
+        objects: APolymorphicManager[Self] = APolymorphicManager()
 
         class Meta:
             abstract = True
 
-        async def aget_real_instance(self) -> "PolymorphicModel":
+        async def aget_real_instance(self) -> Self | None:
             """
             Async gets real instance of polymorphic model.
 

@@ -13,6 +13,7 @@ try:
     # Type variable for polymorphic QuerySet
     _M = TypeVar("_M", bound="Model")
 
+
     class APolymorphicQuerySet(AQuerySet[_M], PolymorphicQuerySet, Generic[_M]):
         async def aall(self) -> list[_M]:
             """Returns all objects from QuerySet."""
