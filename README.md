@@ -1,6 +1,6 @@
 # 🚀 ADjango
 
-📊 **[Coverage Report](reports/coverage_html/index.html) (70%)**
+📊 **Coverage Report (70%)**
 
 > Sometimes I use this in different projects, so I decided to put it on pypi
 
