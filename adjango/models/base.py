@@ -6,14 +6,13 @@ from typing import TYPE_CHECKING, Any, ClassVar, TypeVar, cast
 
 from django.contrib.auth.models import AbstractUser
 from django.db.models import Model
+from typing_extensions import Self
 
 from adjango.managers.base import AManager, AUserManager
 from adjango.utils.funcs import arelated
 
 if TYPE_CHECKING:
     from adjango.services.base import ABaseService
-
-Self = TypeVar("Self", bound="AModel")
 
 
 class AModel(Model):
@@ -33,9 +32,7 @@ class AModel(Model):
     @property
     def service(self) -> "ABaseService":
         """Return service instance for this model. Must be implemented in subclasses."""
-        raise NotImplementedError(
-            f"Define service property in your model {self.__class__.__name__}"
-        )
+        raise NotImplementedError(f"Define service property in your model {self.__class__.__name__}")
 
 
 class AAbstractUser(AbstractUser, AModel):

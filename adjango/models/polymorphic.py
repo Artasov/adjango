@@ -4,6 +4,8 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import TYPE_CHECKING, TypeVar
 
+from typing_extensions import Self
+
 if TYPE_CHECKING:
     from adjango.services.base import ABaseService
 
@@ -13,8 +15,6 @@ try:
 
     from adjango.managers.polymorphic import APolymorphicManager
     from adjango.models.base import AModel
-
-    Self = TypeVar("Self", bound="APolymorphicModel")
 
     class APolymorphicModel(PolymorphicModel, AModel):
         """Enhanced polymorphic model with service integration."""
@@ -35,9 +35,7 @@ try:
         @property
         def service(self) -> "ABaseService":
             """Return service instance for this model. Must be implemented in subclasses."""
-            raise NotImplementedError(
-                f"Define service property in your model {self.__class__.__name__}"
-            )
+            raise NotImplementedError(f"Define service property in your model {self.__class__.__name__}")
 
 except ImportError:
     # django-polymorphic not installed
