@@ -33,7 +33,6 @@ try:
             return await sync_to_async(self.get_real_instance)()
 
         @property
-        @abstractmethod
         def service(self) -> "ABaseService":
             """Return service instance for this model. Must be implemented in subclasses."""
             raise NotImplementedError(
