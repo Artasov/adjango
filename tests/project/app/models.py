@@ -1,14 +1,12 @@
 # app/models.py
-from typing import ClassVar
 
 from django.db.models import CASCADE, CharField, DecimalField, ForeignKey
 
 from adjango.fields import AManyToManyField
-from adjango.managers.base import AManager, AUserManager
-from adjango.managers.polymorphic import APolymorphicManager
 from adjango.models.base import AAbstractUser, AModel
 from adjango.models.polymorphic import APolymorphicModel
 from adjango.services.base import ABaseService
+from adjango.models.mixins import ACreatedAtMixin
 
 
 class UserService(ABaseService):
@@ -36,7 +34,7 @@ class ProductService(ABaseService):
         super().__init__(obj)
 
 
-class Product(APolymorphicModel):
+class Product(APolymorphicModel, ACreatedAtMixin):
     name = CharField(max_length=100)
     price = DecimalField(max_digits=10, decimal_places=2)
 
@@ -50,8 +48,13 @@ class OrderService(ABaseService):
         super().__init__(obj)
 
 
+class Post(AModel):
+    title = CharField(max_length=100)
+    content = CharField(max_length=255)
+    image = CharField(max_length=255)
+
+
 class Order(AModel):
-    objects: ClassVar[AManager["Order"]] = AManager()
     user: User = ForeignKey(User, CASCADE)
     products: AManyToManyField[Product] = AManyToManyField(Product)
 

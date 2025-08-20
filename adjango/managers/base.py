@@ -1,7 +1,7 @@
 # managers/base.py
 from __future__ import annotations
 
-from typing import Any, Generic, Iterable, TypeVar, Union
+from typing import Any, Generic, Iterable, Type, TypeVar, Union
 
 from asgiref.sync import sync_to_async
 from django.contrib.auth.models import UserManager
@@ -56,11 +56,13 @@ class AManager(Manager, Generic[_M]):
     async def aadd(self, data: _M, *args: Any, **kwargs: Any) -> None:
         await self.get_queryset().aadd(data, *args, **kwargs)
 
-    def getorn(self, exception=None, *args: Any, **kwargs: Any) -> _M | None:
+    def getorn(self, exception: Type[Exception] | Exception | None = None, *args: Any, **kwargs: Any) -> _M | None:
         """Get object or return None if not found."""
         return self.get_queryset().getorn(exception, *args, **kwargs)
 
-    async def agetorn(self, exception=None, *args: Any, **kwargs: Any) -> _M | None:
+    async def agetorn(
+        self, exception: Type[Exception] | Exception | None = None, *args: Any, **kwargs: Any
+    ) -> _M | None:
         """Async get object or return None if not found."""
         return await self.get_queryset().agetorn(exception, *args, **kwargs)
 

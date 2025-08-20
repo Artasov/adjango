@@ -15,7 +15,6 @@ try:
     from adjango.managers.polymorphic import APolymorphicManager
     from adjango.models.base import AModel
 
-
     class APolymorphicModel(PolymorphicModel, AModel):
         """Enhanced polymorphic model with service integration."""
 

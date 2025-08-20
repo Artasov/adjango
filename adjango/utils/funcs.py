@@ -20,7 +20,7 @@ _M = TypeVar("_M", bound=Model)
 
 def getorn(
     queryset: QuerySet[_M],
-    exception: Type[Exception] | None = None,
+    exception: Type[Exception] | Exception | None = None,
     *args: Any,
     **kwargs: Any,
 ) -> _M | None:
@@ -28,7 +28,7 @@ def getorn(
     Gets single object from given QuerySet matching passed parameters.
 
     :param queryset: QuerySet to get object from.
-    :param exception: Exception class to raise if object not found.
+    :param exception: Exception class or exception instance to raise if object not found.
                       If None, returns None.
 
     :return: Model object or None if object not found and exception not specified.
@@ -39,18 +39,22 @@ def getorn(
 
     @usage:
         result = getorn(MyCustomException, id=1)
+        result = getorn(MyCustomException(), id=1)
     """
     try:
         return queryset.get(*args, **kwargs)
     except queryset.model.DoesNotExist:
         if exception is not None:
-            raise exception()
+            if isinstance(exception, type):
+                raise exception()
+            else:
+                raise exception
     return None
 
 
 async def agetorn(
     queryset: QuerySet[_M],
-    exception: Type[Exception] | None = None,
+    exception: Type[Exception] | Exception | None = None,
     *args: Any,
     **kwargs: Any,
 ) -> _M | None:
@@ -58,7 +62,7 @@ async def agetorn(
     Async gets single object from given QuerySet matching passed parameters.
 
     :param queryset: QuerySet to get object from.
-    :param exception: Exception class to raise if object not found.
+    :param exception: Exception class or exception instance to raise if object not found.
                       If None, returns None.
 
     :return: Model object or None if object not found and exception not specified.
@@ -69,12 +73,16 @@ async def agetorn(
 
     @usage:
         result = await agetorn(MyCustomException, id=1)
+        result = await agetorn(MyCustomException(), id=1)
     """
     try:
         return await queryset.aget(*args, **kwargs)
     except queryset.model.DoesNotExist:
         if exception is not None:
-            raise exception()
+            if isinstance(exception, type):
+                raise exception()
+            else:
+                raise exception
     return None
 
 
@@ -93,16 +101,12 @@ async def arelated(obj: Model, field: str) -> Model:
         value = getattr(obj, field)
         return value
     except AttributeError:
-        raise ValueError(
-            f"Field '{field}' does not exist for object '{obj.__class__.__name__}'"
-        )
+        raise ValueError(f"Field '{field}' does not exist for object '{obj.__class__.__name__}'")
     except SynchronousOnlyOperation:
         return await sync_to_async(getattr)(obj, field)
 
 
-async def aset(
-    related_manager: Manager[_M] | QuerySet[_M], data: Iterable[_M], *args, **kwargs
-) -> None:
+async def aset(related_manager: Manager[_M] | QuerySet[_M], data: Iterable[_M], *args, **kwargs) -> None:
     """
     Set related objects for ManyToMany field asynchronously.
 
@@ -113,9 +117,7 @@ async def aset(
     await sync_to_async(related_manager.set)(data, *args, **kwargs)
 
 
-async def aadd(
-    objects: Manager[_M] | QuerySet[_M], data: _M, *args: Any, **kwargs: Any
-) -> None:
+async def aadd(objects: Manager[_M] | QuerySet[_M], data: _M, *args: Any, **kwargs: Any) -> None:
     """
     Async adds object or data to ManyToMany field via add() method.
 
@@ -205,7 +207,5 @@ async def set_image_by_url(model_obj: Model, field_name: str, image_url: str) ->
     """
     image_file: ContentFile = await download_file_to_temp(image_url)
     # Use setattr to set file to model field
-    await sync_to_async(getattr(model_obj, field_name).save)(
-        image_file.name, image_file
-    )
+    await sync_to_async(getattr(model_obj, field_name).save)(image_file.name, image_file)
     await model_obj.asave()

@@ -1,7 +1,7 @@
 # querysets/base.py
 from __future__ import annotations
 
-from typing import Generic, Iterator, Type, TypeVar, cast, Union
+from typing import Generic, Iterator, Type, TypeVar, Union, cast
 
 from asgiref.sync import sync_to_async
 from django.db.models import QuerySet
@@ -15,14 +15,10 @@ class AQuerySet(QuerySet[_M], Generic[_M]):
     async def aall(self) -> list[_M]:
         return await self._aall_from_queryset(self)
 
-    def getorn(
-            self, exception: Type[Exception] | None = None, *args, **kwargs
-    ) -> _M | None:
+    def getorn(self, exception: Type[Exception] | Exception | None = None, *args, **kwargs) -> _M | None:
         return getorn(self, exception, *args, **kwargs)
 
-    async def agetorn(
-            self, exception: Type[Exception] | None = None, *args, **kwargs
-    ) -> _M | None:
+    async def agetorn(self, exception: Type[Exception] | Exception | None = None, *args, **kwargs) -> _M | None:
         return await agetorn(self, exception, *args, **kwargs)
 
     async def afilter(self, *args, **kwargs) -> list[_M]:
