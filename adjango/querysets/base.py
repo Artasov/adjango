@@ -73,3 +73,6 @@ class AQuerySet(QuerySet[_M], Generic[_M]):
 
     def select_related(self, *fields) -> Union[AQuerySet[_M], QuerySet[_M]]:
         return super().select_related(*fields)
+
+    def only(self, *fields) -> Union[AQuerySet[_M], QuerySet[_M]]:
+        return super().only(*fields)

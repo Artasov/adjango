@@ -81,6 +81,9 @@ class AManager(Manager, Generic[_M]):
     def select_related(self, *fields: Any) -> Union[AQuerySet[_M], QuerySet[_M]]:
         return super().select_related(*fields)
 
+    def only(self, *fields: Any) -> Union[AQuerySet[_M], QuerySet[_M]]:
+        return super().only(*fields)
+
 
 class AUserManager(UserManager, AManager[_M]):
     async def acreate_user(self, **extra_fields) -> _M:

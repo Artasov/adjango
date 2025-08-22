@@ -41,6 +41,16 @@ async def test_getorn_and_agetorn():
 
 @pytest.mark.asyncio
 @pytest.mark.django_db
+async def test_agetorn_after_only():
+    from app.models import Product
+
+    p = await Product.objects.acreate(name="p_only", price=10)
+    result = await Product.objects.only("name").agetorn(id=p.id)
+    assert result == p
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db
 async def test_arelated_aset_aadd_aall_afilter():
     from app.models import Order, Product, User
 
