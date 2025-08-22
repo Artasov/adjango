@@ -4,12 +4,15 @@
 
 > Sometimes I use this in different projects, so I decided to put it on pypi
 
-`ADjango` is a comprehensive library that enhances Django development with Django REST Framework (DRF) and Celery integration. It provides essential tools including asynchronous `managers`, `services`, `serializers`, `decorators`, `exceptions` and more utilities for `async` programming, Celery task scheduling, `transaction` management, and much more to streamline your Django DRF Celery development workflow.
+`ADjango` is a comprehensive library that enhances Django development with Django REST Framework (DRF) and Celery
+integration. It provides essential tools including
+asynchronous `managers`, `services`, `serializers`, `decorators`, `exceptions` and more utilities for `async`
+programming, Celery task scheduling, `transaction` management, and much more to streamline your Django DRF Celery
+development workflow.
 
-- [🚀 ADjango](#-adjango)
-  - [Installation 🛠️](#installation-️)
-  - [Settings ⚙️](#settings-️)
-  - [Overview](#overview)
+- [Installation 🛠️](#installation-️)
+- [Settings ⚙️](#settings-️)
+- [Overview](#overview)
     - [Manager \& Services 🛎️](#manager--services-️)
     - [Utils 🔧](#utils-)
     - [Mixins 🎨](#mixins-)
@@ -18,10 +21,10 @@
     - [Serializers 🔧](#serializers-)
     - [Management](#management)
     - [Celery 🔥](#celery-)
-      - [Management Commands](#management-commands)
-      - [@task Decorator](#task-decorator)
-      - [Tasker - Task Scheduler](#tasker---task-scheduler)
-      - [Email Sending via Celery](#email-sending-via-celery)
+        - [Management Commands](#management-commands)
+        - [@task Decorator](#task-decorator)
+        - [Tasker - Task Scheduler](#tasker---task-scheduler)
+        - [Email Sending via Celery](#email-sending-via-celery)
     - [Other](#other)
 
 ## Installation 🛠️
@@ -92,24 +95,24 @@ from adjango.models.polymorphic import APolymorphicModel
 
 # services/user.py
 if TYPE_CHECKING:
-  from apps.core.models import User
+    from apps.core.models import User
 
 
 class UserService(ABaseService):
-  def __init__(self, user: 'User') -> None:
-    self.user = user
+    def __init__(self, user: 'User') -> None:
+        self.user = user
 
-  def get_full_name(self) -> str:
-    return f"{self.user.first_name} {self.user.last_name}"
+    def get_full_name(self) -> str:
+        return f"{self.user.first_name} {self.user.last_name}"
 
 
 # models/user.py (User redefinition)
 class User(AAbstractUser):
-  ...
+    ...
 
-  @property
-  def service(self) -> UserService:
-    return UserService(self)
+    @property
+    def service(self) -> UserService:
+        return UserService(self)
 
 
 # and u can use with nice type hints:
@@ -123,12 +126,12 @@ full_name = user.service.get_full_name()
 
 # models/commerce.py
 class Product(APolymorphicModel):
-  name = CharField(max_length=100)
+    name = CharField(max_length=100)
 
 
 class Order(AModel):
-  user = ForeignKey(User, CASCADE)
-  products = AManyToManyField(Product)
+    user = ForeignKey(User, CASCADE)
+    products = AManyToManyField(Product)
 
 
 # The following is now possible...
@@ -142,7 +145,7 @@ if not order: raise
 await order.products.aset(products)
 # Or queryset right away...
 await order.products.aset(
-  Product.objects.filter(name='name')
+    Product.objects.filter(name='name')
 )
 await order.products.aadd(products[0])
 
@@ -154,8 +157,8 @@ products = await order.products.aall()
 # Works the same with intermediate processing/query filters
 orders = await Order.objects.prefetch_related('products').aall()
 for o in orders:
-  for p in o.products.all():
-    print(p.id)
+    for p in o.products.all():
+        print(p.id)
 # thk u
 ```
 
@@ -165,9 +168,9 @@ for o in orders:
 
   ```python
   from adjango.utils.funcs import (
-    aall, getorn, agetorn, 
+    aall, getorn, agetorn,
     afilter, aset, aadd, arelated
-  )
+)
   ```
 
 ### Mixins 🎨
@@ -179,9 +182,10 @@ from adjango.models.mixins import (
     ACreatedUpdatedAtMixin, ACreatedUpdatedAtIndexedMixin
 )
 
+
 class EventProfile(ACreatedUpdatedAtIndexedMixin):
     event = ForeignKey('events.Event', CASCADE, 'members', verbose_name=_('Event'))
-    
+
     @property
     def service(self) -> EventProfileService:
         return EventProfileService(self)
@@ -196,11 +200,13 @@ class EventProfile(ACreatedUpdatedAtIndexedMixin):
 
 - `aatomic`
 
-  An asynchronous decorator that wraps function into a transactional context using `AsyncAtomicContextManager`. If an exception occurs, all database changes are rolled back.
+  An asynchronous decorator that wraps function into a transactional context using `AsyncAtomicContextManager`. If an
+  exception occurs, all database changes are rolled back.
 
 - `acontroller/controller`
 
-  Decorators that provide automatic logging and exception handling for views. The `acontroller` is for async views, `controller` is for sync views. They do NOT wrap functions in transactions (use `@aatomic` for that).
+  Decorators that provide automatic logging and exception handling for views. The `acontroller` is for async
+  views, `controller` is for sync views. They do NOT wrap functions in transactions (use `@aatomic` for that).
 
     ```python
     from adjango.adecorators import acontroller
@@ -219,55 +225,57 @@ class EventProfile(ACreatedUpdatedAtIndexedMixin):
         pass
     ```
 
-  - These decorators automatically catch uncaught exceptions and log them if the logger is configured via `ADJANGO_CONTROLLERS_LOGGER_NAME` and `ADJANGO_CONTROLLERS_LOGGING`.
-  - The `controller` decorator also supports authentication checking with `auth_required` parameter.
-  - You can also implement the interface:
+    - These decorators automatically catch uncaught exceptions and log them if the logger is configured
+      via `ADJANGO_CONTROLLERS_LOGGER_NAME` and `ADJANGO_CONTROLLERS_LOGGING`.
+    - The `controller` decorator also supports authentication checking with `auth_required` parameter.
+    - You can also implement the interface:
 
-    ```python
-    class IHandlerControllerException(ABC):
-        @staticmethod
-        @abstractmethod
-        def handle(fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args, **kwargs) -> None:
-            """
-            An example of an exception handling function.
-    
-            :param fn_name: The name of the function where the exception occurred.
-            :param request: The request object (WSGIRequest or ASGIRequest).
-            :param e: The exception to be handled.
-            :param args: Positional arguments passed to the function.
-            :param kwargs: Named arguments passed to the function.
-    
-            :return: None
-            """
-            pass
-    ```
+      ```python
+      class IHandlerControllerException(ABC):
+          @staticmethod
+          @abstractmethod
+          def handle(fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args, **kwargs) -> None:
+              """
+              An example of an exception handling function.
+      
+              :param fn_name: The name of the function where the exception occurred.
+              :param request: The request object (WSGIRequest or ASGIRequest).
+              :param e: The exception to be handled.
+              :param args: Positional arguments passed to the function.
+              :param kwargs: Named arguments passed to the function.
+      
+              :return: None
+              """
+              pass
+      ```
 
-    and use `handle` to get an uncaught exception:
+      and use `handle` to get an uncaught exception:
 
-    ```python
-    # settings.py
-    from adjango.handlers import HCE # use my example if u need
-    ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION = HCE.handle
-    ```
+      ```python
+      # settings.py
+      from adjango.handlers import HCE # use my example if u need
+      ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION = HCE.handle
+      ```
 
 ### Exceptions 🚨
 
-`ADjango` provides convenient classes for generating API exceptions with proper HTTP statuses and structured error messages.
+`ADjango` provides convenient classes for generating API exceptions with proper HTTP statuses and structured error
+messages.
 
 ```python
 from adjango.exceptions.base import (
-  ApiExceptionGenerator,
-  ModelApiExceptionGenerator,
-  ModelApiExceptionBaseVariant as MAEBV
+    ApiExceptionGenerator,
+    ModelApiExceptionGenerator,
+    ModelApiExceptionBaseVariant as MAEBV
 )
 
 # General API exceptions
 raise ApiExceptionGenerator('Специальная ошибка', 500)
 raise ApiExceptionGenerator('Специальная ошибка', 500, 'special_error')
 raise ApiExceptionGenerator(
-  'Неверные данные',
-  400,
-  extra={'field': 'email'}
+    'Неверные данные',
+    400,
+    extra={'field': 'email'}
 )
 
 # Model exceptions
@@ -275,9 +283,10 @@ from apps.commerce.models import Order
 
 raise ModelApiExceptionGenerator(Order, MAEBV.DoesNotExist)
 raise ModelApiExceptionGenerator(
-  Order MAEBV.AlreadyExists,
-  code="order_exists",
-  extra={"id": 123}
+    Order
+MAEBV.AlreadyExists,
+code = "order_exists",
+extra = {"id": 123}
 )
 
 # Available exception variants for models:
@@ -440,7 +449,8 @@ ADjango ships with extra management commands to speed up project scaffolding.
 
 ADjango provides convenient tools for working with Celery: management commands, decorators, and task scheduler.
 
-For Celery configuration in Django, refer to the [official Celery documentation](https://docs.celeryproject.org/en/stable/django/first-steps-with-django.html).
+For Celery configuration in Django, refer to
+the [official Celery documentation](https://docs.celeryproject.org/en/stable/django/first-steps-with-django.html).
 
 #### Management Commands
 
@@ -474,6 +484,7 @@ The `@task` decorator automatically logs Celery task execution, including errors
 from celery import shared_task
 from adjango.decorators import task
 
+
 @shared_task
 @task(logger="global")
 def my_background_task(param1: str, param2: int) -> bool:
@@ -506,8 +517,9 @@ task_id = Tasker.put(task=my_task, countdown=60, param1='value')
 
 # Execution at specific time
 from datetime import datetime
+
 task_id = Tasker.put(
-    task=my_task, 
+    task=my_task,
     eta=datetime(2024, 12, 31, 23, 59),
     param1='value'
 )

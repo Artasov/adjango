@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="adjango",
-    version="0.7.5",
+    version="0.7.6",
     author="xlartas",
     author_email="ivanhvalevskey@gmail.com",
     description="A library with many features for interacting with Django",
