@@ -6,7 +6,7 @@ from django.urls import path
 
 from adjango.utils.celery.tasker import Tasker
 
-from .models import Order, Product
+from .models import Order, Product, User
 from .tasks import test_task
 
 app_name = 'app'
@@ -31,6 +31,8 @@ async def view_test_arelated(request):
     # Simply search or create the same order object each time
     product, _ = await Product.objects.aget_or_create(name='TEST1', price=100)
     order, _ = await Order.objects.aget_or_create(user=request.user)
+    user = await User.objects.alast()
+    roles = await user.roles
 
     pprint(order.user)
     await order.products.aset([product])

@@ -71,7 +71,7 @@ class Post(AModel):
 
 class Order(AModel):
     user: User = ForeignKey(User, CASCADE)
-    products: AManyToManyField[Product] = AManyToManyField(Product)
+    products = AManyToManyField(Product)
 
     @property
     def service(self) -> OrderService:

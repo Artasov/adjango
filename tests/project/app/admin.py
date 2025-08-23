@@ -48,7 +48,6 @@ class UserAdmin(admin.ModelAdmin):
             _('General info'),
             {
                 'fields': (
-                    'id',
                     'username',
                     'first_name',
                     'last_name',
