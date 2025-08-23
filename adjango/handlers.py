@@ -13,9 +13,7 @@ from adjango.utils.common import traceback_str
 class IHandlerControllerException(ABC):
     @staticmethod
     @abstractmethod
-    def handle(
-        fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args, **kwargs
-    ) -> None:
+    def handle(fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args, **kwargs) -> None:
         """
         Example exception handling function.
 
@@ -39,9 +37,7 @@ class HCE(IHandlerControllerException):
     """
 
     @staticmethod
-    def handle(
-        fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args, **kwargs
-    ) -> None:
+    def handle(fn_name: str, request: WSGIRequest | ASGIRequest, e: Exception, *args, **kwargs) -> None:
         """
         Example exception handling function.
 
@@ -62,27 +58,27 @@ class HCE(IHandlerControllerException):
 
         from adjango.tasks import send_emails_task
 
-        log = logging.getLogger("global")
+        log = logging.getLogger('global')
         error_text = (
-            f"ERROR in {fn_name}:\n"
-            f"{traceback_str(e)}\n"
-            f"{request.POST=}\n"
-            f"{request.GET=}\n"
-            f"{request.FILES=}\n"
-            f"{request.COOKIES=}\n"
-            f"{request.user=}\n"
-            f"{args=}\n"
-            f"{kwargs=}"
+            f'ERROR in {fn_name}:\n'
+            f'{traceback_str(e)}\n'
+            f'{request.POST=}\n'
+            f'{request.GET=}\n'
+            f'{request.FILES=}\n'
+            f'{request.COOKIES=}\n'
+            f'{request.user=}\n'
+            f'{args=}\n'
+            f'{kwargs=}'
         )
         log.error(error_text)
         if not settings.DEBUG:
             Tasker.put(
                 send_emails_task,
-                subject="SERVER ERROR",
+                subject='SERVER ERROR',
                 emails=(
-                    "admin@example.com",
-                    "admin2@example.com",
+                    'admin@example.com',
+                    'admin2@example.com',
                 ),
-                template="admin/exception_report.html",
-                context={"error": error_text},
+                template='admin/exception_report.html',
+                context={'error': error_text},
             )

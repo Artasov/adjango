@@ -19,66 +19,66 @@ class TestAdminLabel:
     def test_admin_label_decorator(self):
         """Test установки label для функции"""
 
-        @admin_label("Custom Label")
+        @admin_label('Custom Label')
         def test_function():
             pass
 
-        assert hasattr(test_function, "label")
-        assert test_function.label == "Custom Label"
+        assert hasattr(test_function, 'label')
+        assert test_function.label == 'Custom Label'
 
 
 class TestTask:
     """Tests for декоратора task"""
 
-    @patch("adjango.decorators.logging.getLogger")
+    @patch('adjango.decorators.logging.getLogger')
     def test_task_with_logger(self, mock_get_logger):
         """Test task декоратора с логированием"""
         mock_logger = MagicMock()
         mock_get_logger.return_value = mock_logger
 
-        @task(logger="test_logger")
+        @task(logger='test_logger')
         def test_task(arg1, arg2, kwarg1=None):
-            return "result"
+            return 'result'
 
-        result = test_task("value1", "value2", kwarg1="kwvalue1")
+        result = test_task('value1', 'value2', kwarg1='kwvalue1')
 
-        assert result == "result"
-        mock_get_logger.assert_called_with("test_logger")
+        assert result == 'result'
+        mock_get_logger.assert_called_with('test_logger')
         assert mock_logger.info.call_count == 2  # start and end
         mock_logger.info.assert_any_call(
-            "Start executing task: test_task\n('value1', 'value2')\n{'kwarg1': 'kwvalue1'}"
+            'Start executing task: test_task\n(\'value1\', \'value2\')\n{\'kwarg1\': \'kwvalue1\'}'
         )
         mock_logger.info.assert_any_call(
-            "End executing task: test_task\n('value1', 'value2')\n{'kwarg1': 'kwvalue1'}"
+            'End executing task: test_task\n(\'value1\', \'value2\')\n{\'kwarg1\': \'kwvalue1\'}'
         )
 
-    @patch("adjango.decorators.logging.getLogger")
-    @patch("adjango.decorators.traceback_str")
+    @patch('adjango.decorators.logging.getLogger')
+    @patch('adjango.decorators.traceback_str')
     def test_task_with_exception(self, mock_traceback_str, mock_get_logger):
         """Test обработки исключений в task"""
         mock_logger = MagicMock()
         mock_get_logger.return_value = mock_logger
-        mock_traceback_str.return_value = "Test traceback"
+        mock_traceback_str.return_value = 'Test traceback'
 
-        @task(logger="test_logger")
+        @task(logger='test_logger')
         def failing_task():
-            raise ValueError("Test error")
+            raise ValueError('Test error')
 
         with pytest.raises(ValueError):
             failing_task()
 
-        mock_logger.critical.assert_any_call("Error executing task: failing_task")
-        mock_logger.critical.assert_any_call("Test traceback")
+        mock_logger.critical.assert_any_call('Error executing task: failing_task')
+        mock_logger.critical.assert_any_call('Test traceback')
 
     def test_task_without_logger(self):
         """Test task декоратора без логирования"""
 
         @task()
         def test_task():
-            return "result"
+            return 'result'
 
         result = test_task()
-        assert result == "result"
+        assert result == 'result'
 
 
 class TestForceData:
@@ -89,7 +89,7 @@ class TestForceData:
 
         @force_data
         def mock_view(request):
-            return HttpResponse("OK")
+            return HttpResponse('OK')
 
         request = MagicMock(spec=WSGIRequest)
         request.POST = QueryDict("post_key=post_value")
@@ -99,10 +99,10 @@ class TestForceData:
         response = mock_view(request)
 
         assert response.status_code == 200
-        assert hasattr(request, "data")
-        assert request.data["post_key"] == "post_value"
-        assert request.data["get_key"] == "get_value"
-        assert request.data["json_key"] == "json_value"
+        assert hasattr(request, 'data')
+        assert request.data['post_key'] == 'post_value'
+        assert request.data['get_key'] == 'get_value'
+        assert request.data['json_key'] == 'json_value'
 
     def test_force_data_invalid_json(self):
         """Test обработки невалидного JSON"""

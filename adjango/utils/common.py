@@ -19,7 +19,7 @@ def is_celery() -> bool:
         if is_celery():
             # Logic for execution inside Celery process
     """
-    return "celery" in sys.argv[0] or bool(os.getenv("IS_CELERY", False))
+    return 'celery' in sys.argv[0] or bool(os.getenv('IS_CELERY', False))
 
 
 def traceback_str(error: BaseException) -> str:
@@ -36,4 +36,4 @@ def traceback_str(error: BaseException) -> str:
         except Exception as e:
             log.error(traceback_str(e))
     """
-    return "".join(traceback.format_exception(type(error), error, error.__traceback__))
+    return ''.join(traceback.format_exception(type(error), error, error.__traceback__))

@@ -99,8 +99,9 @@ if TYPE_CHECKING:
 
 
 class UserService(ABaseService):
-    def __init__(self, user: 'User') -> None:
-        self.user = user
+    def __init__(self, obj: 'User') -> None:
+        super().__init__(obj)
+        self.user = obj
 
     def get_full_name(self) -> str:
         return f"{self.user.first_name} {self.user.last_name}"

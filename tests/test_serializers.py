@@ -23,10 +23,10 @@ class TestModel(models.Model):
     email = models.EmailField()
 
     class Meta:
-        app_label = "test_app"
+        app_label = 'test_app'
 
 
-@pytest.mark.skipif(not DRF_AVAILABLE, reason="Django REST Framework not available")
+@pytest.mark.skipif(not DRF_AVAILABLE, reason='Django REST Framework not available')
 class TestDynamicSerializer:
     """Tests for dynamic_serializer function"""
 
@@ -41,11 +41,11 @@ class TestDynamicSerializer:
 
             class Meta:
                 model = User
-                fields = ("field1", "field2", "field3")
+                fields = ('field1', 'field2', 'field3')
 
         # Create dynamic serializer with limited fields
         DynamicTestSerializer = dynamic_serializer(
-            base_serializer=BaseTestSerializer, include_fields=("field1", "field2")
+            base_serializer=BaseTestSerializer, include_fields=('field1', 'field2')
         )
 
         # Check that new serializer is created
@@ -53,8 +53,8 @@ class TestDynamicSerializer:
         assert issubclass(DynamicTestSerializer, BaseTestSerializer)
 
         # Check Meta class
-        assert hasattr(DynamicTestSerializer, "Meta")
-        assert DynamicTestSerializer.Meta.fields == ("field1", "field2")
+        assert hasattr(DynamicTestSerializer, 'Meta')
+        assert DynamicTestSerializer.Meta.fields == ('field1', 'field2')
 
     def test_dynamic_serializer_with_field_overrides_class(self):
         """Test dynamic_serializer with field overrides through class"""
@@ -160,9 +160,7 @@ class TestDynamicSerializer:
                 fields = ("field1",)
 
         # Create dynamic serializer with empty fields
-        DynamicTestSerializer = dynamic_serializer(
-            base_serializer=BaseTestSerializer, include_fields=()
-        )
+        DynamicTestSerializer = dynamic_serializer(base_serializer=BaseTestSerializer, include_fields=())
 
         assert DynamicTestSerializer.Meta.fields == ()
 
@@ -180,9 +178,7 @@ class TestDynamicSerializer:
                 return "base_method"
 
         # Create dynamic serializer
-        DynamicTestSerializer = dynamic_serializer(
-            base_serializer=BaseTestSerializer, include_fields=("field1",)
-        )
+        DynamicTestSerializer = dynamic_serializer(base_serializer=BaseTestSerializer, include_fields=("field1",))
 
         # Check method inheritance
         instance = DynamicTestSerializer()
@@ -202,9 +198,7 @@ class TestDynamicSerializer:
                 extra_kwargs = {"field1": {"required": False}}
 
         # Create dynamic serializer
-        DynamicTestSerializer = dynamic_serializer(
-            base_serializer=BaseTestSerializer, include_fields=("field1",)
-        )
+        DynamicTestSerializer = dynamic_serializer(base_serializer=BaseTestSerializer, include_fields=("field1",))
 
         # Check Meta attributes inheritance
         assert hasattr(DynamicTestSerializer.Meta, "read_only_fields")
@@ -255,9 +249,7 @@ class TestDynamicSerializer:
                 fields = ("field1",)
 
         # Create dynamic serializer
-        DynamicTestSerializer = dynamic_serializer(
-            base_serializer=BaseTestSerializer, include_fields=("field1",)
-        )
+        DynamicTestSerializer = dynamic_serializer(base_serializer=BaseTestSerializer, include_fields=("field1",))
 
         # Check that class is returned
         assert isinstance(DynamicTestSerializer, type)
@@ -275,9 +267,7 @@ class TestDynamicSerializer:
                 fields = ("field1",)
 
         # Create dynamic serializer
-        DynamicTestSerializer = dynamic_serializer(
-            base_serializer=BaseTestSerializer, include_fields=("field1",)
-        )
+        DynamicTestSerializer = dynamic_serializer(base_serializer=BaseTestSerializer, include_fields=("field1",))
 
         # Check class name
         assert DynamicTestSerializer.__name__ == "DynamicSerializer"

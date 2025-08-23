@@ -30,9 +30,9 @@ class AModel(Model):
         return await arelated(self, field)
 
     @property
-    def service(self) -> "ABaseService":
+    def service(self) -> 'ABaseService':
         """Return service instance for this model. Must be implemented in subclasses."""
-        raise NotImplementedError(f"Define service property in your model {self.__class__.__name__}")
+        raise NotImplementedError(f'Define service property in your model {self.__class__.__name__}')
 
 
 class AAbstractUser(AbstractUser, AModel):

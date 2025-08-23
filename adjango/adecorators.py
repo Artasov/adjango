@@ -40,19 +40,13 @@ def aforce_data(fn: Callable[..., Any]) -> Callable[..., Any]:
     """
 
     @wraps(fn)
-    async def _wrapped_view(
-        request: ASGIRequest, *args: Any, **kwargs: Any
-    ) -> HttpResponse:
-        if not hasattr(request, "data"):
+    async def _wrapped_view(request: ASGIRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        if not hasattr(request, 'data'):
             request.data = {}
-        request.data.update(
-            request.POST.dict() if isinstance(request.POST, QueryDict) else request.POST
-        )
-        request.data.update(
-            request.GET.dict() if isinstance(request.GET, QueryDict) else request.GET
-        )
+        request.data.update(request.POST.dict() if isinstance(request.POST, QueryDict) else request.POST)
+        request.data.update(request.GET.dict() if isinstance(request.GET, QueryDict) else request.GET)
         try:
-            json_data = json.loads(request.body.decode("utf-8"))
+            json_data = json.loads(request.body.decode('utf-8'))
             if isinstance(json_data, dict):
                 request.data.update(json_data)
         except (ValueError, TypeError, UnicodeDecodeError, RawPostDataException):
@@ -107,7 +101,7 @@ def acontroller(
             fn_name = name or fn.__name__
             start_time = None
             if log_name or (log_name is None and ADJANGO_CONTROLLERS_LOGGING):
-                log.info(f"ACtrl: {request.method} | {fn_name}")
+                log.info(f'ACtrl: {request.method} | {fn_name}')
 
             if log_time:
                 start_time = time()
@@ -116,7 +110,7 @@ def acontroller(
                 if log_time and start_time is not None:
                     end_time = time()
                     elapsed_time = end_time - start_time
-                    log.info(f"Execution time {fn_name}: {elapsed_time:.2f} seconds")
+                    log.info(f'Execution time {fn_name}: {elapsed_time:.2f} seconds')
                 return result
             else:
                 try:
@@ -124,14 +118,10 @@ def acontroller(
                     if log_time and start_time is not None:
                         end_time = time()
                         elapsed_time = end_time - start_time
-                        log.info(
-                            f"Execution time {fn_name}: {elapsed_time:.2f} seconds"
-                        )
+                        log.info(f'Execution time {fn_name}: {elapsed_time:.2f} seconds')
                     return result
                 except Exception as e:
-                    log.critical(
-                        f"ERROR in {fn_name}: {traceback_str(e)}", exc_info=True
-                    )
+                    log.critical(f'ERROR in {fn_name}: {traceback_str(e)}', exc_info=True)
 
                     raise e
 
@@ -157,9 +147,7 @@ def aallowed_only(
     """
 
     def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
-        async def wrapped_view(
-            request: ASGIRequest, *args: Any, **kwargs: Any
-        ) -> HttpResponse:
+        async def wrapped_view(request: ASGIRequest, *args: Any, **kwargs: Any) -> HttpResponse:
             if request.method in allowed_methods:
                 if asyncio.iscoroutinefunction(fn):
                     return await fn(request, *args, **kwargs)

@@ -58,7 +58,7 @@ class SerializerErrors(DetailAPIException):
         serializer_errors: dict,
         code: Optional[str] = None,
         status_code: str = HTTP_400_BAD_REQUEST,
-        message: str = _("Correct the mistakes."),
+        message: str = _('Correct the mistakes.'),
     ):
         detail = DetailExceptionDict(
             message=message,
@@ -100,7 +100,7 @@ class ASerializer(DRFSerializer):
 
     @classmethod
     def many_init(cls, *args, **kwargs):
-        kwargs["child"] = cls()
+        kwargs['child'] = cls()
         return AListSerializer(*args, **kwargs)
 
 
@@ -134,34 +134,28 @@ class AModelSerializer(DRFModelSerializer):
         list_kwargs = {}
 
         # Parameters that should go to ListSerializer (e.g., allow_empty)
-        list_serializer_kwargs = {
-            key: value for key, value in kwargs.items() if key in LIST_SERIALIZER_KWARGS
-        }
+        list_serializer_kwargs = {key: value for key, value in kwargs.items() if key in LIST_SERIALIZER_KWARGS}
 
         # Parameters that should be removed from kwargs (e.g., many)
         for key in LIST_SERIALIZER_KWARGS_REMOVE:
             kwargs.pop(key, None)
 
         # Extract data that should be passed to ListSerializer, not to child
-        data = kwargs.pop("data", None)
+        data = kwargs.pop('data', None)
 
         # Arguments for child without list-specific parameters and without data
-        child_kwargs = {
-            key: value
-            for key, value in kwargs.items()
-            if key not in LIST_SERIALIZER_KWARGS
-        }
+        child_kwargs = {key: value for key, value in kwargs.items() if key not in LIST_SERIALIZER_KWARGS}
 
         # Create child
-        list_kwargs["child"] = cls(*args, **child_kwargs)
+        list_kwargs['child'] = cls(*args, **child_kwargs)
 
         # Add back list-specific parameters
         list_kwargs.update(list_serializer_kwargs)
 
         # Pass data to ListSerializer
         if data is not None:
-            list_kwargs["data"] = data
+            list_kwargs['data'] = data
 
-        meta = getattr(cls, "Meta", None)
-        list_serializer_class = getattr(meta, "list_serializer_class", AListSerializer)
+        meta = getattr(cls, 'Meta', None)
+        list_serializer_class = getattr(meta, 'list_serializer_class', AListSerializer)
         return list_serializer_class(*args, **list_kwargs)

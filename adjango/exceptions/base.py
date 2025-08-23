@@ -23,15 +23,14 @@ except ImportError:
 
     class APIException(Exception):
         status_code = 500
-        default_detail = _("Server Error")
-        default_code = "error"
+        default_detail = _('Server Error')
+        default_code = 'error'
 
         def __init__(self, detail=None, code=None):
             super().__init__(detail or self.default_detail)
             self.detail = detail or self.default_detail
             self.default_code = code or self.default_code
-            self.status_code = getattr(self, "status_code", 500)
-
+            self.status_code = getattr(self, 'status_code', 500)
 
     HTTP_400_BAD_REQUEST = 400
     HTTP_403_FORBIDDEN = 403
@@ -43,9 +42,9 @@ except ImportError:
     HTTP_503_SERVICE_UNAVAILABLE = 503
 
 __all__ = [
-    "ApiExceptionGenerator",
-    "ModelApiExceptionGenerator",
-    "ModelApiExceptionBaseVariant",
+    'ApiExceptionGenerator',
+    'ModelApiExceptionGenerator',
+    'ModelApiExceptionBaseVariant',
 ]
 
 
@@ -54,7 +53,7 @@ def _slug_code(value: str) -> str:
     s = re.sub(r"\s+", "_", s)
     s = re.sub(r"[^a-z0-9_]+", "_", s)
     s = re.sub(r"_+", "_", s).strip("_")
-    return s or "error"
+    return s or 'error'
 
 
 def _model_verbose_name(model: Type[Any]) -> str:
@@ -76,15 +75,15 @@ class ApiExceptionGenerator(APIException):
     """
 
     def __init__(
-            self,
-            message: str,
-            status: int,
-            code: Optional[str] = None,
-            extra: Optional[dict[str, Any]] = None,
+        self,
+        message: str,
+        status: int,
+        code: Optional[str] = None,
+        extra: Optional[dict[str, Any]] = None,
     ) -> None:
         self.status_code = int(status)
         code_str = code or _slug_code(message)
-        payload: dict[str, Any] = {"message": message}
+        payload: dict[str, Any] = {'message': message}
         if extra:
             payload.update(extra)
         # For DRF, pass `code` to have ErrorDetail carry it; also set default_code for parity.
@@ -93,21 +92,21 @@ class ApiExceptionGenerator(APIException):
 
 
 class ModelApiExceptionBaseVariant(Enum):
-    DoesNotExist = "does_not_exist"
-    AlreadyExists = "already_exists"
-    InvalidData = "invalid_data"
-    AccessDenied = "access_denied"
-    NotAcceptable = "not_acceptable"
-    Expired = "expired"
-    InternalServerError = "internal_server_error"
-    AlreadyUsed = "already_used"
-    NotUsed = "not_used"
-    NotAvailable = "not_available"
-    TemporarilyUnavailable = "temporarily_unavailable"
-    ConflictDetected = "conflict_detected"
-    LimitExceeded = "limit_exceeded"
-    DependencyMissing = "dependency_missing"
-    Deprecated = "deprecated"
+    DoesNotExist = 'does_not_exist'
+    AlreadyExists = 'already_exists'
+    InvalidData = 'invalid_data'
+    AccessDenied = 'access_denied'
+    NotAcceptable = 'not_acceptable'
+    Expired = 'expired'
+    InternalServerError = 'internal_server_error'
+    AlreadyUsed = 'already_used'
+    NotUsed = 'not_used'
+    NotAvailable = 'not_available'
+    TemporarilyUnavailable = 'temporarily_unavailable'
+    ConflictDetected = 'conflict_detected'
+    LimitExceeded = 'limit_exceeded'
+    DependencyMissing = 'dependency_missing'
+    Deprecated = 'deprecated'
 
 
 _VARIANT_TO_STATUS: dict[ModelApiExceptionBaseVariant, int] = {
@@ -131,36 +130,36 @@ _VARIANT_TO_STATUS: dict[ModelApiExceptionBaseVariant, int] = {
 
 def _variant_message(model_name: str, variant: ModelApiExceptionBaseVariant) -> str:
     if variant is ModelApiExceptionBaseVariant.DoesNotExist:
-        return f"{model_name} " + _("does not exist")
+        return f"{model_name} " + _('does not exist')
     if variant is ModelApiExceptionBaseVariant.AlreadyExists:
-        return f"{model_name} " + _("already exists")
+        return f"{model_name} " + _('already exists')
     if variant is ModelApiExceptionBaseVariant.InvalidData:
-        return _("Invalid data for") + f" {model_name}"
+        return _('Invalid data for') + f" {model_name}"
     if variant is ModelApiExceptionBaseVariant.AccessDenied:
-        return _("Access denied for") + f" {model_name}"
+        return _('Access denied for') + f" {model_name}"
     if variant is ModelApiExceptionBaseVariant.NotAcceptable:
-        return _("Not acceptable for") + f" {model_name}"
+        return _('Not acceptable for') + f" {model_name}"
     if variant is ModelApiExceptionBaseVariant.Expired:
-        return f"{model_name} " + _("expired")
+        return f"{model_name} " + _('expired')
     if variant is ModelApiExceptionBaseVariant.InternalServerError:
-        return _("Internal server error in") + f" {model_name}"
+        return _('Internal server error in') + f" {model_name}"
     if variant is ModelApiExceptionBaseVariant.AlreadyUsed:
-        return f"{model_name} " + _("already used")
+        return f"{model_name} " + _('already used')
     if variant is ModelApiExceptionBaseVariant.NotUsed:
-        return f"{model_name} " + _("not used")
+        return f"{model_name} " + _('not used')
     if variant is ModelApiExceptionBaseVariant.NotAvailable:
-        return f"{model_name} " + _("not available")
+        return f"{model_name} " + _('not available')
     if variant is ModelApiExceptionBaseVariant.TemporarilyUnavailable:
-        return f"{model_name} " + _("temporarily unavailable")
+        return f"{model_name} " + _('temporarily unavailable')
     if variant is ModelApiExceptionBaseVariant.ConflictDetected:
-        return f"{model_name} " + _("conflict detected")
+        return f"{model_name} " + _('conflict detected')
     if variant is ModelApiExceptionBaseVariant.LimitExceeded:
-        return f"{model_name} " + _("limit exceeded")
+        return f"{model_name} " + _('limit exceeded')
     if variant is ModelApiExceptionBaseVariant.DependencyMissing:
-        return f"{model_name} " + _("dependency missing")
+        return f"{model_name} " + _('dependency missing')
     if variant is ModelApiExceptionBaseVariant.Deprecated:
-        return f"{model_name} " + _("deprecated")
-    return _("Error")
+        return f"{model_name} " + _('deprecated')
+    return _('Error')
 
 
 class ModelApiExceptionGenerator(APIException):
@@ -171,18 +170,18 @@ class ModelApiExceptionGenerator(APIException):
     """
 
     def __init__(
-            self,
-            model: Type[Any],
-            variant: ModelApiExceptionBaseVariant,
-            code: Optional[str] = None,
-            extra: Optional[dict[str, Any]] = None,
+        self,
+        model: Type[Any],
+        variant: ModelApiExceptionBaseVariant,
+        code: Optional[str] = None,
+        extra: Optional[dict[str, Any]] = None,
     ) -> None:
         model_name = _model_verbose_name(model)
         message = _variant_message(model_name, variant)
         status = _VARIANT_TO_STATUS.get(variant, HTTP_500_INTERNAL_SERVER_ERROR)
         self.status_code = int(status)
         code_str = code or _slug_code(str(variant.value))
-        payload: dict[str, Any] = {"message": message}
+        payload: dict[str, Any] = {'message': message}
         if extra:
             payload.update(extra)
         self.default_code = code_str

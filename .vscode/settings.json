@@ -122,7 +122,8 @@
   },
   "black-formatter.args": [
     "--line-length",
-    "120"
+    "120",
+    "--skip-string-normalization"
   ],
   "black-formatter.importStrategy": "fromEnvironment",
   "isort.args": [

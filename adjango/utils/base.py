@@ -37,9 +37,7 @@ class AsyncAtomicContextManager(Atomic):
     @method __aexit__: Asynchronous exit from transaction context manager.
     """
 
-    def __init__(
-        self, using: str | None = None, savepoint: bool = True, durable: bool = False
-    ):
+    def __init__(self, using: str | None = None, savepoint: bool = True, durable: bool = False):
         """
         Initialize asynchronous atomic context manager.
 
@@ -91,9 +89,7 @@ async def download_file_to_temp(url: str) -> ContentFile:
                 file_content = await response.read()
                 file_name = url.split("/")[-1]
                 return ContentFile(file_content, name=file_name)
-            raise ValueError(
-                f"Failed to download image from {url}, status code: {response.status}"
-            )
+            raise ValueError(f'Failed to download image from {url}, status code: {response.status}')
 
 
 def add_user_to_group(user: Any, group_name: str) -> None:
@@ -124,7 +120,7 @@ def build_full_url(pattern_name: str, *args: Any, **kwargs: Any) -> str:
     :return: Full URL as string.
     """
     relative_url = reverse(pattern_name, args=args, kwargs=kwargs)
-    full_url = f"{settings.DOMAIN_URL.rstrip('/')}{relative_url}"
+    full_url = f'{settings.DOMAIN_URL.rstrip("/")}{relative_url}'
     return full_url
 
 
@@ -149,8 +145,8 @@ def is_phone(phone: str) -> bool:
     :param phone: String to check.
     :return: True if string is valid phone number, otherwise False.
     """
-    pattern = re.compile(r"^\+?[\d\s\-()]{7,15}$")
-    cleaned_phone = re.sub(r"\s+", "", phone)
+    pattern = re.compile(r'^\+?[\d\s\-()]{7,15}$')
+    cleaned_phone = re.sub(r'\s+', '', phone)
     return bool(pattern.match(cleaned_phone))
 
 
@@ -161,7 +157,7 @@ def is_email(email: str) -> bool:
     :param email: String to check.
     :return: True if string is valid email address, otherwise False.
     """
-    pattern = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+    pattern = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
     return bool(pattern.match(email))
 
 
@@ -172,7 +168,7 @@ def phone_format(phone: str) -> str:
     :param phone: Original phone number.
     :return: Formatted phone number containing only digits.
     """
-    return re.sub(r"\D", "", phone)
+    return re.sub(r'\D', '', phone)
 
 
 def normalize_phone(phone: str, country_code: str = "+7") -> str:
@@ -187,19 +183,19 @@ def normalize_phone(phone: str, country_code: str = "+7") -> str:
     digits_only = phone_format(phone)
 
     if not digits_only:
-        return ""
+        return ''
 
     # Handle Russian phone numbers
     if country_code == "+7":
-        if digits_only.startswith("8") and len(digits_only) == 11:
+        if digits_only.startswith('8') and len(digits_only) == 11:
             # Replace leading 8 with 7
-            digits_only = "7" + digits_only[1:]
-        elif digits_only.startswith("7") and len(digits_only) == 11:
+            digits_only = '7' + digits_only[1:]
+        elif digits_only.startswith('7') and len(digits_only) == 11:
             # Already in correct format
             pass
         elif len(digits_only) == 10:
             # Add country code
-            digits_only = "7" + digits_only
+            digits_only = '7' + digits_only
 
     return "+" + digits_only
 
@@ -214,9 +210,7 @@ def diff_by_timedelta(timedelta_obj: timedelta) -> datetime:
     return now() + timedelta_obj
 
 
-def decrease_by_percentage(
-    num: Union[int, float, Decimal], percent: Union[int, float, Decimal]
-) -> Decimal:
+def decrease_by_percentage(num: Union[int, float, Decimal], percent: Union[int, float, Decimal]) -> Decimal:
     """
     Decreases number by specified percentage with high precision.
 
@@ -227,7 +221,7 @@ def decrease_by_percentage(
     num_dec = Decimal(num)
     percent_dec = Decimal(percent)
     result = num_dec * (Decimal(1) - percent_dec / Decimal(100))
-    return result.quantize(Decimal("1.00"))  # Adjust precision as needed
+    return result.quantize(Decimal('1.00'))  # Adjust precision as needed
 
 
 def get_plural_form_number(number: int, forms: Tuple[str, str, str]) -> str:

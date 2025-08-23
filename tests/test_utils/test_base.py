@@ -36,25 +36,25 @@ def test_is_async_context_sync():
 async def test_async_atomic_context_manager():
     User = get_user_model()
     async with AsyncAtomicContextManager():
-        await User.objects.acreate(username="john", phone="123")
-    user = await User.objects.aget(username="john")
-    assert user.phone == "123"
+        await User.objects.acreate(username='john', phone='123')
+    user = await User.objects.aget(username='john')
+    assert user.phone == '123'
 
 
 @pytest.mark.django_db
 def test_add_user_to_group():
     User = get_user_model()
-    user = User.objects.create_user(username="u", phone="100", password="p")
-    add_user_to_group(user, "test")
-    group = Group.objects.get(name="test")
+    user = User.objects.create_user(username='u', phone='100', password='p')
+    add_user_to_group(user, 'test')
+    group = Group.objects.get(name='test')
     assert group.user_set.filter(pk=user.pk).exists()
 
 
 @pytest.mark.django_db
 def test_build_full_url(settings):
-    settings.DOMAIN_URL = "https://example.com"
-    url = build_full_url("admin:index")
-    assert url == "https://example.com/admin/"
+    settings.DOMAIN_URL = 'https://example.com'
+    url = build_full_url('admin:index')
+    assert url == 'https://example.com/admin/'
 
 
 def test_calculate_age():
@@ -77,17 +77,17 @@ def test_calculate_age_before_birthday():
 
 
 def test_is_phone():
-    assert is_phone("+1 (234) 567-8901")
-    assert not is_phone("123-abc")
+    assert is_phone('+1 (234) 567-8901')
+    assert not is_phone('123-abc')
 
 
 def test_is_email():
-    assert is_email("test@example.com")
-    assert not is_email("bad-email")
+    assert is_email('test@example.com')
+    assert not is_email('bad-email')
 
 
 def test_phone_format():
-    assert phone_format("+1 (234) 567-8901") == "12345678901"
+    assert phone_format('+1 (234) 567-8901') == '12345678901'
 
 
 def test_diff_by_timedelta():
@@ -102,10 +102,10 @@ def test_decrease_by_percentage():
 
 
 def test_get_plural_form_number():
-    forms = ("apple", "apples", "apples")
-    assert get_plural_form_number(1, forms) == "apple"
-    assert get_plural_form_number(2, forms) == "apples"
-    assert get_plural_form_number(5, forms) == "apples"
+    forms = ('apple', 'apples', 'apples')
+    assert get_plural_form_number(1, forms) == 'apple'
+    assert get_plural_form_number(2, forms) == 'apples'
+    assert get_plural_form_number(5, forms) == 'apples'
 
 
 @pytest.mark.asyncio
@@ -122,7 +122,7 @@ async def test_download_file_to_temp(monkeypatch):
             return False
 
         async def read(self):
-            return b"data"
+            return b'data'
 
     class FakeSession(SimpleNamespace):
         async def __aenter__(self):
@@ -134,12 +134,10 @@ async def test_download_file_to_temp(monkeypatch):
         def get(self, url):
             return FakeResponse()
 
-    monkeypatch.setattr(
-        "adjango.utils.base.aiohttp.ClientSession", lambda: FakeSession()
-    )
-    file = await download_file_to_temp("http://example.com/file.txt")
-    assert file.name == "file.txt"
-    assert file.read() == b"data"
+    monkeypatch.setattr('adjango.utils.base.aiohttp.ClientSession', lambda: FakeSession())
+    file = await download_file_to_temp('http://example.com/file.txt')
+    assert file.name == 'file.txt'
+    assert file.read() == b'data'
 
 
 @pytest.mark.asyncio
@@ -156,7 +154,7 @@ async def test_download_file_to_temp_error(monkeypatch):
             return False
 
         async def read(self):
-            return b""
+            return b''
 
     class FakeSession(SimpleNamespace):
         async def __aenter__(self):
@@ -168,11 +166,9 @@ async def test_download_file_to_temp_error(monkeypatch):
         def get(self, url):
             return FakeResponse()
 
-    monkeypatch.setattr(
-        "adjango.utils.base.aiohttp.ClientSession", lambda: FakeSession()
-    )
+    monkeypatch.setattr('adjango.utils.base.aiohttp.ClientSession', lambda: FakeSession())
     with pytest.raises(ValueError):
-        await download_file_to_temp("http://example.com/file.txt")
+        await download_file_to_temp('http://example.com/file.txt')
 
 
 @pytest.mark.asyncio
@@ -180,10 +176,10 @@ async def test_apprint(monkeypatch):
     calls = {}
 
     def fake_pprint(*args, **kwargs):
-        calls["args"] = args
-        calls["kwargs"] = kwargs
+        calls['args'] = args
+        calls['kwargs'] = kwargs
 
-    monkeypatch.setattr("adjango.utils.base.pprint", fake_pprint)
-    await apprint("data", key="value")
-    assert calls["args"] == ("data",)
-    assert calls["kwargs"] == {"key": "value"}
+    monkeypatch.setattr('adjango.utils.base.pprint', fake_pprint)
+    await apprint('data', key='value')
+    assert calls['args'] == ('data',)
+    assert calls['kwargs'] == {'key': 'value'}

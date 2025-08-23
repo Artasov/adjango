@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
     from adjango.querysets.base import AQuerySet
 
-_RM = TypeVar("_RM", bound="Model")
+_RM = TypeVar('_RM', bound='Model')
 
 
 class AManyRelatedManager(AManager[_RM], Generic[_RM]):
@@ -24,14 +24,14 @@ class AManyRelatedManager(AManager[_RM], Generic[_RM]):
     implementation while preserving the generic ``_RM`` type information.
     """
 
-    def all(self) -> "AQuerySet[_RM]": ...
+    def all(self) -> 'AQuerySet[_RM]': ...
 
     async def aall(self) -> list[_RM]: ...
 
 
 class AManyToManyDescriptor(ManyToManyDescriptor, Generic[_RM]):
     def __get__(
-        self, instance: "Model | None", owner: type | None = None
+        self, instance: 'Model | None', owner: type | None = None
     ) -> AManyRelatedManager[_RM]:  # type: ignore[override]
         # ``ManyToManyDescriptor`` returns a dynamically created manager.  Casting
         # here preserves the concrete related model type for static analysers.
@@ -40,9 +40,9 @@ class AManyToManyDescriptor(ManyToManyDescriptor, Generic[_RM]):
     def __init__(self, rel, reverse=False):
         super().__init__(rel, reverse)
         self._related_model = None
-        if hasattr(rel, "related_model"):
+        if hasattr(rel, 'related_model'):
             self._related_model = rel.related_model
-        elif hasattr(rel, "model"):
+        elif hasattr(rel, 'model'):
             self._related_model = rel.model
 
     @property
@@ -63,10 +63,8 @@ class AManyToManyDescriptor(ManyToManyDescriptor, Generic[_RM]):
         # typed ``aall`` method.  Using ``related_model`` in the annotations
         # allows IDEs and type checkers to infer the concrete model type instead
         # of the generic ``_RM`` placeholder.
-        class _AManyRelatedManager(
-            original_manager_cls, AManyRelatedManager[related_model]
-        ):
-            def all(self) -> "AQuerySet[related_model]":  # type: ignore[override]
+        class _AManyRelatedManager(original_manager_cls, AManyRelatedManager[related_model]):
+            def all(self) -> 'AQuerySet[related_model]':  # type: ignore[override]
                 from adjango.querysets.base import AQuerySet
 
                 return cast(AQuerySet[related_model], super().all())

@@ -15,7 +15,7 @@ from django.shortcuts import resolve_url
 
 from adjango.utils.base import download_file_to_temp
 
-_M = TypeVar("_M", bound=Model)
+_M = TypeVar('_M', bound=Model)
 
 
 def getorn(
@@ -101,7 +101,7 @@ async def arelated(obj: Model, field: str) -> Model:
         value = getattr(obj, field)
         return value
     except AttributeError:
-        raise ValueError(f"Field '{field}' does not exist for object '{obj.__class__.__name__}'")
+        raise ValueError(f'Field \'{field}\' does not exist for object \'{obj.__class__.__name__}\'')
     except SynchronousOnlyOperation:
         return await sync_to_async(getattr)(obj, field)
 

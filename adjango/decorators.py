@@ -41,15 +41,15 @@ def task(logger: Optional[str] = None):
             log = None
             if logger:
                 log = logging.getLogger(logger)
-                log.info(f"Start executing task: {func.__name__}\n{args}\n{kwargs}")
+                log.info(f'Start executing task: {func.__name__}\n{args}\n{kwargs}')
             try:
                 result = func(*args, **kwargs)
             except Exception as e:
-                log.critical(f"Error executing task: {func.__name__}")
+                log.critical(f'Error executing task: {func.__name__}')
                 log.critical(traceback_str(e))
                 raise e
             if log:
-                log.info(f"End executing task: {func.__name__}\n{args}\n{kwargs}")
+                log.info(f'End executing task: {func.__name__}\n{args}\n{kwargs}')
             return result
 
         return wrapper
@@ -73,16 +73,12 @@ def force_data(fn: Callable[..., Any]) -> Callable[..., Any]:
 
     @wraps(fn)
     def _wrapped_view(request: WSGIRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        if not hasattr(request, "data"):
+        if not hasattr(request, 'data'):
             request.data = {}
-        request.data.update(
-            request.POST.dict() if isinstance(request.POST, QueryDict) else request.POST
-        )
-        request.data.update(
-            request.GET.dict() if isinstance(request.GET, QueryDict) else request.GET
-        )
+        request.data.update(request.POST.dict() if isinstance(request.POST, QueryDict) else request.POST)
+        request.data.update(request.GET.dict() if isinstance(request.GET, QueryDict) else request.GET)
         try:
-            json_data = json.loads(request.body.decode("utf-8"))
+            json_data = json.loads(request.body.decode('utf-8'))
             if isinstance(json_data, dict):
                 request.data.update(json_data)
         except (ValueError, TypeError, UnicodeDecodeError, RawPostDataException):
@@ -125,7 +121,7 @@ def controller(
             fn_name = name or fn.__name__
             start_time = None
             if log_name or (log_name is None and ADJANGO_CONTROLLERS_LOGGING):
-                log.info(f"Ctrl: {request.method} | {fn_name}")
+                log.info(f'Ctrl: {request.method} | {fn_name}')
             if log_time:
                 start_time = time()
             if auth_required and not request.user.is_authenticated:
@@ -135,7 +131,7 @@ def controller(
                 if log_time and start_time is not None:
                     end_time = time()
                     elapsed_time = end_time - start_time
-                    log.info(f"Execution time {fn_name}: {elapsed_time:.2f} seconds")
+                    log.info(f'Execution time {fn_name}: {elapsed_time:.2f} seconds')
                 return result
             else:
                 try:
@@ -143,17 +139,11 @@ def controller(
                     if log_time and start_time is not None:
                         end_time = time()
                         elapsed_time = end_time - start_time
-                        log.info(
-                            f"Execution time {fn_name}: {elapsed_time:.2f} seconds"
-                        )
+                        log.info(f'Execution time {fn_name}: {elapsed_time:.2f} seconds')
                     return result
                 except Exception as e:
-                    log.critical(
-                        f"ERROR in {fn_name}: {traceback_str(e)}", exc_info=True
-                    )
-                    if hasattr(
-                        settings, "ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION"
-                    ):
+                    log.critical(f'ERROR in {fn_name}: {traceback_str(e)}', exc_info=True)
+                    if hasattr(settings, 'ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION'):
                         handling_function = ADJANGO_UNCAUGHT_EXCEPTION_HANDLING_FUNCTION
                         if callable(handling_function):
                             handling_function(fn_name, request, e, *args, **kwargs)

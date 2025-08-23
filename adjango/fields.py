@@ -10,7 +10,7 @@ from adjango.descriptors import AManyRelatedManager, AManyToManyDescriptor
 if TYPE_CHECKING:
     from django.db.models import Model
 
-_RM = TypeVar("_RM", bound="Model")
+_RM = TypeVar('_RM', bound='Model')
 
 
 class AManyToManyField(ManyToManyField, Generic[_RM]):
@@ -22,9 +22,7 @@ class AManyToManyField(ManyToManyField, Generic[_RM]):
         # ``aall`` or ``all``.  Without inheriting from ``Generic`` and
         # annotating this method, usages such as ``await order.products.aall()``
         # would resolve to ``list[_RM]`` instead of ``list[Product]``.
-        def __get__(
-            self, instance: "Model | None", owner: type | None = None
-        ) -> AManyRelatedManager[_RM]: ...
+        def __get__(self, instance: 'Model | None', owner: type | None = None) -> AManyRelatedManager[_RM]: ...
 
     # ``ManyToManyField`` does not support generics out of the box.  By
     # subclassing ``Generic`` we enable expressions like
@@ -36,7 +34,5 @@ class AManyToManyField(ManyToManyField, Generic[_RM]):
         super().contribute_to_class(cls, name, **kwargs)
         # Replace the descriptor with our custom typed version so that the
         # related manager exposes the concrete model type instead of ``_RM``.
-        descriptor: AManyToManyDescriptor[_RM] = AManyToManyDescriptor(
-            self.remote_field, reverse=False
-        )
+        descriptor: AManyToManyDescriptor[_RM] = AManyToManyDescriptor(self.remote_field, reverse=False)
         setattr(cls, self.name, descriptor)

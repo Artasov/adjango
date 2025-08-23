@@ -32,9 +32,9 @@ try:
             return await sync_to_async(self.get_real_instance)()
 
         @property
-        def service(self) -> "ABaseService":
+        def service(self) -> 'ABaseService':
             """Return service instance for this model. Must be implemented in subclasses."""
-            raise NotImplementedError(f"Define service property in your model {self.__class__.__name__}")
+            raise NotImplementedError(f'Define service property in your model {self.__class__.__name__}')
 
 except ImportError:
     # django-polymorphic not installed

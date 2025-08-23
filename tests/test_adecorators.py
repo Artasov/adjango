@@ -29,21 +29,21 @@ class TestAForceData:
 
         @aforce_data
         async def mock_view(request):
-            return HttpResponse("OK")
+            return HttpResponse('OK')
 
         # Создаем мок запроса
         request = MagicMock(spec=ASGIRequest)
-        request.POST = QueryDict("post_key=post_value")
-        request.GET = QueryDict("get_key=get_value")
+        request.POST = QueryDict('post_key=post_value')
+        request.GET = QueryDict('get_key=get_value')
         request.body = b'{"json_key": "json_value"}'
 
         response = await mock_view(request)
 
         assert response.status_code == 200
-        assert hasattr(request, "data")
-        assert request.data["post_key"] == "post_value"
-        assert request.data["get_key"] == "get_value"
-        assert request.data["json_key"] == "json_value"
+        assert hasattr(request, 'data')
+        assert request.data['post_key'] == 'post_value'
+        assert request.data['get_key'] == 'get_value'
+        assert request.data['json_key'] == 'json_value'
 
     @pytest.mark.asyncio
     async def test_aforce_data_invalid_json(self):
@@ -54,16 +54,16 @@ class TestAForceData:
             return HttpResponse("OK")
 
         request = MagicMock(spec=ASGIRequest)
-        request.POST = QueryDict("post_key=post_value")
-        request.GET = QueryDict("get_key=get_value")
-        request.body = b"invalid json"
+        request.POST = QueryDict('post_key=post_value')
+        request.GET = QueryDict('get_key=get_value')
+        request.body = b'invalid json'
 
         response = await mock_view(request)
 
         assert response.status_code == 200
-        assert hasattr(request, "data")
-        assert "json_key" not in request.data
-        assert request.data["post_key"] == "post_value"
+        assert hasattr(request, 'data')
+        assert 'json_key' not in request.data
+        assert request.data['post_key'] == 'post_value'
 
     @pytest.mark.asyncio
     async def test_aforce_data_existing_data(self):
@@ -74,16 +74,16 @@ class TestAForceData:
             return HttpResponse("OK")
 
         request = MagicMock(spec=ASGIRequest)
-        request.data = {"existing": "value"}
-        request.POST = QueryDict("post_key=post_value")
-        request.GET = QueryDict("get_key=get_value")
+        request.data = {'existing': 'value'}
+        request.POST = QueryDict('post_key=post_value')
+        request.GET = QueryDict('get_key=get_value')
         request.body = b'{"json_key": "json_value"}'
 
         response = await mock_view(request)
 
         assert response.status_code == 200
-        assert request.data["existing"] == "value"
-        assert request.data["post_key"] == "post_value"
+        assert request.data['existing'] == 'value'
+        assert request.data['post_key'] == 'post_value'
 
 
 class TestAatomic:
@@ -127,9 +127,9 @@ class TestAcontroller:
             return HttpResponse("OK")
 
         request = MagicMock(spec=ASGIRequest)
-        request.method = "GET"
+        request.method = 'GET'
 
-        with patch.object(settings, "DEBUG", True):
+        with patch.object(settings, 'DEBUG', True):
             response = await mock_view(request)
 
         assert response.status_code == 200
@@ -141,14 +141,14 @@ class TestAcontroller:
         mock_logger = MagicMock()
         mock_get_logger.return_value = mock_logger
 
-        @acontroller(name="test_controller", log_name=True, log_time=True)
+        @acontroller(name='test_controller', log_name=True, log_time=True)
         async def mock_view(request):
-            return HttpResponse("OK")
+            return HttpResponse('OK')
 
         request = MagicMock(spec=ASGIRequest)
-        request.method = "POST"
+        request.method = 'POST'
 
-        with patch.object(settings, "DEBUG", True):
+        with patch.object(settings, 'DEBUG', True):
             response = await mock_view(request)
 
         assert response.status_code == 200
@@ -157,9 +157,7 @@ class TestAcontroller:
     @pytest.mark.asyncio
     @patch("adjango.adecorators.logging.getLogger")
     @patch("adjango.adecorators.traceback_str")
-    async def test_acontroller_exception_handling(
-        self, mock_traceback_str, mock_get_logger
-    ):
+    async def test_acontroller_exception_handling(self, mock_traceback_str, mock_get_logger):
         """Test обработки исключений в acontroller"""
         mock_logger = MagicMock()
         mock_get_logger.return_value = mock_logger
@@ -255,9 +253,7 @@ class TestAloginRequired:
         async def mock_view(request):
             return HttpResponse("OK")
 
-        decorator = alogin_required(
-            function=None, redirect_field_name="next", login_url="/custom-login/"
-        )
+        decorator = alogin_required(function=None, redirect_field_name="next", login_url="/custom-login/")
         decorated_view = decorator(mock_view)
 
         mock_auser_passes_test.assert_called_once()

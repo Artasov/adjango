@@ -1,34 +1,9 @@
 # app/admin.py
 
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
 
 from .models import Order, Product, User
-
-
-class CustomUserAdmin(BaseUserAdmin):
-    fieldsets = (
-        *BaseUserAdmin.fieldsets,
-        (
-            _("Additional Information"),
-            {
-                "fields": ("phone",),
-            },
-        ),
-    )
-    add_fieldsets = (
-        *BaseUserAdmin.add_fieldsets,
-        (
-            _("Additional Information"),
-            {
-                "fields": ("phone",),
-            },
-        ),
-    )
-    list_display = ("username", "email", "first_name", "last_name", "phone", "is_staff")
-    search_fields = ("username", "email", "first_name", "last_name", "phone")
-    ordering = ("username",)
 
 
 @admin.register(Product)
@@ -48,5 +23,53 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 @admin.register(User)
-class UserAdmin(CustomUserAdmin):
-    pass
+class UserAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'username',
+        'email',
+        'is_staff',
+    )
+    search_fields = (
+        'id',
+        'username',
+        'email',
+        'first_name',
+        'last_name',
+        'middle_name',
+        'phone',
+    )
+    list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups')
+    list_per_page = 50
+    list_display_links = ('id', 'email')
+
+    fieldsets = (
+        (
+            _('General info'),
+            {
+                'fields': (
+                    'id',
+                    'username',
+                    'first_name',
+                    'last_name',
+                    'email',
+                    'password',
+                )
+            },
+        ),
+        (
+            _('Roles'),
+            {'fields': ('roles',)},
+        ),
+        (
+            _('Permissions'),
+            {
+                'fields': (
+                    'is_active',
+                    'is_staff',
+                    'is_superuser',
+                )
+            },
+        ),
+        (_('Dates'), {'fields': ('last_login', 'date_joined')}),
+    )

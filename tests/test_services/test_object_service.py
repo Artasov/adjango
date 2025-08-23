@@ -11,7 +11,7 @@ class DummyService(ABaseService):
 
 class DummyModel(AModel):
     class Meta:
-        app_label = "test_services"
+        app_label = 'test_services'
 
     @property
     def service(self) -> DummyService:
@@ -21,8 +21,8 @@ class DummyModel(AModel):
 @pytest.mark.asyncio
 async def test_arelated_method():
     obj = DummyModel()
-    obj.attr = "value"
-    assert await obj.arelated("attr") == "value"
+    obj.attr = 'value'
+    assert await obj.arelated('attr') == 'value'
 
 
 def test_service_property():
@@ -35,7 +35,7 @@ def test_service_property():
 def test_service_property_not_implemented():
     class NoServiceModel(AModel):
         class Meta:
-            app_label = "test_services"
+            app_label = 'test_services'
 
     with pytest.raises(NotImplementedError):
         NoServiceModel().service
