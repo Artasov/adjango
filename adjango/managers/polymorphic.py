@@ -16,6 +16,7 @@ try:
     # Type variable for generic polymorphic manager
     _M = TypeVar("_M", bound=Model)
 
+
     class APolymorphicManager(PolymorphicManager, Generic[_M]):
         """Enhanced polymorphic manager with proper type hints."""
 
@@ -66,7 +67,7 @@ try:
             return self.get_queryset().getorn(exception, *args, **kwargs)
 
         async def agetorn(
-            self, exception: Type[Exception] | Exception | None = None, *args: Any, **kwargs: Any
+                self, exception: Type[Exception] | Exception | None = None, *args: Any, **kwargs: Any
         ) -> _M | None:
             """Async get object or return None if not found."""
             return await self.get_queryset().agetorn(exception, *args, **kwargs)
@@ -85,6 +86,9 @@ try:
 
         def select_related(self, *fields: Any) -> Union[APolymorphicQuerySet[_M], PolymorphicQuerySet[_M]]:
             return super().select_related(*fields)
+
+        def annotate(self, *fields: Any) -> Union[APolymorphicQuerySet[_M], PolymorphicQuerySet[_M]]:
+            return super().annotate(*fields)
 
 except ImportError:
     pass

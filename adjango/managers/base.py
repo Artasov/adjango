@@ -61,7 +61,7 @@ class AManager(Manager, Generic[_M]):
         return self.get_queryset().getorn(exception, *args, **kwargs)
 
     async def agetorn(
-        self, exception: Type[Exception] | Exception | None = None, *args: Any, **kwargs: Any
+            self, exception: Type[Exception] | Exception | None = None, *args: Any, **kwargs: Any
     ) -> _M | None:
         """Async get object or return None if not found."""
         return await self.get_queryset().agetorn(exception, *args, **kwargs)
@@ -83,6 +83,9 @@ class AManager(Manager, Generic[_M]):
 
     def only(self, *fields: Any) -> Union[AQuerySet[_M], QuerySet[_M]]:
         return super().only(*fields)
+
+    def annotate(self, *fields: Any) -> Union[AQuerySet[_M], QuerySet[_M]]:
+        return super().annotate(*fields)
 
 
 class AUserManager(UserManager, AManager[_M]):
