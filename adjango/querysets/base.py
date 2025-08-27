@@ -76,3 +76,6 @@ class AQuerySet(QuerySet[_M], Generic[_M]):
 
     def only(self, *fields) -> Union[AQuerySet[_M], QuerySet[_M]]:
         return super().only(*fields)
+
+    def annotate(self, *fields) -> Union[AQuerySet[_M], QuerySet[_M]]:
+        return super().annotate(*fields)
