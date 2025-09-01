@@ -87,8 +87,11 @@ try:
         def select_related(self, *fields: Any) -> Union[APolymorphicQuerySet[_M], PolymorphicQuerySet[_M]]:
             return super().select_related(*fields)
 
-        def annotate(self, *fields: Any) -> Union[APolymorphicQuerySet[_M], PolymorphicQuerySet[_M]]:
-            return super().annotate(*fields)
+        def only(self, *fields: Any) -> Union[APolymorphicQuerySet[_M], PolymorphicQuerySet[_M]]:
+            return super().only(*fields)
+
+        def annotate(self, *args, **kwargs) -> Union[APolymorphicQuerySet[_M], PolymorphicQuerySet[_M]]:
+            return super().annotate(*args, **kwargs)
 
 except ImportError:
     pass

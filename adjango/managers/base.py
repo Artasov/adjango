@@ -84,8 +84,8 @@ class AManager(Manager, Generic[_M]):
     def only(self, *fields: Any) -> Union[AQuerySet[_M], QuerySet[_M]]:
         return super().only(*fields)
 
-    def annotate(self, *fields: Any) -> Union[AQuerySet[_M], QuerySet[_M]]:
-        return super().annotate(*fields)
+    def annotate(self, *args, **kwargs) -> Union[AQuerySet[_M], QuerySet[_M]]:
+        return super().annotate(*args, **kwargs)
 
 
 class AUserManager(UserManager, AManager[_M]):

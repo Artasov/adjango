@@ -357,7 +357,7 @@ async def consultations_completed(request):
 ...
 
 
-class UserService(ABaseService['User']):
+class UserService(ABaseService):
     ...
 
     @property

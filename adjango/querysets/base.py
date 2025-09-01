@@ -8,7 +8,7 @@ from django.db.models import QuerySet
 
 from adjango.utils.funcs import aadd, agetorn, aset, getorn
 
-_M = TypeVar("_M", bound="Model")
+_M = TypeVar('_M', bound='Model')
 
 
 class AQuerySet(QuerySet[_M], Generic[_M]):
@@ -77,5 +77,5 @@ class AQuerySet(QuerySet[_M], Generic[_M]):
     def only(self, *fields) -> Union[AQuerySet[_M], QuerySet[_M]]:
         return super().only(*fields)
 
-    def annotate(self, *fields) -> Union[AQuerySet[_M], QuerySet[_M]]:
-        return super().annotate(*fields)
+    def annotate(self, *args, **kwargs) -> Union[AQuerySet[_M], QuerySet[_M]]:
+        return super().annotate(*args, **kwargs)
