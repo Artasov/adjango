@@ -5,7 +5,7 @@ with open('README.md', 'r', encoding='utf-8') as fh:
 
 setuptools.setup(
     name='adjango',
-    version='0.8.0',
+    version='0.8.1',
     author='xlartas',
     author_email='ivanhvalevskey@gmail.com',
     description='A library with many features for interacting with Django',
@@ -22,8 +22,6 @@ setuptools.setup(
     ],
     classifiers=[
         'Framework :: Django',
-        'Framework :: Django :: 4',
-        'Framework :: Django :: 4.1',
         'Framework :: Django :: 4.2',
         'Framework :: Django :: 5',
         'Framework :: Django :: 5.1',

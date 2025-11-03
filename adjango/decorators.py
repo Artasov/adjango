@@ -45,8 +45,9 @@ def task(logger: Optional[str] = None):
             try:
                 result = func(*args, **kwargs)
             except Exception as e:
-                log.critical(f'Error executing task: {func.__name__}')
-                log.critical(traceback_str(e))
+                if log:
+                    log.critical(f'Error executing task: {func.__name__}')
+                    log.critical(traceback_str(e))
                 raise e
             if log:
                 log.info(f'End executing task: {func.__name__}\n{args}\n{kwargs}')
@@ -89,12 +90,12 @@ def force_data(fn: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def controller(
-    name: str | None = None,
-    logger: Optional[str] = None,
-    log_name: bool = True,
-    log_time: bool = False,
-    auth_required: bool = False,
-    not_auth_redirect: str = settings.LOGIN_URL,
+        name: str | None = None,
+        logger: Optional[str] = None,
+        log_name: bool = True,
+        log_time: bool = False,
+        auth_required: bool = False,
+        not_auth_redirect: str = settings.LOGIN_URL,
 ) -> Callable[..., Any]:
     """
     Synchronous controller with logging, authentication checking and exception handling.

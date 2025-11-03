@@ -22,11 +22,11 @@ def send_emails(subject: str, emails: list[str] | tuple[str, ...], template: str
 
     log = logging.getLogger(ADJANGO_EMAIL_LOGGER_NAME)
     if send_mail(
-        subject=subject,
-        message=str(json.dumps(context)),
-        from_email=settings.EMAIL_HOST_USER,
-        recipient_list=list(emails),
-        html_message=render_to_string(template, context=context if context is not None else {}),
+            subject=subject,
+            message=str(json.dumps(context, default=str)),
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=list(emails),
+            html_message=render_to_string(template, context=context if context is not None else {}),
     ):
         log.info(f'Successfully sent {template=} {emails=}')
         return True
