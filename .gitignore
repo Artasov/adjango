@@ -161,3 +161,4 @@ db_fixtures
 /media/
 build
 build/
+.claude

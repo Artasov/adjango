@@ -20,6 +20,9 @@ setuptools.setup(
         'aiohttp>=3.8.0',
         'celery>=5.0.0',
     ],
+    extras_require={
+        'images': ['Pillow>=9.0.0'],
+    },
     classifiers=[
         'Framework :: Django',
         'Framework :: Django :: 4.2',
