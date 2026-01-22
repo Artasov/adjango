@@ -6,14 +6,14 @@
 
 `ADjango` is a comprehensive library that enhances Django development with Django REST Framework (DRF) and Celery
 integration. It provides essential tools including
-asynchronous `managers`, `services`, `serializers`, `decorators`, `exceptions` and more utilities for `async`
+asynchronous `services`, `serializers`, `decorators`, `exceptions` and more utilities for `async`
 programming, Celery task scheduling, `transaction` management, and much more to streamline your Django DRF Celery
 development workflow.
 
 - [Installation 🛠️](#installation-️)
 - [Settings ⚙️](#settings-️)
 - [Overview](#overview)
-    - [Manager \& Services 🛎️](#manager--services-️)
+    - [Models \& Services 🛎️](#models--services-️)
     - [Utils 🔧](#utils-)
     - [Mixins 🎨](#mixins-)
     - [Decorators 🎀](#decorators-)
@@ -77,17 +77,18 @@ pip install adjango
 
 Most functions, if available in asynchronous form, are also available in synchronous form.
 
-### Manager & Services 🛎️
+### Models & Services 🛎️
 
 A simple example and everything is immediately clear...
 
 ```python
-from adjango.fields import AManyToManyField
-from adjango.managers.base import AManager
-from adjango.services.base import ABaseService
-from adjango.models import AModel
-from adjango.models.base import AAbstractUser
-from adjango.models.polymorphic import APolymorphicModel
+from django.contrib.auth.models import AbstractUser
+from django.db.models import CASCADE, CharField, ForeignKey, ManyToManyField
+
+from adjango.models import Model
+from adjango.models.polymorphic import PolymorphicModel
+from adjango.services.base import BaseService
+from adjango.utils.funcs import aadd, aall, afilter, aset
 
 ...
 ...  # Service layer usage
@@ -98,7 +99,7 @@ if TYPE_CHECKING:
     from apps.core.models import User
 
 
-class UserService(ABaseService):
+class UserService(BaseService):
     def __init__(self, obj: 'User') -> None:
         super().__init__(obj)
         self.user = obj
@@ -108,7 +109,7 @@ class UserService(ABaseService):
 
 
 # models/user.py (User redefinition)
-class User(AAbstractUser):
+class User(AbstractUser):
     ...
 
     @property
@@ -126,37 +127,38 @@ full_name = user.service.get_full_name()
 
 
 # models/commerce.py
-class Product(APolymorphicModel):
+class Product(PolymorphicModel):
     name = CharField(max_length=100)
 
 
-class Order(AModel):
+class Order(Model):
     user = ForeignKey(User, CASCADE)
-    products = AManyToManyField(Product)
+    products = ManyToManyField(Product)
 
 
 # The following is now possible...
-products = await Product.objects.aall()
-products = await Product.objects.afilter(name='name')
+products = await aall(Product.objects.all())
+products = await afilter(Product.objects, name='name')
 # Returns an object or None if not found
-order = await Order.objects.agetorn(id=69)  # aget or none
+order = await BaseService.agetorn(Order.objects, id=69)  # aget or none
 if not order: raise
 
 # We install products in the order
-await order.products.aset(products)
+await aset(order.products, products)
 # Or queryset right away...
-await order.products.aset(
+await aset(
+    order.products,
     Product.objects.filter(name='name')
 )
-await order.products.aadd(products[0])
+await aadd(order.products, products[0])
 
 # We get the order again without associated objects
 order: Order = await Order.objects.aget(id=69)
 # Retrieve related objects asynchronously.
 order.user = await order.arelated('user')
-products = await order.products.aall()
+products = await aall(order.products)
 # Works the same with intermediate processing/query filters
-orders = await Order.objects.prefetch_related('products').aall()
+orders = await aall(Order.objects.prefetch_related('products'))
 for o in orders:
     for p in o.products.all():
         print(p.id)
@@ -169,8 +171,7 @@ for o in orders:
 
   ```python
   from adjango.utils.funcs import (
-    aall, getorn, agetorn,
-    afilter, aset, aadd, arelated
+    aall, afilter, aset, aadd, arelated
 )
   ```
 
@@ -178,13 +179,13 @@ for o in orders:
 
 ```python
 from adjango.models.mixins import (
-    ACreatedAtMixin, ACreatedAtIndexedMixin, ACreatedAtEditableMixin,
-    AUpdatedAtMixin, AUpdatedAtIndexedMixin,
-    ACreatedUpdatedAtMixin, ACreatedUpdatedAtIndexedMixin
+    CreatedAtMixin, CreatedAtIndexedMixin, CreatedAtEditableMixin,
+    UpdatedAtMixin, UpdatedAtIndexedMixin,
+    CreatedUpdatedAtMixin, CreatedUpdatedAtIndexedMixin
 )
 
 
-class EventProfile(ACreatedUpdatedAtIndexedMixin):
+class EventProfile(CreatedUpdatedAtIndexedMixin):
     event = ForeignKey('events.Event', CASCADE, 'members', verbose_name=_('Event'))
 
     @property
@@ -304,11 +305,13 @@ operations, making it easier to handle data in async views.
 Support methods like `adata`, `avalid_data`, `ais_valid`, and `asave`.
 
 ```python
-from adjango.querysets.base import AQuerySet
 from adjango.aserializers import (
     AModelSerializer, ASerializer, AListSerializer
 )
 from adjango.serializers import dynamic_serializer
+from adjango.services.base import BaseService
+from adjango.utils.funcs import aall
+from django.db.models import QuerySet
 
 ...
 
@@ -345,9 +348,11 @@ async def consultations_completed(request):
     page_size = int(request.query_params.get('page_size', 10))
     return Response({
         'results': await ConsultationSerializerTier2(
-            await request.user.completed_consultations[
-                  (page - 1) * page_size:page * page_size
-                  ].aall(),
+            await aall(
+                request.user.completed_consultations[
+                    (page - 1) * page_size:page * page_size
+                ]
+            ),
             many=True,
             context={'request': request}
         ).adata
@@ -357,13 +362,13 @@ async def consultations_completed(request):
 ...
 
 
-class UserService(ABaseService):
+class UserService(BaseService):
     ...
 
     @property
-    def completed_consultations(self) -> AQuerySet['Consultation']:
+    def completed_consultations(self) -> QuerySet['Consultation']:
         """
-        Returns an optimized AQuerySet of all completed consultations of the user
+        Returns an optimized QuerySet of all completed consultations of the user
         (both psychologist and client).
         """
         from apps.psychology.models import Consultation

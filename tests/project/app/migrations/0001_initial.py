@@ -6,8 +6,6 @@ import django.utils.timezone
 from django.conf import settings
 from django.db import migrations, models
 
-import adjango.fields
-import adjango.managers.base
 
 
 class Migration(migrations.Migration):
@@ -129,9 +127,6 @@ class Migration(migrations.Migration):
             options={
                 "abstract": False,
             },
-            managers=[
-                ("objects", adjango.managers.base.AUserManager()),
-            ],
         ),
         migrations.CreateModel(
             name="Product",
@@ -174,7 +169,7 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("products", adjango.fields.AManyToManyField(to="app.product")),
+                ("products", models.ManyToManyField(to="app.product")),
                 (
                     "user",
                     models.ForeignKey(

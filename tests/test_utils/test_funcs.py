@@ -2,16 +2,8 @@ import pytest
 from django.http import HttpResponse
 from django.test import RequestFactory
 
-from adjango.utils.funcs import (
-    aadd,
-    aall,
-    afilter,
-    agetorn,
-    arelated,
-    aset,
-    auser_passes_test,
-    getorn,
-)
+from adjango.services.base import BaseService
+from adjango.utils.funcs import aadd, aall, afilter, arelated, aset, auser_passes_test
 
 
 @pytest.mark.asyncio
@@ -22,21 +14,21 @@ async def test_getorn_and_agetorn():
     p = await Product.objects.acreate(name='p1', price=10)
     from asgiref.sync import sync_to_async
 
-    assert await sync_to_async(getorn)(Product.objects, None, name='p1') == p
-    assert await sync_to_async(getorn)(Product.objects, None, name='missing') is None
+    assert await sync_to_async(BaseService.getorn)(Product.objects, None, name='p1') == p
+    assert await sync_to_async(BaseService.getorn)(Product.objects, None, name='missing') is None
 
-    p_async = await agetorn(Product.objects, None, name='p1')
+    p_async = await BaseService.agetorn(Product.objects, None, name='p1')
     assert p_async == p
-    assert await agetorn(Product.objects, None, name='missing') is None
+    assert await BaseService.agetorn(Product.objects, None, name='missing') is None
 
     class MyError(Exception):
         pass
 
     with pytest.raises(MyError):
-        await sync_to_async(getorn)(Product.objects, MyError, name='missing')
+        await sync_to_async(BaseService.getorn)(Product.objects, MyError, name='missing')
 
     with pytest.raises(MyError):
-        await agetorn(Product.objects, MyError, name='missing')
+        await BaseService.agetorn(Product.objects, MyError, name='missing')
 
 
 @pytest.mark.asyncio
@@ -45,7 +37,7 @@ async def test_agetorn_after_only():
     from app.models import Product
 
     p = await Product.objects.acreate(name='p_only', price=10)
-    result = await Product.objects.only('name').agetorn(id=p.id)
+    result = await BaseService.agetorn(Product.objects.only('name'), id=p.id)
     assert result == p
 
 
@@ -60,12 +52,12 @@ async def test_arelated_aset_aadd_aall_afilter():
     p2 = await Product.objects.acreate(name='p2', price=2)
 
     await aset(order.products, [p1, p2])
-    related = await order.products.aall()
+    related = await aall(order.products)
     assert set(related) == {p1, p2}
 
     await aset(order.products, [])
     await aadd(order.products, p1)
-    assert await order.products.aall() == [p1]
+    assert await aall(order.products) == [p1]
 
     all_products = await aall(Product.objects)
     assert p1 in all_products and p2 in all_products

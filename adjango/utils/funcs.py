@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import Any, Iterable, Optional, Type, TypeVar
+from typing import Any, Iterable, Optional, TypeVar
 from urllib.parse import urlparse
 
 from asgiref.sync import sync_to_async
@@ -16,74 +16,6 @@ from django.shortcuts import resolve_url
 from adjango.utils.base import download_file_to_temp
 
 _M = TypeVar('_M', bound=Model)
-
-
-def getorn(
-    queryset: QuerySet[_M],
-    exception: Type[Exception] | Exception | None = None,
-    *args: Any,
-    **kwargs: Any,
-) -> _M | None:
-    """
-    Gets single object from given QuerySet matching passed parameters.
-
-    :param queryset: QuerySet to get object from.
-    :param exception: Exception class or exception instance to raise if object not found.
-                      If None, returns None.
-
-    :return: Model object or None if object not found and exception not specified.
-
-    @behavior:
-        - Tries to get object using queryset.get().
-        - If object not found, raises exception or returns None.
-
-    @usage:
-        result = getorn(MyCustomException, id=1)
-        result = getorn(MyCustomException(), id=1)
-    """
-    try:
-        return queryset.get(*args, **kwargs)
-    except queryset.model.DoesNotExist:
-        if exception is not None:
-            if isinstance(exception, type):
-                raise exception()
-            else:
-                raise exception
-    return None
-
-
-async def agetorn(
-    queryset: QuerySet[_M],
-    exception: Type[Exception] | Exception | None = None,
-    *args: Any,
-    **kwargs: Any,
-) -> _M | None:
-    """
-    Async gets single object from given QuerySet matching passed parameters.
-
-    :param queryset: QuerySet to get object from.
-    :param exception: Exception class or exception instance to raise if object not found.
-                      If None, returns None.
-
-    :return: Model object or None if object not found and exception not specified.
-
-    @behavior:
-        - Tries to async get object using queryset.aget().
-        - If object not found, raises exception or returns None.
-
-    @usage:
-        result = await agetorn(MyCustomException, id=1)
-        result = await agetorn(MyCustomException(), id=1)
-    """
-    try:
-        return await queryset.aget(*args, **kwargs)
-    except queryset.model.DoesNotExist:
-        if exception is not None:
-            if isinstance(exception, type):
-                raise exception()
-            else:
-                raise exception
-    return None
 
 
 async def arelated(obj: Model, field: str) -> Model:

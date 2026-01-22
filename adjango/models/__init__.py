@@ -1,6 +1,6 @@
-from .base import AModel
+from .base import Model
 
 try:
-    from .polymorphic import APolymorphicModel
+    from .polymorphic import PolymorphicModel
 except ImportError:
     pass

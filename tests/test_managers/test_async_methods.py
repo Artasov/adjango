@@ -1,5 +1,7 @@
 import pytest
 
+from adjango.utils.funcs import aadd, aall, aset
+
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
@@ -12,17 +14,17 @@ async def test_related_manager_async_methods_and_polymorphic_manager():
     product, created = await Product.objects.aget_or_create(name='p', price=1)
     assert created
 
-    await order.products.aset([product])
-    related = await order.products.aall()
+    await aset(order.products, [product])
+    related = await aall(order.products)
     assert related == [product]
     assert all(isinstance(p, Product) for p in related)
 
-    await order.products.aset([])
-    await order.products.aadd(product)
-    assert await order.products.aall() == [product]
+    await aset(order.products, [])
+    await aadd(order.products, product)
+    assert await aall(order.products) == [product]
 
     order2, created2 = await Order.objects.aget_or_create(user=user)
     assert order2 == order and not created2
 
-    orders = await Order.objects.prefetch_related('products').aall()
+    orders = await aall(Order.objects.prefetch_related('products'))
     assert order in orders

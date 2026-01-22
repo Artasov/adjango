@@ -6,19 +6,16 @@ from typing import TYPE_CHECKING
 from typing_extensions import Self
 
 if TYPE_CHECKING:
-    from adjango.services.base import ABaseService
+    from adjango.services.base import BaseService
 
 try:
     from asgiref.sync import sync_to_async
-    from polymorphic.models import PolymorphicModel
+    from polymorphic.models import PolymorphicModel as DjangoPolymorphicModel
 
-    from adjango.managers.polymorphic import APolymorphicManager
-    from adjango.models.base import AModel
+    from adjango.models.base import Model
 
-    class APolymorphicModel(PolymorphicModel, AModel):
+    class PolymorphicModel(DjangoPolymorphicModel, Model):
         """Enhanced polymorphic model with service integration."""
-
-        objects: APolymorphicManager[Self] = APolymorphicManager()
 
         class Meta:
             abstract = True
@@ -32,7 +29,7 @@ try:
             return await sync_to_async(self.get_real_instance)()
 
         @property
-        def service(self) -> 'ABaseService':
+        def service(self) -> 'BaseService':
             """Return service instance for this model. Must be implemented in subclasses."""
             raise NotImplementedError(f'Define service property in your model {self.__class__.__name__}')
 

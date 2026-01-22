@@ -194,14 +194,14 @@ class Command(BaseCommand):
 
 from typing import TYPE_CHECKING
 
-from adjango.services.base import ABaseService
+from adjango.services.base import BaseService
 
 
 if TYPE_CHECKING:
     from {app_label}.models import {model}
 
 
-class {model}Service(ABaseService):
+class {model}Service(BaseService):
     def __init__(self, {model_snake}: '{model}') -> None:
         super().__init__({model_snake})
         self.{model_snake} = {model_snake}
@@ -218,13 +218,13 @@ class {model}Service(ABaseService):
 
         return f"""from __future__ import annotations
 
-from adjango.models import AModel
+from adjango.models import Model
 from django.utils.translation import gettext_lazy as _
 
 {service_import}
 
 
-class {model}(AModel):
+class {model}(Model):
     # TODO: add fields
 
     class Meta:

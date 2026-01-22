@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from django.urls import path
 
 from adjango.utils.celery.tasker import Tasker
+from adjango.utils.funcs import aall, afilter, aset
 
 from .models import Order, Product, User
 from .tasks import test_task
@@ -35,15 +36,15 @@ async def view_test_arelated(request):
     roles = await user.roles
 
     pprint(order.user)
-    await order.products.aset([product])
+    await aset(order.products, [product])
     # Get order without related objects
-    orders_ = await Order.objects.afilter(user=request.user)
+    orders_ = await afilter(Order.objects, user=request.user)
     # Asynchronously get related objects.
     order.user = await order.arelated('user')
     order = await Order.objects.aget(user=request.user)
-    products = await order.products.aall()
+    products = await aall(order.products)
     products_qs = order.products.all()
-    orders = await Order.objects.prefetch_related('products').aall()
+    orders = await aall(Order.objects.prefetch_related('products'))
     for o in orders:
         for p in o.products.all():
             print(p.id)

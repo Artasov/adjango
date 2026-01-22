@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ADjango is a comprehensive library that enhances Django development with asynchronous features, Django REST Framework (DRF), and Celery integration. It provides async managers, services, serializers, decorators, and utilities for streamlining Django DRF Celery development.
+ADjango is a comprehensive library that enhances Django development with asynchronous features, Django REST Framework (DRF), and Celery integration. It provides services, serializers, decorators, and utilities for streamlining Django DRF Celery development.
 
 **Key Technologies:**
 - Django 4.2+
@@ -71,23 +71,21 @@ python manage.py newentities order apps.commerce Order,Product
 
 ### Core Components
 
-**1. Async Managers & QuerySets** (`adjango/managers/`, `adjango/querysets/`)
-- `AManager`: Asynchronous Django manager with methods like `aall()`, `afilter()`, `aget()`, `agetorn()`
-- `AQuerySet`: Async queryset supporting async operations
-- `AUserManager`: Async user manager extending Django's UserManager
-- All async methods follow naming pattern: `a<method_name>` (e.g., `aget()`, `acreate()`)
+**1. ORM Async Usage**
+- ADjango does not override Django managers or querysets
+- Use Django's native async ORM methods (`aget`, `acreate`, `afirst`, etc.)
 
 **2. Service Layer** (`adjango/services/`)
-- `ABaseService`: Base class for service layer pattern
+- `BaseService`: Base class for service layer pattern
 - Services are accessed via model's `.service` property
 - Encapsulates business logic separate from models
+- Includes `getorn()` / `agetorn()` helpers for QuerySets
 - Example: `user.service.get_full_name()`
 
 **3. Models** (`adjango/models/`)
-- `AModel`: Base async model with `arelated()` method for loading relations
-- `AAbstractUser`: Async user model base class
-- `APolymorphicModel`: Async polymorphic model support (requires django-polymorphic)
-- Mixins for common fields: `ACreatedAtMixin`, `AUpdatedAtMixin`, `ACreatedUpdatedAtIndexedMixin`
+- `Model`: Base model with `arelated()` method for loading relations
+- `PolymorphicModel`: Polymorphic model support (requires django-polymorphic)
+- Mixins for common fields: `CreatedAtMixin`, `UpdatedAtMixin`, `CreatedUpdatedAtIndexedMixin`
 
 **4. Async Serializers** (`adjango/aserializers.py`)
 - `AModelSerializer`, `ASerializer`, `AListSerializer`: Async DRF serializers
@@ -112,7 +110,7 @@ python manage.py newentities order apps.commerce Order,Product
 - Management commands: `celeryworker`, `celerybeat`, `celerypurge`
 
 **8. Utilities** (`adjango/utils/`)
-- `funcs.py`: Standalone async functions (`aall`, `afilter`, `arelated`, `aset`, `aadd`, `getorn`, `agetorn`)
+- `funcs.py`: Standalone async functions (`aall`, `afilter`, `arelated`, `aset`, `aadd`)
 - `base.py`: `AsyncAtomicContextManager` for async transactions
 - `common.py`: Utility functions like `get_full_name()`, `is_celery()`
 - `mail.py`: Email sending utilities
@@ -173,13 +171,10 @@ adjango/
 ├── aserializers.py      # Async serializers
 ├── decorators.py        # Sync decorators
 ├── serializers.py       # Sync serializer utilities (dynamic_serializer)
-├── fields.py            # Custom fields (AManyToManyField)
 ├── middleware.py        # Middleware classes
 ├── handlers.py          # Exception handlers
 ├── tasks.py             # Celery tasks
 ├── models/              # Model base classes and mixins
-├── managers/            # Async managers
-├── querysets/           # Async querysets
 ├── services/            # Service layer base
 ├── exceptions/          # Exception generators
 ├── utils/               # Utilities
@@ -203,13 +198,13 @@ adjango/
 ### Service Layer Pattern
 ```python
 # Define service
-class UserService(ABaseService):
+class UserService(BaseService):
     def __init__(self, obj: 'User') -> None:
         super().__init__(obj)
         self.user = obj
 
 # Add property to model
-class User(AAbstractUser):
+class User(AbstractUser):
     @property
     def service(self) -> UserService:
         return UserService(self)

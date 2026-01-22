@@ -15,26 +15,14 @@ __author__ = 'xlartas'
 # Lazy imports to avoid Django setup issues
 def __getattr__(name):
     """Lazy import to avoid Django setup issues."""
-    if name == 'AModel':
-        from adjango.models.base import AModel
+    if name == 'Model':
+        from adjango.models.base import Model
 
-        return AModel
-    elif name == 'AAbstractUser':
-        from adjango.models.base import AAbstractUser
+        return Model
+    elif name == 'BaseService':
+        from adjango.services.base import BaseService
 
-        return AAbstractUser
-    elif name == 'AManager':
-        from adjango.managers.base import AManager
-
-        return AManager
-    elif name == 'AUserManager':
-        from adjango.managers.base import AUserManager
-
-        return AUserManager
-    elif name == 'ABaseService':
-        from adjango.services.base import ABaseService
-
-        return ABaseService
+        return BaseService
     elif name == 'controller':
         from adjango.decorators import controller
 
@@ -67,11 +55,8 @@ def __getattr__(name):
 
 
 __all__ = [
-    'AModel',
-    'AAbstractUser',
-    'AManager',
-    'AUserManager',
-    'ABaseService',
+    'Model',
+    'BaseService',
     'controller',
     'acontroller',
     'task',

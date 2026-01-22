@@ -1,15 +1,15 @@
 import pytest
 
-from adjango.models.base import AModel
-from adjango.services.base import ABaseService
+from adjango.models.base import Model
+from adjango.services.base import BaseService
 
 
-class DummyService(ABaseService):
+class DummyService(BaseService):
     def __init__(self, obj):
         super().__init__(obj)
 
 
-class DummyModel(AModel):
+class DummyModel(Model):
     class Meta:
         app_label = 'test_services'
 
@@ -33,7 +33,7 @@ def test_service_property():
 
 
 def test_service_property_not_implemented():
-    class NoServiceModel(AModel):
+    class NoServiceModel(Model):
         class Meta:
             app_label = 'test_services'
 
