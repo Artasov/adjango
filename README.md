@@ -174,8 +174,6 @@ for o in orders:
   ```
 
 
-##### ATextChoices
-
 `ATextChoices` extends Django `TextChoices` with helper method `get_label`.
 
 ```python
