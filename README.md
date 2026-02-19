@@ -117,8 +117,7 @@ class User(AbstractUser):
         return UserService(self)
 
 
-# and u can use with nice type hints:
-user = await User.objects.aget(id=1)
+# and u can use:
 full_name = user.service.get_full_name()
 
 ...
@@ -137,7 +136,6 @@ class Order(Model):
 
 
 # The following is now possible...
-products = await aall(Product.objects.all())
 products = await afilter(Product.objects, name='name')
 # Returns an object or None if not found
 order = await BaseService.agetorn(Order.objects, id=69)  # aget or none
@@ -174,6 +172,27 @@ for o in orders:
     aall, afilter, aset, aadd, arelated
 )
   ```
+
+
+##### ATextChoices
+
+`ATextChoices` extends Django `TextChoices` with helper method `get_label`.
+
+```python
+from adjango.models.choices import ATextChoices
+
+
+class OrderStatus(ATextChoices):
+    NEW = 'new', 'New'
+    PAID = 'paid', 'Paid'
+
+
+OrderStatus.get_label('new')  # 'New'
+OrderStatus.get_label(OrderStatus.PAID)  # 'Paid'
+OrderStatus.get_label('unknown')  # None
+```
+
+`get_label(value)` accepts either enum member or raw value and returns label or `None`.
 
 ### Mixins 🎨
 
@@ -272,10 +291,10 @@ from adjango.exceptions.base import (
 )
 
 # General API exceptions
-raise ApiExceptionGenerator('Специальная ошибка', 500)
-raise ApiExceptionGenerator('Специальная ошибка', 500, 'special_error')
+raise ApiExceptionGenerator('Special error', 500)
+raise ApiExceptionGenerator('Special error', 500, 'special_error')
 raise ApiExceptionGenerator(
-    'Неверные данные',
+    'Wrong data',
     400,
     extra={'field': 'email'}
 )
@@ -285,10 +304,10 @@ from apps.commerce.models import Order
 
 raise ModelApiExceptionGenerator(Order, MAEBV.DoesNotExist)
 raise ModelApiExceptionGenerator(
-    Order
-MAEBV.AlreadyExists,
-code = "order_exists",
-extra = {"id": 123}
+    Order,
+    MAEBV.AlreadyExists,
+    code="order_exists",
+    extra={"id": 123}
 )
 
 # Available exception variants for models:
@@ -349,7 +368,7 @@ async def consultations_completed(request):
     return Response({
         'results': await ConsultationSerializerTier2(
             await aall(
-                request.user.completed_consultations[
+                request.user.service.completed_consultations[
                     (page - 1) * page_size:page * page_size
                 ]
             ),
