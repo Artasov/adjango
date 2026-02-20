@@ -174,23 +174,34 @@ for o in orders:
   ```
 
 
-`ATextChoices` extends Django `TextChoices` with helper method `get_label`.
+`ATextChoices` and `AIntegerChoices` extend Django `TextChoices` / `IntegerChoices`
+with helpers:
+
+- `get_label(value)` -> label or `None`
+- `has_value(value)` -> `bool`
+- `as_dict()` -> `{value: label}`
+- `values` and `labels` are available as standard Django choices attributes.
 
 ```python
-from adjango.models.choices import ATextChoices
+from adjango.models.choices import AIntegerChoices, ATextChoices
 
 
 class OrderStatus(ATextChoices):
     NEW = 'new', 'New'
     PAID = 'paid', 'Paid'
 
+class Priority(AIntegerChoices):
+    LOW = 1, 'Low'
+    HIGH = 2, 'High'
 
 OrderStatus.get_label('new')  # 'New'
 OrderStatus.get_label(OrderStatus.PAID)  # 'Paid'
 OrderStatus.get_label('unknown')  # None
+OrderStatus.has_value('new')  # True
+Priority.as_dict()  # {1: 'Low', 2: 'High'}
+Priority.values  # [1, 2]
+Priority.labels  # ['Low', 'High']
 ```
-
-`get_label(value)` accepts either enum member or raw value and returns label or `None`.
 
 ### Mixins 🎨
 

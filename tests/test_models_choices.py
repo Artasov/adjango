@@ -1,8 +1,8 @@
 # test_models_choices.py
 import pytest
-from django.db.models import TextChoices
+from django.db.models import IntegerChoices, TextChoices
 
-from adjango.models.choices import ATextChoices
+from adjango.models.choices import AChoicesMixin, AIntegerChoices, ATextChoices
 
 
 class TestATextChoices:
@@ -189,3 +189,73 @@ class TestATextChoices:
         choices_list = TestChoices.choices
         expected_choices = [('opt1', 'Option 1'), ('opt2', 'Option 2')]
         assert choices_list == expected_choices
+
+
+class TestAChoicesMixin:
+    def test_mixin_methods_available_on_atextchoices(self):
+        assert issubclass(ATextChoices, AChoicesMixin)
+
+    def test_has_value_for_text_choices(self):
+        class Status(ATextChoices):
+            NEW = 'new', 'New'
+            DONE = 'done', 'Done'
+
+        assert Status.has_value('new') is True
+        assert Status.has_value(Status.DONE) is True
+        assert Status.has_value('missing') is False
+        assert Status.has_value(None) is False
+
+    def test_as_dict_for_text_choices(self):
+        class Status(ATextChoices):
+            NEW = 'new', 'New'
+            DONE = 'done', 'Done'
+
+        assert Status.as_dict() == {'new': 'New', 'done': 'Done'}
+
+    def test_values_and_labels_still_available_from_django_choices(self):
+        class Status(ATextChoices):
+            NEW = 'new', 'New'
+            DONE = 'done', 'Done'
+
+        assert Status.values == ['new', 'done']
+        assert Status.labels == ['New', 'Done']
+
+
+class TestAIntegerChoices:
+    def test_ainteger_choices_inheritance(self):
+        assert issubclass(AIntegerChoices, IntegerChoices)
+        assert issubclass(AIntegerChoices, AChoicesMixin)
+
+    def test_get_label_with_integer_value_and_member(self):
+        class Priority(AIntegerChoices):
+            LOW = 1, 'Low'
+            HIGH = 2, 'High'
+
+        assert Priority.get_label(1) == 'Low'
+        assert Priority.get_label(Priority.HIGH) == 'High'
+        assert Priority.get_label(100) is None
+
+    def test_has_value_for_integer_choices(self):
+        class Priority(AIntegerChoices):
+            LOW = 1, 'Low'
+            HIGH = 2, 'High'
+
+        assert Priority.has_value(1) is True
+        assert Priority.has_value(Priority.HIGH) is True
+        assert Priority.has_value(3) is False
+        assert Priority.has_value('1') is False
+
+    def test_as_dict_for_integer_choices(self):
+        class Priority(AIntegerChoices):
+            LOW = 1, 'Low'
+            HIGH = 2, 'High'
+
+        assert Priority.as_dict() == {1: 'Low', 2: 'High'}
+
+    def test_values_and_labels_still_available_from_django_integer_choices(self):
+        class Priority(AIntegerChoices):
+            LOW = 1, 'Low'
+            HIGH = 2, 'High'
+
+        assert Priority.values == [1, 2]
+        assert Priority.labels == ['Low', 'High']
