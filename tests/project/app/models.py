@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 
 from adjango.models.base import Model
 from adjango.models.choices import ATextChoices
+from adjango.models.mixins import CreatedAtMixin
 from adjango.models.polymorphic import PolymorphicModel
 from adjango.services.base import BaseService
 
@@ -42,7 +43,7 @@ class ProductService(BaseService):
     def is_valid_price(self) -> bool: return True if self.product.price > 0 else False
 
 
-class Product(PolymorphicModel):
+class Product(PolymorphicModel, CreatedAtMixin):
     name = CharField(max_length=100)
     price = DecimalField(max_digits=10, decimal_places=2)
 
