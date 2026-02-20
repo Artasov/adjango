@@ -8,7 +8,7 @@ __all__ = ['AChoicesMixin', 'ATextChoices', 'AIntegerChoices']
 
 class AChoicesMixin:
     @classmethod
-    def get_label(cls, value: Any) -> Optional[str]:
+    def get_label(cls: Any, value: Any) -> Optional[str]:
         """
         Return human-readable label for value or enum member.
         If value is invalid, returns None.
@@ -22,7 +22,7 @@ class AChoicesMixin:
             return None
 
     @classmethod
-    def has_value(cls, value: Any) -> bool:
+    def has_value(cls: Any, value: Any) -> bool:
         """
         Check whether enum has the passed value or enum member.
         """
@@ -36,7 +36,7 @@ class AChoicesMixin:
             return False
 
     @classmethod
-    def as_dict(cls) -> dict[Any, str]:
+    def as_dict(cls: Any) -> dict[Any, str]:
         """
         Return choices as value-to-label mapping.
         """
