@@ -17,16 +17,13 @@ class Role(Model):
 
     name = CharField(max_length=20, unique=True, choices=Variant.choices)
 
-    def __str__(self):
-        return str(self.Variant.get_label(self.name))
+    def __str__(self): return str(self.Variant.get_label(self.name))
 
 
 class UserService(BaseService):
-    def __init__(self, user: 'User') -> None:
-        super().__init__(user)
+    def __init__(self, user: 'User'): self.user = user
 
-    def get_full_name(self) -> str:
-        return f'{self._obj.first_name} {self._obj.last_name}'
+    def get_full_name(self) -> str: return f'{self.user.first_name} {self.user.last_name}'
 
 
 class User(AbstractUser):
@@ -40,9 +37,9 @@ class User(AbstractUser):
 
 
 class ProductService(BaseService):
-    def __init__(self, obj: 'Product'): super().__init__(obj)
+    def __init__(self, product: 'Product'): self.product = product
 
-    def is_valid_price(self) -> bool: return True if self._obj.price > 0 else False
+    def is_valid_price(self) -> bool: return True if self.product.price > 0 else False
 
 
 class Product(PolymorphicModel):
@@ -53,10 +50,6 @@ class Product(PolymorphicModel):
     def service(self) -> ProductService: return ProductService(self)
 
 
-class OrderService(BaseService):
-    def __init__(self, obj: 'Order'): super().__init__(obj)
-
-
 class Post(Model):
     title = CharField(max_length=100)
     content = CharField(max_length=255)
@@ -64,8 +57,5 @@ class Post(Model):
 
 
 class Order(Model):
-    user: User = ForeignKey(User, CASCADE)
+    user = ForeignKey(User, CASCADE)
     products = ManyToManyField(Product)
-
-    @property
-    def service(self) -> OrderService: return OrderService(self)

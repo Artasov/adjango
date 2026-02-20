@@ -13,10 +13,6 @@ _M = TypeVar('_M', bound='DjangoModel')
 class BaseService(ABC):
     """Base service class for model operations."""
 
-    def __init__(self, obj) -> None:
-        """Initialize service with model instance."""
-        self._obj = obj
-
     @staticmethod
     def getorn(
             queryset: "QuerySet[_M]",
