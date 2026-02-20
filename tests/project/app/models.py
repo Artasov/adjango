@@ -5,10 +5,9 @@ from django.db.models import CASCADE, CharField, DecimalField, ForeignKey, ManyT
 from django.utils.translation import gettext_lazy as _
 
 from adjango.models.base import Model
-from adjango.models.mixins import CreatedAtMixin
+from adjango.models.choices import ATextChoices
 from adjango.models.polymorphic import PolymorphicModel
 from adjango.services.base import BaseService
-from models.choices import ATextChoices
 
 
 class Role(Model):
@@ -25,42 +24,37 @@ class Role(Model):
 class UserService(BaseService):
     def __init__(self, user: 'User') -> None:
         super().__init__(user)
-        self.user: 'User' = user
 
     def get_full_name(self) -> str:
-        return f'{self.user.first_name} {self.user.last_name}'
+        return f'{self._obj.first_name} {self._obj.last_name}'
 
 
 class User(AbstractUser):
     phone = CharField(max_length=20, unique=True)
     roles = ManyToManyField('Role', related_name='users', blank=True)
 
-    def __str__(self) -> str:
-        return self.service.get_full_name()
+    def __str__(self) -> str: return self.service.get_full_name()
 
     @property
-    def service(self) -> UserService:
-        return UserService(self)
+    def service(self) -> UserService: return UserService(self)
 
 
 class ProductService(BaseService):
-    def __init__(self, obj: 'Product') -> None:
-        super().__init__(obj)
+    def __init__(self, obj: 'Product'): super().__init__(obj)
+
+    def is_valid_price(self) -> bool: return True if self._obj.price > 0 else False
 
 
-class Product(PolymorphicModel, CreatedAtMixin):
+class Product(PolymorphicModel):
     name = CharField(max_length=100)
     price = DecimalField(max_digits=10, decimal_places=2)
 
     @property
-    def service(self) -> ProductService:
-        return ProductService(self)
+    def service(self) -> ProductService: return ProductService(self)
 
 
 class OrderService(BaseService):
-    def __init__(self, obj: 'Order') -> None:
-        super().__init__(obj)
-        self.order = obj
+    def __init__(self, obj: 'Order'): super().__init__(obj)
 
 
 class Post(Model):
@@ -74,5 +68,4 @@ class Order(Model):
     products = ManyToManyField(Product)
 
     @property
-    def service(self) -> OrderService:
-        return OrderService(self)
+    def service(self) -> OrderService: return OrderService(self)

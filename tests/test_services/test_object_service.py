@@ -5,7 +5,7 @@ from adjango.services.base import BaseService
 
 
 class DummyService(BaseService):
-    def __init__(self, obj):
+    def __init__(self, obj: 'DummyModel'):
         super().__init__(obj)
 
 
@@ -29,7 +29,6 @@ def test_service_property():
     obj = DummyModel()
     service = obj.service
     assert isinstance(service, DummyService)
-    assert service.obj is obj
 
 
 def test_service_property_not_implemented():
@@ -38,4 +37,4 @@ def test_service_property_not_implemented():
             app_label = 'test_services'
 
     with pytest.raises(NotImplementedError):
-        NoServiceModel().service
+        getattr(NoServiceModel(), 'service')

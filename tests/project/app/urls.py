@@ -6,7 +6,6 @@ from django.urls import path
 
 from adjango.utils.celery.tasker import Tasker
 from adjango.utils.funcs import aall, afilter, aset
-
 from .models import Order, Product, User
 from .tasks import test_task
 
@@ -48,9 +47,19 @@ async def view_test_arelated(request):
     for o in orders:
         for p in o.products.all():
             print(p.id)
+    return HttpResponse(f'ok: {len(orders_)} {len(products)}')
+
+
+async def view_test_service(_):
+    product, _ = await Product.objects.aget_or_create(name='TEST1', price=100)
+    if product.service.is_valid_price():
+        return HttpResponse('Price is valid')
+    else:
+        return HttpResponse('Price is invalid')
 
 
 urlpatterns = [
-    path('', view),
-    path('view_test_arelated/', view_test_arelated),
+    path('view_task_test', view),
+    path('view_test_service', view_test_service),
+    path('view_test_arelated', view_test_arelated),
 ]
