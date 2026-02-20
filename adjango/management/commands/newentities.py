@@ -203,7 +203,6 @@ if TYPE_CHECKING:
 
 class {model}Service(BaseService):
     def __init__(self, {model_snake}: '{model}') -> None:
-        super().__init__({model_snake})
         self.{model_snake} = {model_snake}
 """
 

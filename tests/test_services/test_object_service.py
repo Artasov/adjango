@@ -6,7 +6,7 @@ from adjango.services.base import BaseService
 
 class DummyService(BaseService):
     def __init__(self, obj: 'DummyModel'):
-        super().__init__(obj)
+        self._obj = obj
 
 
 class DummyModel(Model):

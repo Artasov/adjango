@@ -101,7 +101,6 @@ if TYPE_CHECKING:
 
 class UserService(BaseService):
     def __init__(self, obj: 'User') -> None:
-        super().__init__(obj)
         self.user = obj
 
     def get_full_name(self) -> str:
