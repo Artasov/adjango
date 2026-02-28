@@ -208,7 +208,8 @@ Priority.labels  # ['Low', 'High']
 from adjango.models.mixins import (
     CreatedAtMixin, CreatedAtIndexedMixin, CreatedAtEditableMixin,
     UpdatedAtMixin, UpdatedAtIndexedMixin,
-    CreatedUpdatedAtMixin, CreatedUpdatedAtIndexedMixin
+    CreatedUpdatedAtMixin, CreatedUpdatedAtIndexedMixin,
+    FileCleanupMixin,
 )
 
 
@@ -218,6 +219,24 @@ class EventProfile(CreatedUpdatedAtIndexedMixin):
     @property
     def service(self) -> EventProfileService:
         return EventProfileService(self)
+
+
+class Product(FileCleanupMixin):
+    image = ImageField(upload_to='products/')
+    manual = FileField(upload_to='manuals/')
+    preview = ImageField(upload_to='previews/')
+    contract = FileField(upload_to='contracts/')
+
+    FILE_CLEANUP = {
+        '*': {'on_replace': True, 'on_delete': True},  # default for all file/image fields
+        'preview': {'on_replace': False},              # keep old file on replace
+        'contract': False,                             # disable cleanup for this field
+        'image': True,                                 # short form: both True
+    }
+
+# Short forms:
+# FILE_CLEANUP = True   -> cleanup for all file/image fields
+# FILE_CLEANUP = False  -> disable cleanup entirely
 ```
 
 ### Decorators 🎀
